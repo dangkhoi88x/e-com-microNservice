@@ -1,0 +1,20 @@
+spring:
+
+  datasource:
+    url: jdbc:postgresql://postgresql:5432/identity-service
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: 123456
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+jwt:
+  secret-key: ${JWT_SECRET}
+  audience: ${JWT_AUDIENCE}

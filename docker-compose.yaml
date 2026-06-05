@@ -1,0 +1,29 @@
+services:
+  redis:
+    image: redis:8.6.2
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - microservice_network
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+    volumes:
+      - mongo-data:/data
+    networks:
+      - microservice_network
+
+volumes:
+  redis-data:
+  mongo-data:
+networks:
+  microservice_network:
