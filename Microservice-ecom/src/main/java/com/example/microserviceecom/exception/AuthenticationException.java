@@ -3,11 +3,11 @@ package com.example.microserviceecom.exception;
 import lombok.Getter;
 
 @Getter
-public class AppException extends RuntimeException {
+public class AuthenticationException extends RuntimeException {
 
     private final ErrorCode errorCode;
 
-    public AppException(ErrorCode errorCode) {
+    public AuthenticationException(ErrorCode errorCode) {
         super(errorCode.getMessage());
         this.errorCode = errorCode;
     }

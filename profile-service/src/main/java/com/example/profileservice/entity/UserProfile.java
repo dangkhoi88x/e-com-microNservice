@@ -1,10 +1,7 @@
 package com.example.profileservice.entity;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
@@ -15,16 +12,18 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class UserProfile {
 
     @MongoId
     private String id;
     @NotBlank
-    private String userID;
+    private String userId;
     @NotBlank
     private String firstName;
     @NotBlank
     private String lastName;
+    private String avatarUrl;
     private String bio;
     private LocalDate birthDate;
 

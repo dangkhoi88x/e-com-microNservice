@@ -18,3 +18,7 @@ spring:
 jwt:
   secret-key: ${JWT_SECRET}
   audience: ${JWT_AUDIENCE}
+
+services:
+  user-profile:
+    url: http://localhost:8081

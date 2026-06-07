@@ -1,14 +1,13 @@
 package com.example.profileservice.exception;
 
-import com.example.microserviceecom.exception.ErrorCode;
 import lombok.Getter;
 
 @Getter
-public class AppException extends RuntimeException {
+public class ProfileServiceException extends RuntimeException {
 
     private final ErrorCode errorCode;
 
-    public AppException(ErrorCode errorCode) {
+    public ProfileServiceException(ErrorCode errorCode) {
         super(errorCode.getMessage());
         this.errorCode = errorCode;
     }

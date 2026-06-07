@@ -6,7 +6,7 @@ import com.example.microserviceecom.dto.request.AuthenticationRequest;
 import com.example.microserviceecom.dto.response.AuthenticationResponse;
 import com.example.microserviceecom.entity.Token;
 import com.example.microserviceecom.entity.User;
-import com.example.microserviceecom.exception.AppException;
+import com.example.microserviceecom.exception.AuthenticationException;
 import com.example.microserviceecom.exception.ErrorCode;
 import com.example.microserviceecom.repository.UserRepository;
 import com.nimbusds.jose.JOSEException;
@@ -65,14 +65,14 @@ public class AuthenticationService {
 
     public AuthenticationResponse refreshToken(String refreshToken) {
         if(refreshToken == null) {
-            throw new AppException(ErrorCode.MISSING_REFRESH_TOKEN);
+            throw new AuthenticationException(ErrorCode.MISSING_REFRESH_TOKEN);
         }
 
         try {
             SignedJWT signedJWT = SignedJWT.parse(refreshToken);
             boolean isValid = signedJWT.verify(new MACVerifier(secretKey));
             if(!isValid) {
-                throw new AppException(ErrorCode.UNAUTHORIZED);
+                throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
             }
 
             var userId = signedJWT.getJWTClaimsSet().getSubject();
@@ -80,7 +80,7 @@ public class AuthenticationService {
 
             Token token = tokenService.findByJti(jti);
             if(token == null)
-                throw new AppException(ErrorCode.UNAUTHORIZED);
+                throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
 
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User does not exist"));
@@ -94,7 +94,7 @@ public class AuthenticationService {
                     .accessToken(accessToken)
                     .build();
         }catch (ParseException | JOSEException e) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
         }
     }
 

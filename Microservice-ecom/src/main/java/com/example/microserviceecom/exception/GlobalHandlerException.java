@@ -22,8 +22,8 @@ public class GlobalHandlerException {
 
     private final MessageSource messageSource;
 
-    @ExceptionHandler(AppException.class)
-    public ResponseEntity<ErrorResponse> handleAppException(AppException e, WebRequest request, Locale locale) {
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAppException(AuthenticationException e, WebRequest request, Locale locale) {
         ErrorCode errorCode = e.getErrorCode();
 
         String message = messageSource.getMessage(errorCode.getMessage(), null, locale);

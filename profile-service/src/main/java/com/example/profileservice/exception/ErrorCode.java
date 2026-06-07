@@ -8,10 +8,10 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
 
-    USER_EXISTED(409, "user.existed", HttpStatus.CONFLICT),
-    USER_NOT_FOUND(404, "User not found", HttpStatus.NOT_FOUND),
+
     UNAUTHORIZED(401, "Unauthorized", HttpStatus.UNAUTHORIZED),
-    MISSING_REFRESH_TOKEN(401, "Missing refresh token", HttpStatus.UNAUTHORIZED),
+    USER_PROFILE_EXISTED(402, "User Profile Existed", HttpStatus.FORBIDDEN),
+    USER_NOT_FOUND(404, "User Not Found", HttpStatus.NOT_FOUND),
     ;
 
     private final int code;
