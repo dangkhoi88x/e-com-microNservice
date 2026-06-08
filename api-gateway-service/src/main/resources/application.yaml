@@ -1,0 +1,16 @@
+
+
+spring:
+  application:
+    name: api-gateway-service
+server:
+  port: 9191
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
