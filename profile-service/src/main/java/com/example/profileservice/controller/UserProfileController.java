@@ -1,9 +1,8 @@
 package com.example.profileservice.controller;
 
-import com.example.profileservice.dto.req.CreateUserProfileRequest;
+import com.example.profileservice.dto.req.UpdateMyProfileRequest;
 import com.example.profileservice.dto.res.ApiResponse;
 import com.example.profileservice.dto.res.UserProfileResponse;
-import com.example.profileservice.entity.UserProfile;
 import com.example.profileservice.service.UserProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,15 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/user-profile")
 public class UserProfileController {
         private final UserProfileService userProfileService;
-    @PostMapping
-    ApiResponse<Void> createUserProfile(@RequestBody @Valid CreateUserProfileRequest request) {
-         userProfileService.create(request);
-          return ApiResponse.<Void>builder()
-                  .status(HttpStatus.CREATED.value())
-                  .message("Profile created successfully")
-                  .build();
 
-    }
     @GetMapping("/me")
     ApiResponse<UserProfileResponse> myInfo(@AuthenticationPrincipal Jwt jwt) {
     var userId= jwt.getSubject();
@@ -37,5 +28,19 @@ public class UserProfileController {
                 .build();
 
 
+    }
+    @PutMapping("/me")
+    ApiResponse<UserProfileResponse> updateMyProfile(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid UpdateMyProfileRequest request
+    ) {
+        var userId = jwt.getSubject();
+        var data = userProfileService.updateMyProfile(userId, request);
+
+        return ApiResponse.<UserProfileResponse>builder()
+                .status(HttpStatus.OK.value())
+                .message("Profile updated successfully")
+                .data(data)
+                .build();
     }
 }

@@ -1,6 +1,7 @@
 package com.example.profileservice.service;
 
-import com.example.profileservice.dto.req.CreateUserProfileRequest;
+import com.example.event.UserCreatedEvent;
+import com.example.profileservice.dto.req.UpdateMyProfileRequest;
 import com.example.profileservice.dto.res.UserProfileResponse;
 import com.example.profileservice.entity.UserProfile;
 import com.example.profileservice.exception.ErrorCode;
@@ -16,19 +17,25 @@ import org.springframework.stereotype.Service;
 public class UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
-    public void create(CreateUserProfileRequest request) {
-        if(userProfileRepository.existsByUserId(request.userId())) {
-           throw new ProfileServiceException(ErrorCode.USER_PROFILE_EXISTED);
+
+    public void createFromEvent(UserCreatedEvent event) {
+        if (userProfileRepository.existsByUserId(event.getUserId())) {
+            log.info("User profile already exists for userId={}", event.getUserId());
+            return;
         }
+
         UserProfile userProfile = UserProfile.builder()
-                .userId(request.userId())
-                .firstName(request.firstName())
-                .lastName(request.lastName())
+                .userId(event.getUserId())
+                .firstName(event.getFirstName())
+                .lastName(event.getLastName())
                 .build();
 
         userProfileRepository.save(userProfile);
+
+        log.info("Created user profile successfully: userId={}", event.getUserId());
     }
-        public UserProfileResponse myInfo(String userId) {
+
+    public UserProfileResponse myInfo(String userId) {
 
         UserProfile userProfile= userProfileRepository.findByUserId(userId)
                 .orElseThrow(()-> new ProfileServiceException(ErrorCode.USER_NOT_FOUND));
@@ -41,5 +48,23 @@ public class UserProfileService {
             .birthDate(userProfile.getBirthDate())
             .build();
         }
+    public UserProfileResponse updateMyProfile(String userId, UpdateMyProfileRequest request) {
+        UserProfile userProfile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(()-> new ProfileServiceException(ErrorCode.USER_NOT_FOUND));
+        userProfile.setFirstName(request.firstName());
+        userProfile.setLastName(request.lastName());
+        userProfile.setAvatarUrl(request.avatarUrl());
+        userProfile.setBio(request.bio());
+        userProfile.setBirthDate(request.birthDate());
+        UserProfile savedProfile = userProfileRepository.save(userProfile);
 
+        return UserProfileResponse.builder()
+                .userId(savedProfile.getUserId())
+                .firstName(savedProfile.getFirstName())
+                .lastName(savedProfile.getLastName())
+                .avatarUrl(savedProfile.getAvatarUrl())
+                .bio(savedProfile.getBio())
+                .birthDate(savedProfile.getBirthDate())
+                .build();
+    }
 }

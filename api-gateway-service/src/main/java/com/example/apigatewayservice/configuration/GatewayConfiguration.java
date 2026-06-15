@@ -14,10 +14,10 @@ public class GatewayConfiguration {
                 .route("identity-service", r -> r.path("/identity/**")
                         .filters(f -> f.stripPrefix(1)
                                 .prefixPath("/identity/api"))
-                        .uri("http://localhost:8080"))
+                        .uri("lb://IDENTITY-SERVICE"))
                 .route("profile-service", r -> r.path("/profile/**")
                         .filters(f -> f.stripPrefix(1))
-                        .uri("http://localhost:8081"))
+                        .uri("lb://PROFILE-SERVICE"))
                 .build();
     }
 

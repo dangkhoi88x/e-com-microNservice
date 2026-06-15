@@ -14,3 +14,11 @@ management:
     web:
       exposure:
         include: health,info,gateway
+
+# Thêm Eureka config
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/

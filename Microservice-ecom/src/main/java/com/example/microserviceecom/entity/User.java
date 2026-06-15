@@ -29,11 +29,6 @@ public class User extends BaseEntity implements UserDetails {
     @JsonIgnore
     private String password;
 
-    @Column(nullable = false)
-    private String firstName;
-
-    @Column(nullable = false)
-    private String lastName;
 
     @Enumerated(EnumType.STRING)
     private UserStatus status;
@@ -69,7 +64,7 @@ public class User extends BaseEntity implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.firstName + " " + this.lastName;
+        return this.email;
     }
 
     @Override
