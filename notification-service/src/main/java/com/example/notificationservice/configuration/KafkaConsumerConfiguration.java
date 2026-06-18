@@ -1,4 +1,4 @@
-package com.example.profileservice.configuration;
+package com.example.notificationservice.configuration;
 
 import com.example.event.UserCreatedEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -26,7 +26,7 @@ public class KafkaConsumerConfiguration {
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "user-profile-group");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "notification-group");
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         config.put(JacksonJsonDeserializer.TRUSTED_PACKAGES, "*");
 

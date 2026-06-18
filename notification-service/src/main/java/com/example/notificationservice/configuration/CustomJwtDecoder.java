@@ -1,4 +1,4 @@
-package com.example.profileservice.configuration;
+package com.example.notificationservice.configuration;
 
 import com.nimbusds.jwt.SignedJWT;
 import org.springframework.security.oauth2.jwt.*;

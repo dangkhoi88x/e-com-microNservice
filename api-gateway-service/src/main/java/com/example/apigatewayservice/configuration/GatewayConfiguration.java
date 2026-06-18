@@ -18,6 +18,9 @@ public class GatewayConfiguration {
                 .route("profile-service", r -> r.path("/profile/**")
                         .filters(f -> f.stripPrefix(1))
                         .uri("lb://PROFILE-SERVICE"))
+                .route("notification-service", r -> r.path("/notification/**")
+                        .filters(f -> f.stripPrefix(1))
+                        .uri("lb://NOTIFICATION-SERVICE"))
                 .build();
     }
 

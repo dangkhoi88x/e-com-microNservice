@@ -1,4 +1,4 @@
-package com.example.profileservice.exception;
+package com.example.notificationservice.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -10,8 +10,8 @@ public enum ErrorCode {
 
 
     UNAUTHORIZED(401, "Unauthorized", HttpStatus.UNAUTHORIZED),
-    USER_PROFILE_EXISTED(402, "User Profile Existed", HttpStatus.FORBIDDEN),
-    USER_NOT_FOUND(404, "User Not Found", HttpStatus.NOT_FOUND),
+    NOTIFICATION_NOT_FOUND(404, "Notification Not Found", HttpStatus.NOT_FOUND),
+    NOTIFICATION_ACCESS_DENIED(403, "Notification Access Denied", HttpStatus.FORBIDDEN),
     ;
 
     private final int code;

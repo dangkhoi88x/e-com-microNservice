@@ -1,4 +1,4 @@
-package com.example.profileservice.exception;
+package com.example.notificationservice.exception;
 
 import lombok.*;
 

@@ -1,4 +1,5 @@
-package com.example.profileservice.exception;
+
+package com.example.notificationservice.exception;
 
 import lombok.RequiredArgsConstructor;
 
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import java.util.List;
-import java.util.Locale;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -22,7 +22,7 @@ public class GlobalHandlerException {
 
 
     @ExceptionHandler(ProfileServiceException.class)
-    public ResponseEntity<ErrorResponse> handleAppException(ProfileServiceException e, WebRequest request, Locale locale) {
+    public ResponseEntity<ErrorResponse> handleAppException(ProfileServiceException e, WebRequest request) {
         ErrorCode errorCode = e.getErrorCode();
 
 
