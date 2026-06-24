@@ -23,7 +23,7 @@ public class NotificationService {
         Notification notification = Notification.builder()
                 .userId(event.getUserId())
                 .title("Welcome")
-                .message("Welcome " + event.getFirstName() + " " + event.getLastName())
+                .message("Welcome " + event.getFirstName() + " " + event.getLastName()+ " " + event.getEmail() )
                 .type(NotificationType.USER_CREATED)
                 .build();
 

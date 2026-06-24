@@ -43,6 +43,7 @@ public class UserService {
     log.info("User created successfully: {}", user.getId());
         UserCreatedEvent userCreatedEvent = UserCreatedEvent.builder()
                 .userId(user.getId())
+                .email(request.getEmail())
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .build();
@@ -54,7 +55,11 @@ public class UserService {
             log.info("Event sent to topic");
 
         });
-    return UserMapper.INSTANCE.toCreateUserResponse(user);
+        var response = UserMapper.INSTANCE.toCreateUserResponse(user);
+        response.setFirstName(request.getFirstName());
+        response.setLastName(request.getLastName());
+
+    return response;
     }
 
 

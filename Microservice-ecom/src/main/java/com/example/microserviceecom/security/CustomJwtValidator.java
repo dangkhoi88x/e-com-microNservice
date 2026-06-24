@@ -16,7 +16,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomJwtValidator implements OAuth2TokenValidator<Jwt> {
 
-
+    //ktra them Token này có phải ACCESS token không
+    //Token này đã bị logout chưa
 
     private final TokenRepository tokenRepository;
 

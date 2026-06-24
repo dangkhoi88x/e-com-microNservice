@@ -1,11 +1,14 @@
 package com.example.microserviceecom.controller;
 
 import com.example.microserviceecom.dto.request.AuthenticationRequest;
+import com.example.microserviceecom.dto.request.IntrospecRequest;
 import com.example.microserviceecom.dto.response.ApiResponse;
 import com.example.microserviceecom.dto.response.AuthenticationResponse;
+import com.example.microserviceecom.dto.response.IntrospectResponse;
 import com.example.microserviceecom.service.AuthenticationService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -65,4 +68,14 @@ public class AuthenticationController {
                 .message("Logout successful")
                 .build();
     }
+    @PostMapping("/token/introspect")
+    public ApiResponse<IntrospectResponse> introspection(@RequestBody @Valid IntrospecRequest request) {
+        var data = authenticationService.introspect(request);
+        return ApiResponse.<IntrospectResponse>builder()
+                .status(HttpStatus.OK.value())
+                .message("Refresh Token success")
+                .data(data)
+                .build();
+    }
+
 }

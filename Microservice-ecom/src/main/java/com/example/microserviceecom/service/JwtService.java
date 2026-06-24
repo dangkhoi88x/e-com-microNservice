@@ -2,6 +2,11 @@ package com.example.microserviceecom.service;
 
 import com.example.microserviceecom.common.TokenType;
 import com.example.microserviceecom.dto.TokenPayload;
+import com.example.microserviceecom.exception.AuthenticationException;
+import com.example.microserviceecom.exception.ErrorCode;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,8 +14,10 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +25,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class JwtService {
-
+    @Value("${jwt.secret-key}")
+    private String secretKey;
 
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
@@ -91,6 +99,20 @@ public class JwtService {
                 .expiration(expiration)
                 .build();
     }
+
+    public SignedJWT verifyAccessToken(String token) throws ParseException, JOSEException {
+      SignedJWT signedJWT = SignedJWT.parse(token);
+      boolean isValid = signedJWT.verify(new MACVerifier(secretKey));
+      if(!isValid) {
+          throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+      }
+      Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+      if(expirationTime.before(new Date())) {
+          throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+      }
+      return signedJWT;
+    }
+
 
     private List<String> extractRoles(Object claimRoles) {
         if(claimRoles == null)

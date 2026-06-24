@@ -1,15 +1,13 @@
 package com.example.event;
 
 import lombok.*;
-import org.springframework.stereotype.Service;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder
-public class UserCreatedEvent {
-    private String userId;
+public class UserProfileCreatedEvent {
     private String email;
     private String firstName;
     private String lastName;

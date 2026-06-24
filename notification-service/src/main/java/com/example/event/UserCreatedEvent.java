@@ -9,6 +9,7 @@ import lombok.*;
 @Builder
 public class UserCreatedEvent {
     private String userId;
+    private String email;
     private String firstName;
     private String lastName;
 }

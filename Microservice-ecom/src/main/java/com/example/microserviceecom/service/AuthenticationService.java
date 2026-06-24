@@ -3,7 +3,9 @@ package com.example.microserviceecom.service;
 import com.example.microserviceecom.common.TokenType;
 import com.example.microserviceecom.dto.TokenPayload;
 import com.example.microserviceecom.dto.request.AuthenticationRequest;
+import com.example.microserviceecom.dto.request.IntrospecRequest;
 import com.example.microserviceecom.dto.response.AuthenticationResponse;
+import com.example.microserviceecom.dto.response.IntrospectResponse;
 import com.example.microserviceecom.entity.Token;
 import com.example.microserviceecom.entity.User;
 import com.example.microserviceecom.exception.AuthenticationException;
@@ -108,5 +110,19 @@ public class AuthenticationService {
             log.error("Invalid token: {}", e.getMessage());
         }
     }
+    public IntrospectResponse introspect(IntrospecRequest request){
+        try {
+            SignedJWT signedJWT = jwtService.verifyAccessToken(request.getToken());
+            String userId = signedJWT.getJWTClaimsSet().getSubject();
+            return IntrospectResponse.builder()
+                    .userId(userId)
+                    .isValid(true)
+                    .build();
+        } catch (ParseException  | JOSEException |AuthenticationException e) {
+            return IntrospectResponse.builder()
+                    .isValid(false)
+                    .build();
+        }
 
+    }
 }

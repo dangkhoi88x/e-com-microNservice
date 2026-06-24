@@ -1,22 +1,35 @@
 package com.example.notificationservice.messaging.consumer;
 
-import com.example.event.UserCreatedEvent;
-import com.example.notificationservice.service.NotificationService;
+import com.example.event.UserProfileCreatedEvent;
+import com.example.notificationservice.service.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j(topic = "USER-CREATED-NOTIFICATION-CONSUMER")
 
 public class UserCreatedConsumer {
-    private final NotificationService notificationService;
+    private final MailService mailService;
 
-    @KafkaListener(topics = "created-user-topic", groupId = "notification-group")
-    public void handleUserCreated(UserCreatedEvent event) {
-        log.info("Received UserCreatedEvent for notification: userId={}", event.getUserId());
-        notificationService.createNotificationWelcome(event);
+    @KafkaListener(topics = "created-profile-created", groupId = "notification-group")
+    public void userProfileCreated(UserProfileCreatedEvent event) {
+        if (!StringUtils.hasText(event.getEmail())) {
+            log.warn("Skip welcome email because profile-created event has no email: firstName={}, lastName={}",
+                    event.getFirstName(),
+                    event.getLastName());
+            return;
+        }
+
+        String fullName = event.getFirstName() + " " + event.getLastName();
+        mailService.sendEmailWithTemplate(
+                event.getEmail(),
+                fullName,
+                "Chao mung ban den voi Thue Xe Tu Lai",
+                "welcome-gmail"
+        );
     }
 }
