@@ -19,10 +19,10 @@ public class UserProfileController {
 
     @GetMapping("/me")
     ApiResponse<UserProfileResponse> myInfo(@AuthenticationPrincipal Jwt jwt) {
-    var userId= jwt.getSubject();
-    var data = userProfileService.myInfo(userId);
+        var userId= jwt.getSubject();
+        var data = userProfileService.myInfo(userId);
         return ApiResponse.<UserProfileResponse>builder()
-                .status(HttpStatus.CREATED.value())
+                .status(HttpStatus.OK.value())
                 .message("My Info successfully")
                 .data(data)
                 .build();

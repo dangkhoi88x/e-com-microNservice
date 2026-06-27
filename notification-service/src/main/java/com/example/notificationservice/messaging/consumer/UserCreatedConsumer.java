@@ -2,6 +2,7 @@ package com.example.notificationservice.messaging.consumer;
 
 import com.example.event.UserProfileCreatedEvent;
 import com.example.notificationservice.service.MailService;
+import com.example.notificationservice.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -14,6 +15,7 @@ import org.springframework.util.StringUtils;
 
 public class UserCreatedConsumer {
     private final MailService mailService;
+    private final NotificationService notificationService;
 
     @KafkaListener(topics = "created-profile-created", groupId = "notification-group")
     public void userProfileCreated(UserProfileCreatedEvent event) {
@@ -23,6 +25,8 @@ public class UserCreatedConsumer {
                     event.getLastName());
             return;
         }
+
+        notificationService.createNotificationWelcome(event);
 
         String fullName = event.getFirstName() + " " + event.getLastName();
         mailService.sendEmailWithTemplate(

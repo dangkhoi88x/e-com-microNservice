@@ -102,11 +102,16 @@ public class AuthenticationService {
 
     public void logout(String accessToken, String refreshToken) {
         try {
-            var payloadAccess = jwtService.validateToken(accessToken, TokenType.ACCESS);
-            var payloadRefresh = jwtService.validateToken(refreshToken, TokenType.REFRESH);
-            tokenService.saveToken(payloadAccess.jti(), payloadAccess.userId(), payloadAccess.expiration());
-            tokenService.deleteToken(payloadRefresh.jti());
-        } catch (JwtException e) {
+            SignedJWT accessJwt = jwtService.verifyAccessToken(accessToken);
+            SignedJWT refreshJwt = jwtService.verifyRefreshToken(refreshToken);
+
+            tokenService.saveToken(
+                    accessJwt.getJWTClaimsSet().getJWTID(),
+                    accessJwt.getJWTClaimsSet().getSubject(),
+                    accessJwt.getJWTClaimsSet().getExpirationTime().toInstant()
+            );
+            tokenService.deleteToken(refreshJwt.getJWTClaimsSet().getJWTID());
+        } catch (JwtException | ParseException | JOSEException e) {
             log.error("Invalid token: {}", e.getMessage());
         }
     }

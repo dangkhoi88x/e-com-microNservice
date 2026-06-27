@@ -3,8 +3,7 @@ package com.example.profileservice.messaing.consumer;
 
 import com.example.event.UserCreatedEvent;
 import com.example.event.UserProfileCreatedEvent;
-import com.example.profileservice.entity.UserProfile;
-import com.example.profileservice.repository.UserProfileRepository;
+import com.example.profileservice.service.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -15,20 +14,20 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j(topic = "USER-PROFILE-CONSUMER")
 public class UserProfileConsumer {
-    private final UserProfileRepository userProfileRepository;
+    private final UserProfileService userProfileService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
 
     @KafkaListener(topics = "created-user-topic",groupId = "user-profile-group")
     public void userCreatedEvent(UserCreatedEvent event) {
         try {
-            UserProfile userProfile = UserProfile.builder()
-                    .userId(event.getUserId())
-                    .firstName(event.getFirstName())
-                    .lastName(event.getLastName())
-                    .build();
-            userProfileRepository.save(userProfile);
+            boolean created = userProfileService.createFromEvent(event);
+            if (!created) {
+                return;
+            }
+
             UserProfileCreatedEvent profileCreatedEvent = UserProfileCreatedEvent.builder()
+                    .userId(event.getUserId())
                     .email(event.getEmail())
                     .firstName(event.getFirstName())
                     .lastName(event.getLastName())

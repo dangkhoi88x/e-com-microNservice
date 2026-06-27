@@ -1,0 +1,25 @@
+meta {
+  name: 03 Get Category By Id
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{productBaseUrl}}/api/v1/categories/{{categoryId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("status is 200 OK", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("returns selected category", function () {
+    expect(res.body.data.id).to.equal(bru.getEnvVar("categoryId"));
+  });
+}

@@ -1,0 +1,21 @@
+meta {
+  name: 08 Delete Category
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{productBaseUrl}}/api/v1/categories/{{categoryId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("status is 204 No Content", function () {
+    expect(res.status).to.equal(204);
+  });
+}

@@ -18,10 +18,10 @@ public class UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
 
-    public void createFromEvent(UserCreatedEvent event) {
+    public boolean createFromEvent(UserCreatedEvent event) {
         if (userProfileRepository.existsByUserId(event.getUserId())) {
             log.info("User profile already exists for userId={}", event.getUserId());
-            return;
+            return false;
         }
 
         UserProfile userProfile = UserProfile.builder()
@@ -33,6 +33,7 @@ public class UserProfileService {
         userProfileRepository.save(userProfile);
 
         log.info("Created user profile successfully: userId={}", event.getUserId());
+        return true;
     }
 
     public UserProfileResponse myInfo(String userId) {

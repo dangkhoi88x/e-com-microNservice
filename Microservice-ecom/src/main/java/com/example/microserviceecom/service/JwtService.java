@@ -30,6 +30,7 @@ public class JwtService {
 
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
+    private final TokenService tokenService;
 
     public String generateAccessToken(String userId, List<String> roles) {
         // Header
@@ -101,19 +102,53 @@ public class JwtService {
     }
 
     public SignedJWT verifyAccessToken(String token) throws ParseException, JOSEException {
-      SignedJWT signedJWT = SignedJWT.parse(token);
-      boolean isValid = signedJWT.verify(new MACVerifier(secretKey));
-      if(!isValid) {
-          throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
-      }
-      Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-      if(expirationTime.before(new Date())) {
-          throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
-      }
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        boolean isValid = signedJWT.verify(new MACVerifier(secretKey));
+        if (!isValid) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+        }
+
+        Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        if (expirationTime == null || expirationTime.before(new Date())) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+        }
 
         TokenType type = TokenType.valueOf(signedJWT.getJWTClaimsSet().getClaim("typ").toString());
-      if(type == TokenType.ACCESS) {}
-      return signedJWT;
+        if (type != TokenType.ACCESS) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+        }
+
+        String jti = signedJWT.getJWTClaimsSet().getJWTID();
+        if (tokenService.findByJti(jti) != null) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+        }
+
+        return signedJWT;
+    }
+
+    public SignedJWT verifyRefreshToken(String token) throws ParseException, JOSEException {
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        boolean isValid = signedJWT.verify(new MACVerifier(secretKey));
+        if (!isValid) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+        }
+
+        Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        if (expirationTime == null || expirationTime.before(new Date())) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+        }
+
+        TokenType type = TokenType.valueOf(signedJWT.getJWTClaimsSet().getClaim("typ").toString());
+        if (type != TokenType.REFRESH) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+        }
+
+        String jti = signedJWT.getJWTClaimsSet().getJWTID();
+        if (tokenService.findByJti(jti) == null) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+        }
+
+        return signedJWT;
     }
 
 

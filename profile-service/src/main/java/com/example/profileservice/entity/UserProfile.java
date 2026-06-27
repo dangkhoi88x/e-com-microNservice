@@ -2,6 +2,7 @@ package com.example.profileservice.entity;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
@@ -18,6 +19,7 @@ public class UserProfile {
     @MongoId
     private String id;
     @NotBlank
+    @Indexed(unique = true)
     private String userId;
     @NotBlank
     private String firstName;

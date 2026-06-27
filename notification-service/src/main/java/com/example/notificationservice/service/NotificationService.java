@@ -1,6 +1,6 @@
 package com.example.notificationservice.service;
 
-import com.example.event.UserCreatedEvent;
+import com.example.event.UserProfileCreatedEvent;
 import com.example.notificationservice.common.NotificationType;
 import com.example.notificationservice.dto.res.NotificationResponse;
 import com.example.notificationservice.entity.Notification;
@@ -19,7 +19,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
 
-    public void createNotificationWelcome(UserCreatedEvent event){
+    public void createNotificationWelcome(UserProfileCreatedEvent event){
         Notification notification = Notification.builder()
                 .userId(event.getUserId())
                 .title("Welcome")

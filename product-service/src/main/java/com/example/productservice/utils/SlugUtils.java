@@ -9,7 +9,9 @@ public class SlugUtils {
             return "";
         }
 
-        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replace("đ", "d")
+                .replace("Đ", "D");
 
         return normalized
                 .replaceAll("\\p{M}", "")

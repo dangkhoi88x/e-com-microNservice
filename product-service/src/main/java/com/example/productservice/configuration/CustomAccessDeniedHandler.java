@@ -26,7 +26,6 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
                        @NonNull HttpServletResponse response,
                        @NonNull AccessDeniedException accessDeniedException) throws IOException, ServletException {
         ErrorCode errorCode = ErrorCode.FORBIDDEN;
-
         response.setStatus(errorCode.getCode());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
