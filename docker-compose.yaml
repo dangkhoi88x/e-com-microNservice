@@ -1,4 +1,32 @@
 services:
+  product-postgres:
+    image: postgres:17
+    container_name: product-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - product-postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservice_network
+
+  identity-postgres:
+    image: postgres:17
+    container_name: identity-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: identity-service
+      POSTGRES_USER: dank
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - identity-postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservice_network
+
   redis:
     image: redis:8.6.2
     container_name: redis
@@ -63,6 +91,8 @@ services:
       - microservice_network
 
 volumes:
+  product-postgres-data:
+  identity-postgres-data:
   redis-data:
   mongo-data:
   kafka-data:

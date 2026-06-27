@@ -110,6 +110,9 @@ public class JwtService {
       if(expirationTime.before(new Date())) {
           throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
       }
+
+        TokenType type = TokenType.valueOf(signedJWT.getJWTClaimsSet().getClaim("typ").toString());
+      if(type == TokenType.ACCESS) {}
       return signedJWT;
     }
 

@@ -1,12 +1,16 @@
-package com.example.notificationservice.configuration;
+package com.example.microserviceecom.configuration;
 
 import com.nimbusds.jwt.SignedJWT;
-import org.springframework.security.oauth2.jwt.*;
-import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 
 import java.text.ParseException;
 
-@Component
+@Configuration
+@RequiredArgsConstructor
 public class CustomJwtDecoder implements JwtDecoder {
 
 

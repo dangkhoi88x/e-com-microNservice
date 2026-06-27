@@ -11,9 +11,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
@@ -31,11 +29,11 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
     private final JsonMapper jsonMapper;
     // Public endpoints không cần authentication
     private static final List<PublicEndpoint> PUBLIC_ENDPOINTS = List.of(
-            new PublicEndpoint("/identity/api/v1/users", HttpMethod.POST),
-            new PublicEndpoint("/identity/api/v1/auth/login", HttpMethod.POST),
-            new PublicEndpoint("/identity/api/v1/auth/refresh-token", HttpMethod.POST),
-            new PublicEndpoint("/identity/api/v1/auth/introspect", HttpMethod.POST),
-            new PublicEndpoint("/identity/api/v1/search/**", HttpMethod.GET)  // Search API là public
+            new PublicEndpoint("/identity/users", HttpMethod.POST),
+            new PublicEndpoint("/identity/auth/login", HttpMethod.POST),
+            new PublicEndpoint("/identity/auth/refresh-token", HttpMethod.POST),
+            new PublicEndpoint("/identity/auth/token/introspect", HttpMethod.POST),
+            new PublicEndpoint("/identity/search/**", HttpMethod.GET)  // Search API là public
     );
 
     @Override
@@ -47,24 +45,27 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
         if(publicEndpoint(path, method)) return chain.filter(exchange);
         List<String> authorization = exchange.getRequest().getHeaders().get("Authorization");
         if (authorization == null || authorization.isEmpty()) {
-            return unauthicated(exchange);
+            return unauthenticated(exchange);
         }
         String authHeader = authorization.getFirst();
         if(!authHeader.startsWith("Bearer ")) {
-            return unauthicated(exchange);
+            return unauthenticated(exchange);
         }
-            String token = authHeader.replace("Bearer ", "");
+            String token = authHeader.substring(7);
             return authenticationClient.introspection(IntrospecRequest.builder()
                             .token(token)
                     .build()).flatMap(response ->{
-                        if(response.getData().isValid()) {
+                        if(response.getData() != null && response.getData().isValid()) {
                             return chain.filter(exchange);
                         }
                         else{
-                            return unauthicated(exchange);
+                            return unauthenticated(exchange);
                         }
 
-            }).onErrorResume(throwable -> unauthicated(exchange));
+            }).onErrorResume(throwable -> {
+                log.error("Token introspection failed", throwable);
+                return unauthenticated(exchange);
+            });
 
     }
     private boolean publicEndpoint(String path, HttpMethod method) {
@@ -78,7 +79,7 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
     public int getOrder() {
         return -1;
     }
-        private Mono<Void> unauthicated(ServerWebExchange exchange) {
+        private Mono<Void> unauthenticated(ServerWebExchange exchange) {
 
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
