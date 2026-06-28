@@ -16,6 +16,10 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND(404, "Category not found", HttpStatus.NOT_FOUND),
     INVALID_CATEGORY_NAME(400, "Category name is invalid", HttpStatus.BAD_REQUEST),
     CATEGORY_HAS_PRODUCTS(400, "Category still has products", HttpStatus.BAD_REQUEST),
+    PRODUCT_NOT_FOUND(404, "Product not found", HttpStatus.NOT_FOUND),
+    INVALID_PRODUCT_NAME(400, "Product name is invalid", HttpStatus.BAD_REQUEST),
+    PRODUCT_ACCESS_DENIED(403, "You do not have permission to access this product", HttpStatus.FORBIDDEN),
+
     ;
 
     private final int code;

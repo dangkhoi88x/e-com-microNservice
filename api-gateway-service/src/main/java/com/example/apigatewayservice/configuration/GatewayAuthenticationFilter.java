@@ -34,7 +34,9 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
             new PublicEndpoint("/identity/auth/refresh-token", HttpMethod.POST),
             new PublicEndpoint("/identity/auth/token/introspect", HttpMethod.POST),
             new PublicEndpoint("/identity/search/**", HttpMethod.GET),  // Search API là public
-            new PublicEndpoint("/product/api/v1/categories", HttpMethod.GET)
+            new PublicEndpoint("/product/api/v1/categories", HttpMethod.GET),
+            new PublicEndpoint("/product/api/v1/products", HttpMethod.GET),
+            new PublicEndpoint("/product/api/v1/products/**", HttpMethod.GET)
     );
 
     @Override
@@ -55,18 +57,19 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
             String token = authHeader.substring(7);
             return authenticationClient.introspection(IntrospecRequest.builder()
                             .token(token)
-                    .build()).flatMap(response ->{
-                        if(response.getData() != null && response.getData().isValid()) {
+                    .build())
+                    .map(response -> response.getData() != null && response.getData().isValid())
+                    .onErrorResume(throwable -> {
+                        log.error("Token introspection failed", throwable);
+                        return Mono.just(false);
+                    })
+                    .defaultIfEmpty(false)
+                    .flatMap(valid -> {
+                        if(valid) {
                             return chain.filter(exchange);
                         }
-                        else{
-                            return unauthenticated(exchange);
-                        }
-
-            }).onErrorResume(throwable -> {
-                log.error("Token introspection failed", throwable);
-                return unauthenticated(exchange);
-            });
+                        return unauthenticated(exchange);
+                    });
 
     }
     private boolean publicEndpoint(String path, HttpMethod method) {

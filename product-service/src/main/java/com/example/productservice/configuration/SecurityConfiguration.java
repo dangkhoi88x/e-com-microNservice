@@ -24,7 +24,9 @@ public class SecurityConfiguration {
     };
 
     private static final String[] PUBLIC_GET_MATCHERS = {
-            "/api/v1/categories"
+            "/api/v1/categories",
+            "/api/v1/products",
+            "/api/v1/products/**"
     };
 
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;

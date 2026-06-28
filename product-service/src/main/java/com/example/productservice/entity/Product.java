@@ -9,6 +9,7 @@ import org.hibernate.sql.ast.tree.expression.JsonTableColumnDefinition;
 import org.hibernate.type.SqlTypes;
 import org.hibernate.type.descriptor.jdbc.SqlTypedJdbcType;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -29,9 +30,12 @@ import java.util.List;
     @Column(nullable = false)
     private String description;
     @Column(nullable = false)
-    private Double price;
+    private BigDecimal price;
     @Column(nullable = false)
     private Integer quantity;
+
+    @Column(nullable = false)
+    private String sellerId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
