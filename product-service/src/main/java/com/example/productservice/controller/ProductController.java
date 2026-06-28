@@ -1,8 +1,10 @@
 package com.example.productservice.controller;
 
 import com.example.productservice.dto.request.CreateProductRequest;
+import com.example.productservice.dto.request.SearchRequest;
 import com.example.productservice.dto.response.ApiResponse;
 import com.example.productservice.dto.response.CreateProductResponse;
+import com.example.productservice.dto.response.PageResponse;
 import com.example.productservice.dto.response.ProductDetailResponse;
 import com.example.productservice.service.ProductService;
 import jakarta.validation.Valid;
@@ -10,13 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -43,9 +39,12 @@ public class ProductController {
     }
 
     @GetMapping
-    ApiResponse<List<ProductDetailResponse>> getAllProducts() {
-        var data = productService.getAllProducts();
-        return ApiResponse.<List<ProductDetailResponse>>builder()
+    ApiResponse<PageResponse<ProductDetailResponse>> getProducts(
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "10") int size,
+            SearchRequest request) {
+        var data = productService.getAllProducts(page, size, request);
+        return ApiResponse.<PageResponse<ProductDetailResponse>>builder()
                 .status(HttpStatus.OK.value())
                 .message("Products retrieved successfully")
                 .data(data)
