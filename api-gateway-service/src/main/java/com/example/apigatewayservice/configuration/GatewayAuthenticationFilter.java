@@ -45,6 +45,7 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
         String path = exchange.getRequest().getURI().getPath();
         HttpMethod method = exchange.getRequest().getMethod();
 
+        if (HttpMethod.OPTIONS.equals(method)) return chain.filter(exchange);
         if(publicEndpoint(path, method)) return chain.filter(exchange);
         List<String> authorization = exchange.getRequest().getHeaders().get("Authorization");
         if (authorization == null || authorization.isEmpty()) {
@@ -54,22 +55,22 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
         if(!authHeader.startsWith("Bearer ")) {
             return unauthenticated(exchange);
         }
-            String token = authHeader.substring(7);
-            return authenticationClient.introspection(IntrospecRequest.builder()
-                            .token(token)
-                    .build())
-                    .map(response -> response.getData() != null && response.getData().isValid())
-                    .onErrorResume(throwable -> {
-                        log.error("Token introspection failed", throwable);
-                        return Mono.just(false);
-                    })
-                    .defaultIfEmpty(false)
-                    .flatMap(valid -> {
-                        if(valid) {
-                            return chain.filter(exchange);
-                        }
-                        return unauthenticated(exchange);
-                    });
+        String token = authHeader.substring(7);
+        return authenticationClient.introspection(IntrospecRequest.builder()
+                        .token(token)
+                .build())
+                .map(response -> response.getData() != null && response.getData().isValid())
+                .onErrorResume(throwable -> {
+                    log.error("Token introspection failed", throwable);
+                    return Mono.just(false);
+                })
+                .defaultIfEmpty(false)
+                .flatMap(valid -> {
+                    if(valid) {
+                        return chain.filter(exchange);
+                    }
+                    return unauthenticated(exchange);
+                });
 
     }
     private boolean publicEndpoint(String path, HttpMethod method) {
@@ -83,7 +84,7 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
     public int getOrder() {
         return -1;
     }
-        private Mono<Void> unauthenticated(ServerWebExchange exchange) {
+    private Mono<Void> unauthenticated(ServerWebExchange exchange) {
 
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -95,7 +96,7 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
                 .path(exchange.getRequest().getURI().getPath())
                 .timestamp(System.currentTimeMillis())
                 .build();
-            byte[] bytes = jsonMapper.writeValueAsBytes(errorResponse);
-            return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes)));
-        }
+        byte[] bytes = jsonMapper.writeValueAsBytes(errorResponse);
+        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes)));
+    }
 }

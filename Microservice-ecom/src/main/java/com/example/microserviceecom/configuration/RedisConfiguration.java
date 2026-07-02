@@ -37,8 +37,7 @@ public class RedisConfiguration {
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
         redisStandaloneConfiguration.setHostName(host);
         redisStandaloneConfiguration.setPort(port);
-        redisStandaloneConfiguration.setPassword(password);
-        if(StringUtils.hasText(password)) {
+        if (StringUtils.hasText(password)) {
             redisStandaloneConfiguration.setPassword(password);
         }
 
@@ -58,6 +57,7 @@ public class RedisConfiguration {
                 .disableCachingNullValues();
 
         Map<String, RedisCacheConfiguration> initialCaches = new HashMap<>();
+        // khai bao  add cahce moi
         initialCaches.put(USER_INFO_CACHE,redisCacheConfiguration.entryTtl(Duration.ofMinutes(10)));
         initialCaches.put(PRODUCT_INFO_CACHE,redisCacheConfiguration.entryTtl(Duration.ofMinutes(30)));
 

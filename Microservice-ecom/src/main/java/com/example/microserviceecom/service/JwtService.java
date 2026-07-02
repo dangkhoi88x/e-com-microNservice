@@ -4,19 +4,22 @@ import com.example.microserviceecom.common.TokenType;
 import com.example.microserviceecom.dto.TokenPayload;
 import com.example.microserviceecom.exception.AuthenticationException;
 import com.example.microserviceecom.exception.ErrorCode;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.Collections;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -28,49 +31,43 @@ public class JwtService {
     @Value("${jwt.secret-key}")
     private String secretKey;
 
-    private final JwtEncoder jwtEncoder;
-    private final JwtDecoder jwtDecoder;
     private final TokenService tokenService;
 
     public String generateAccessToken(String userId, List<String> roles) {
-        // Header
-        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
+        Date now = new Date();
+        Date expirationTime = Date.from(now.toInstant().plus(1, ChronoUnit.HOURS));
 
-        // Payload
-        Instant now = Instant.now();
-
-        JwtClaimsSet jwtClaimsSet = JwtClaimsSet.builder()
+        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(userId)
-                .issuedAt(now)
-                .expiresAt(now.plusSeconds(3600))
+                .issueTime(now)
+                .expirationTime(expirationTime)
                 .issuer("http://localhost:8080")
                 .claim("roles", roles)
-                .claim("typ", TokenType.ACCESS)
-                .id(UUID.randomUUID().toString())
+                .claim("typ", TokenType.ACCESS.name())
+                .jwtID(UUID.randomUUID().toString())
                 .build();
 
-        return jwtEncoder.encode(JwtEncoderParameters.from(header, jwtClaimsSet)).getTokenValue();
+        return signToken(header, jwtClaimsSet);
     }
 
     public TokenPayload generateRefreshToken(String userId) {
-        // Header
-        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
-
-        // Payload
-        Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(3600L * 24 * 14);
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
+        Date now = new Date();
+        Instant expiresAt = now.toInstant().plus(14, ChronoUnit.DAYS);
+        Date expirationTime = Date.from(expiresAt);
         String jti = UUID.randomUUID().toString();
 
-        JwtClaimsSet jwtClaimsSet = JwtClaimsSet.builder()
+        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(userId)
-                .issuedAt(now)
-                .expiresAt(expiresAt)
+                .issueTime(now)
+                .expirationTime(expirationTime)
                 .issuer("http://localhost:8080")
-                .claim("typ", TokenType.REFRESH)
-                .id(jti)
+                .claim("typ", TokenType.REFRESH.name())
+                .jwtID(jti)
                 .build();
 
-        String token = jwtEncoder.encode(JwtEncoderParameters.from(header, jwtClaimsSet)).getTokenValue();
+        String token = signToken(header, jwtClaimsSet);
         return TokenPayload.builder()
                 .tokenValue(token)
                 .userId(userId)
@@ -79,31 +76,9 @@ public class JwtService {
                 .build();
     }
 
-    public TokenPayload validateToken(String token, TokenType type) {
-        Jwt jwt = jwtDecoder.decode(token);
-        String typ = jwt.getClaim("typ").toString();
-        if(TokenType.valueOf(typ) != type) {
-            throw new JwtException("Invalid token type");
-        }
-
-        String userId = jwt.getSubject();
-        List<String> roles = extractRoles(jwt.getClaim("roles"));
-        String jti = jwt.getId();
-        Instant issuedAt = jwt.getIssuedAt();
-        Instant expiration = jwt.getExpiresAt();
-
-        return TokenPayload.builder()
-                .userId(userId)
-                .roles(roles)
-                .jti(jti)
-                .issuedAt(issuedAt)
-                .expiration(expiration)
-                .build();
-    }
-
     public SignedJWT verifyAccessToken(String token) throws ParseException, JOSEException {
         SignedJWT signedJWT = SignedJWT.parse(token);
-        boolean isValid = signedJWT.verify(new MACVerifier(secretKey));
+        boolean isValid = signedJWT.verify(new MACVerifier(getSecretKeyBytes()));
         if (!isValid) {
             throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
         }
@@ -128,7 +103,7 @@ public class JwtService {
 
     public SignedJWT verifyRefreshToken(String token) throws ParseException, JOSEException {
         SignedJWT signedJWT = SignedJWT.parse(token);
-        boolean isValid = signedJWT.verify(new MACVerifier(secretKey));
+        boolean isValid = signedJWT.verify(new MACVerifier(getSecretKeyBytes()));
         if (!isValid) {
             throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
         }
@@ -151,17 +126,18 @@ public class JwtService {
         return signedJWT;
     }
 
-
-    private List<String> extractRoles(Object claimRoles) {
-        if(claimRoles == null)
-            return Collections.emptyList();
-
-        if(claimRoles instanceof List<?> listRole) {
-            return listRole.stream().map(String::valueOf)
-                    .toList();
+    private String signToken(JWSHeader header, JWTClaimsSet jwtClaimsSet) {
+        SignedJWT signedJWT = new SignedJWT(header, jwtClaimsSet);
+        try {
+            signedJWT.sign(new MACSigner(getSecretKeyBytes()));
+            return signedJWT.serialize();
+        } catch (JOSEException exception) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
         }
+    }
 
-        return Collections.emptyList();
+    private byte[] getSecretKeyBytes() {
+        return secretKey.getBytes(StandardCharsets.UTF_8);
     }
 
 }
