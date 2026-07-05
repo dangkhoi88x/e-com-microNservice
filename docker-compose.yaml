@@ -90,11 +90,51 @@ services:
     networks:
       - microservice_network
 
+  elasticsearch:
+    image: elasticsearch:9.3.0
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"  # REST API
+      - "9300:9300"  # Node communication
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ELASTIC_PASSWORD=javabuilder
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - microservice_network
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -s -u elastic:javabuilder http://localhost:9200/_cluster/health | grep -q 'green\\|yellow'" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  kibana:
+    image: kibana:9.3.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=javabuilder
+      - XPACK_FLEET_AGENTLESS_ENABLED=false
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=8HJ2YUPPfc9tFKGTn75xwVbwhryL9GVs
+      - XPACK_SECURITY_ENCRYPTIONKEY=iEJent2TwMyy9xt26PoL2oBEqUChxthd
+      - XPACK_REPORTING_ENCRYPTIONKEY=AMyQHG0z2sajxP2Nj9mbbrrCrXzP2tjC
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - microservice_network
 volumes:
   product-postgres-data:
   identity-postgres-data:
   redis-data:
   mongo-data:
   kafka-data:
+  elasticsearch_data:
 networks:
   microservice_network:

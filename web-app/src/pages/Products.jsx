@@ -19,6 +19,7 @@ import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { getProducts } from "../services/productService";
+import { formatDateTime } from "../utils/dateTimeUtils";
 
 const formatPrice = (value) => {
   if (value === null || value === undefined) return "-";
@@ -135,11 +136,7 @@ export default function Products() {
                     </TableCell>
                     <TableCell align="right">{formatPrice(product.price)}</TableCell>
                     <TableCell align="right">{product.quantity ?? "-"}</TableCell>
-                    <TableCell>
-                      {product.createdAt
-                        ? new Date(product.createdAt).toLocaleString("vi-VN")
-                        : "-"}
-                    </TableCell>
+                    <TableCell>{formatDateTime(product.createdAt)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

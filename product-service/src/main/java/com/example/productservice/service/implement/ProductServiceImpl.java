@@ -8,6 +8,7 @@ import com.example.productservice.dto.response.PageResponse;
 import com.example.productservice.dto.response.ProductDetailResponse;
 import com.example.productservice.entity.Category;
 import com.example.productservice.entity.Product;
+import com.example.productservice.entity.ProductImage;
 import com.example.productservice.exception.ErrorCode;
 import com.example.productservice.exception.ProductServiceException;
 import com.example.productservice.repository.CategoryRepository;
@@ -15,6 +16,7 @@ import com.example.productservice.repository.ProductRepository;
 import com.example.productservice.service.ProductService;
 import com.example.productservice.repository.specification.ProductSpecification;
 import com.example.productservice.utils.SlugUtils;
+import event.ProductCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -40,6 +43,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
     @Override
@@ -62,6 +66,28 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
         log.info("Product created successfully: id={}", product.getId());
 
+        ProductCreatedEvent productCreatedEvent = ProductCreatedEvent.builder()
+                .productId(product.getId())
+                .name(product.getName())
+                .description(product.getDescription())
+                .price(product.getPrice().doubleValue())
+                .status(product.getStatus().name())
+                .createdAt(product.getCreatedAt())
+                .categoryId(category.getId())
+                .categoryName(category.getName())
+                .thumbnailUrl(getThumbnailUrl(product))
+                .inStock(product.getQuantity() != null && product.getQuantity() > 0)
+                .build();
+
+        kafkaTemplate.send("product-created", productCreatedEvent)
+                .whenComplete((res, throwable) -> {
+                    if(throwable != null) {
+                        log.error("Error while sending product to topic", throwable);
+                        return;
+                    }
+                    log.info("Successfully send product to topic");
+                })
+        ;
         return CreateProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -180,6 +206,18 @@ public class ProductServiceImpl implements ProductService {
                 .status(product.getStatus())
                 .createdAt(product.getCreatedAt())
                 .build();
+    }
+
+    private String getThumbnailUrl(Product product) {
+        if (product.getImages() == null || product.getImages().isEmpty()) {
+            return null;
+        }
+
+        return product.getImages().stream()
+                .filter(image -> Boolean.TRUE.equals(image.getIsPrimary()))
+                .findFirst()
+                .orElse(product.getImages().getFirst())
+                .getUrl();
     }
 
     public List<Product> searchProducts(String categoryId, ProductStatus status,

@@ -18,6 +18,7 @@ import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { getCategories } from "../services/categoryService";
+import { formatDateTime } from "../utils/dateTimeUtils";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
@@ -115,11 +116,7 @@ export default function Categories() {
                     </TableCell>
                     <TableCell>{category.slug || "-"}</TableCell>
                     <TableCell>{category.description || "-"}</TableCell>
-                    <TableCell>
-                      {category.createdAt
-                        ? new Date(category.createdAt).toLocaleString("vi-VN")
-                        : "-"}
-                    </TableCell>
+                    <TableCell>{formatDateTime(category.createdAt)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
