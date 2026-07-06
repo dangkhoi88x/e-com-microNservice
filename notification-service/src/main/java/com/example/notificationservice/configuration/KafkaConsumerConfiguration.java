@@ -1,6 +1,5 @@
 package com.example.notificationservice.configuration;
 
-import com.example.event.UserProfileCreatedEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +20,7 @@ public class KafkaConsumerConfiguration {
     private String bootstrapServers;
 
     @Bean
-    ConsumerFactory<String, UserProfileCreatedEvent> kafkaConsumerFactory() {
+    ConsumerFactory<String, Object> kafkaConsumerFactory() {
         var config = new HashMap<String, Object>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -33,14 +32,14 @@ public class KafkaConsumerConfiguration {
         return new DefaultKafkaConsumerFactory<>(
                 config,
                 new StringDeserializer(),
-                new JacksonJsonDeserializer<>(UserProfileCreatedEvent.class, false)
+                new JacksonJsonDeserializer<>(Object.class, false)
         );
     }
 
     @Bean
-    ConcurrentKafkaListenerContainerFactory<String, UserProfileCreatedEvent> kafkaListenerContainerFactory(
-            ConsumerFactory<String, UserProfileCreatedEvent> kafkaConsumerFactory) {
-        var factory = new ConcurrentKafkaListenerContainerFactory<String, UserProfileCreatedEvent>();
+    ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
+            ConsumerFactory<String, Object> kafkaConsumerFactory) {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, Object>();
         factory.setConsumerFactory(kafkaConsumerFactory);
         return factory;
     }

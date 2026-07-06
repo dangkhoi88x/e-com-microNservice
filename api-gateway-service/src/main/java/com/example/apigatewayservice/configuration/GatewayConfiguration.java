@@ -29,6 +29,9 @@ public class GatewayConfiguration {
                 .route("search-service", r -> r.path("/search/**")
                         .filters(f -> f.stripPrefix(1))
                         .uri("lb://SEARCH-SERVICE"))
+                .route("order-service", r -> r.path("/order/**")
+                        .filters(f -> f.stripPrefix(1))
+                        .uri("lb://ORDER-SERVICE"))
                 .build();
     }
 

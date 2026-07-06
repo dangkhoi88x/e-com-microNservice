@@ -16,6 +16,8 @@ import com.example.searchservice.dto.response.CategoryCount;
 import com.example.searchservice.dto.response.PageResponse;
 import com.example.searchservice.dto.response.PriceRangeBucket;
 import com.example.searchservice.dto.response.PriceStats;
+import com.example.searchservice.exception.ErrorCode;
+import com.example.searchservice.exception.SearchServiceException;
 import com.example.searchservice.service.ProductDocumentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +50,7 @@ public class ProductDocumentServiceImpl implements ProductDocumentService {
             log.info("Saved product document: {}", document.getProductId());
         } catch (IOException exception) {
             log.error("Failed to save product document: {}", document.getProductId(), exception);
-            throw new RuntimeException(exception);
+            throw new SearchServiceException(ErrorCode.ELASTICSEARCH_ERROR);
         }
     }
 
@@ -61,7 +63,7 @@ public class ProductDocumentServiceImpl implements ProductDocumentService {
             log.info("Deleted product document: {}", id);
         } catch (IOException exception) {
             log.error("Failed to delete product document: {}", id, exception);
-            throw new RuntimeException(exception);
+            throw new SearchServiceException(ErrorCode.ELASTICSEARCH_ERROR);
         }
     }
 
@@ -98,7 +100,7 @@ public class ProductDocumentServiceImpl implements ProductDocumentService {
                     .build();
         } catch (IOException exception) {
             log.error("Failed to search product documents", exception);
-            throw new RuntimeException(exception);
+            throw new SearchServiceException(ErrorCode.ELASTICSEARCH_ERROR);
         }
     }
 
@@ -132,7 +134,7 @@ public class ProductDocumentServiceImpl implements ProductDocumentService {
                     .build();
         } catch (IOException exception) {
             log.error("Failed to aggregate product documents", exception);
-            throw new RuntimeException(exception);
+            throw new SearchServiceException(ErrorCode.ELASTICSEARCH_ERROR);
         }
     }
 
@@ -204,17 +206,11 @@ public class ProductDocumentServiceImpl implements ProductDocumentService {
         List<Query> filterQueries = new ArrayList<>();
 
         if (StringUtils.hasText(request.name())) {
-            mustQueries.add(Query.of(q -> q.match(m -> m
-                    .field("name")
-                    .query(request.name())
-                    .fuzziness("AUTO"))));
+            mustQueries.add(buildTextSearchQuery("name", request.name()));
         }
 
         if (StringUtils.hasText(request.description())) {
-            mustQueries.add(Query.of(q -> q.match(m -> m
-                    .field("description")
-                    .query(request.description())
-                    .fuzziness("AUTO"))));
+            mustQueries.add(buildTextSearchQuery("description", request.description()));
         }
 
         if (StringUtils.hasText(request.categoryId())) {
@@ -255,5 +251,19 @@ public class ProductDocumentServiceImpl implements ProductDocumentService {
         return Query.of(q -> q.bool(b -> b
                 .must(mustQueries)
                 .filter(filterQueries)));
+    }
+
+    private Query buildTextSearchQuery(String field, String value) {
+        String keyword = value.trim();
+
+        return Query.of(q -> q.bool(b -> b
+                .should(Query.of(s -> s.match(m -> m
+                        .field(field)
+                        .query(keyword)
+                        .fuzziness("AUTO"))))
+                .should(Query.of(s -> s.matchBoolPrefix(m -> m
+                        .field(field)
+                        .query(keyword))))
+                .minimumShouldMatch("1")));
     }
 }

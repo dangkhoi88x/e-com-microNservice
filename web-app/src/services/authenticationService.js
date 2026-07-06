@@ -14,6 +14,17 @@ export const login = async (email, password) => {
   return response.data;
 };
 
+export const register = async ({ email, password, firstName, lastName }) => {
+  const response = await httpClient.post(API.REGISTER, {
+    email,
+    password,
+    firstName,
+    lastName,
+  });
+
+  return response.data;
+};
+
 export const logout = () => {
   removeToken();
 };

@@ -12,6 +12,7 @@ import java.util.List;
 public record ProductDetailResponse(
         String id,
         String name,
+        String slug,
         String description,
         BigDecimal price,
         Integer quantity,

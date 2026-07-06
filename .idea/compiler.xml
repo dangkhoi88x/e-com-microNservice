@@ -33,7 +33,7 @@
         <module name="api-gateway-service" />
         <module name="notification-service" />
       </profile>
-      <profile name="Annotation profile for search-service" enabled="true">
+      <profile name="Annotation profile for order-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -42,6 +42,7 @@
         </processorPath>
         <module name="product-service" />
         <module name="search-service" />
+        <module name="order-service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -55,6 +56,7 @@
       <module name="api-gateway-service" options="-parameters" />
       <module name="discovery-server" options="-parameters" />
       <module name="notification-service" options="-parameters" />
+      <module name="order-service" options="-parameters" />
       <module name="product-service" options="-parameters" />
       <module name="profile-service" options="-parameters" />
       <module name="search-service" options="-parameters" />

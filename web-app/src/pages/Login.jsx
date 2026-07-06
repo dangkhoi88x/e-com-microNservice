@@ -212,6 +212,13 @@ export default function Login() {
                   "Login"
                 )}
               </Button>
+              <Button
+                variant="text"
+                onClick={() => navigate("/register")}
+                sx={{ fontWeight: 800 }}
+              >
+                Create a new account
+              </Button>
             </Stack>
           </Box>
         </Paper>

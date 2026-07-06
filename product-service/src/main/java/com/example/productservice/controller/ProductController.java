@@ -2,6 +2,7 @@ package com.example.productservice.controller;
 
 import com.example.productservice.dto.request.CreateProductRequest;
 import com.example.productservice.dto.request.SearchRequest;
+import com.example.productservice.dto.request.UpdateProductRequest;
 import com.example.productservice.dto.response.ApiResponse;
 import com.example.productservice.dto.response.CreateProductResponse;
 import com.example.productservice.dto.response.PageResponse;
@@ -13,8 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,12 +50,36 @@ public class ProductController {
                 .build();
     }
 
+    @GetMapping("/slug/{slug}")
+    ApiResponse<ProductDetailResponse> getProductBySlug(@PathVariable String slug) {
+        var data = productService.getProductBySlug(slug);
+        return ApiResponse.<ProductDetailResponse>builder()
+                .status(HttpStatus.OK.value())
+                .message("Product retrieved successfully")
+                .data(data)
+                .build();
+    }
+
     @GetMapping("/{id}")
     ApiResponse<ProductDetailResponse> getProductById(@PathVariable String id) {
         var data = productService.getProductById(id);
         return ApiResponse.<ProductDetailResponse>builder()
                 .status(HttpStatus.OK.value())
                 .message("Product retrieved successfully")
+                .data(data)
+                .build();
+    }
+
+    @PutMapping("/{id}")
+    ApiResponse<ProductDetailResponse> updateProduct(
+            @PathVariable String id,
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid UpdateProductRequest request
+    ) {
+        var data = productService.updateProduct(id, jwt.getSubject(), request);
+        return ApiResponse.<ProductDetailResponse>builder()
+                .status(HttpStatus.OK.value())
+                .message("Product updated successfully")
                 .data(data)
                 .build();
     }

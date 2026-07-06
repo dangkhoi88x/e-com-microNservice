@@ -20,7 +20,7 @@ public record CreateProductRequest(
         String description,
 
         @NotNull(message = "Price is required")
-        @DecimalMin(value = "0.0", message = "Price must be greater than or equal to 0.0")
+        @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
         BigDecimal price,
 
         @NotNull(message = "Quantity is required")

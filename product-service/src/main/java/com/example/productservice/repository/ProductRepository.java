@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product, String>, JpaSpecificationExecutor<Product> {
     boolean existsBySlug(String slug);
 
+    boolean existsBySlugAndIdNot(String slug, String id);
+
     boolean existsByCategoryId(String categoryId);
 
     Optional<Product> findBySlug(String slug);

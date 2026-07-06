@@ -4,6 +4,9 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.rest5_client.Rest5ClientTransport;
 import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.message.BasicHeader;
@@ -30,10 +33,15 @@ public class ElasticsearchConfiguration {
                         new BasicHeader("Authorization", "ApiKey " + apiKey)
                 })
                 .build();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
         //Tạo Transport layer với Jackson JSON mapper
         Rest5ClientTransport transport = new Rest5ClientTransport(
                 rest5Client,
-                new JacksonJsonpMapper()
+                new JacksonJsonpMapper(objectMapper)
         );
         //Tạo ElasticsearchClient
         return new ElasticsearchClient(transport);

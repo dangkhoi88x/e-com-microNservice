@@ -14,6 +14,7 @@ import java.io.IOException;
 public class ElasticsearchIndexInitializer {
 
         public static final String PRODUCT_INDEX= "products";
+        private static final String VIETNAMESE_TEXT_ANALYZER = "vietnamese_text_analyzer";
         private final ElasticsearchClient elasticsearchClient;
 
 
@@ -26,15 +27,29 @@ public class ElasticsearchIndexInitializer {
                 // Bước 2: Tạo index với mapping
                 elasticsearchClient.indices().create(c -> c
                         .index(PRODUCT_INDEX)
+                        .settings(s -> s
+                                .analysis(a -> a
+                                        .analyzer(VIETNAMESE_TEXT_ANALYZER, analyzer -> analyzer
+                                                .custom(custom -> custom
+                                                        .tokenizer("standard")
+                                                        .filter("lowercase", "asciifolding")
+                                                )
+                                        )
+                                )
+                        )
                         .mappings(m -> m
                                 // productId: keyword - exact match, không analyze
                                 .properties("productId", p -> p.keyword(k -> k))
 
-                                // name: text - full-text search, có analyze
-                                .properties("name", p -> p.text(t -> t.analyzer("standard")))
+                                // name: text - full-text search, normalize lowercase + bỏ dấu
+                                .properties("name", p -> p.text(t -> t
+                                        .analyzer(VIETNAMESE_TEXT_ANALYZER)
+                                        .searchAnalyzer(VIETNAMESE_TEXT_ANALYZER)))
 
-                                // description: text - full-text search
-                                .properties("description", p -> p.text(t -> t.analyzer("standard")))
+                                // description: text - full-text search, normalize lowercase + bỏ dấu
+                                .properties("description", p -> p.text(t -> t
+                                        .analyzer(VIETNAMESE_TEXT_ANALYZER)
+                                        .searchAnalyzer(VIETNAMESE_TEXT_ANALYZER)))
 
                                 // price: double - số thực, dùng cho filter/sort
                                 .properties("price", p -> p.double_(d -> d))

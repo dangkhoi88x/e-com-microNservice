@@ -1,5 +1,6 @@
 package com.example.notificationservice.service;
 
+import com.example.event.OrderCreatedEvent;
 import com.example.event.UserProfileCreatedEvent;
 import com.example.notificationservice.common.NotificationType;
 import com.example.notificationservice.dto.res.NotificationResponse;
@@ -31,6 +32,19 @@ public class NotificationService {
         log.info("Created welcome notification for userId={}", event.getUserId());
 
     }
+
+    public void createNotificationOrderCreated(OrderCreatedEvent event) {
+        Notification notification = Notification.builder()
+                .userId(event.getUserId())
+                .title("Order created")
+                .message("Your order " + event.getOrderId() + " has been created successfully. Total: " + event.getTotalAmount())
+                .type(NotificationType.ORDER_CREATED)
+                .build();
+
+        notificationRepository.save(notification);
+        log.info("Created order notification for userId={}, orderId={}", event.getUserId(), event.getOrderId());
+    }
+
     public List<NotificationResponse> myNotifications(String userId){
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId)
                 .stream()

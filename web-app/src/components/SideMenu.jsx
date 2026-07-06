@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
+import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
@@ -30,6 +31,11 @@ const menuItems = [
     label: "Categories",
     path: "/categories",
     icon: <CategoryOutlinedIcon />,
+  },
+  {
+    label: "Search",
+    path: "/search",
+    icon: <SearchOutlinedIcon />,
   },
   {
     label: "Profile",

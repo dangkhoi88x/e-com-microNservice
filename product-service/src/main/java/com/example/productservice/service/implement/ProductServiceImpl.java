@@ -3,6 +3,7 @@ package com.example.productservice.service.implement;
 import com.example.productservice.common.ProductStatus;
 import com.example.productservice.dto.request.CreateProductRequest;
 import com.example.productservice.dto.request.SearchRequest;
+import com.example.productservice.dto.request.UpdateProductRequest;
 import com.example.productservice.dto.response.CreateProductResponse;
 import com.example.productservice.dto.response.PageResponse;
 import com.example.productservice.dto.response.ProductDetailResponse;
@@ -17,6 +18,8 @@ import com.example.productservice.service.ProductService;
 import com.example.productservice.repository.specification.ProductSpecification;
 import com.example.productservice.utils.SlugUtils;
 import event.ProductCreatedEvent;
+import event.ProductDeletedEvent;
+import event.ProductUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -79,18 +82,11 @@ public class ProductServiceImpl implements ProductService {
                 .inStock(product.getQuantity() != null && product.getQuantity() > 0)
                 .build();
 
-        kafkaTemplate.send("product-created", productCreatedEvent)
-                .whenComplete((res, throwable) -> {
-                    if(throwable != null) {
-                        log.error("Error while sending product to topic", throwable);
-                        return;
-                    }
-                    log.info("Successfully send product to topic");
-                })
-        ;
+        sendProductCreatedEvent(productCreatedEvent);
         return CreateProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
+                .slug(product.getSlug())
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .quantity(product.getQuantity())
@@ -102,9 +98,11 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public PageResponse<ProductDetailResponse> getAllProducts(int page, int size, SearchRequest request) {
-        // 1. Tạo Pageable với page - 1 (JPA bắt đầu từ 0, user-friendly bắt đầu từ 1)
-        // Sort theo name A-Z
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.ASC, "name"));
+        int currentPage = Math.max(page, 1);
+        int pageSize = Math.max(size, 1);
+
+        // JPA bắt đầu từ 0, còn API dùng page bắt đầu từ 1.
+        Pageable pageable = PageRequest.of(currentPage - 1, pageSize, Sort.by(Sort.Direction.ASC, "name"));
 
         // 2. Tạo Specification để filter (kết hợp các điều kiện)
         Specification<Product> specification = Specification.allOf(
@@ -127,22 +125,22 @@ public class ProductServiceImpl implements ProductService {
                 .map(product -> ProductDetailResponse.builder()
                         .id(product.getId())
                         .name(product.getName())
+                        .slug(product.getSlug())
                         .description(product.getDescription())
                         .price(product.getPrice())
                         .quantity(product.getQuantity())
                         .images(product.getImages())
                         .status(product.getStatus())
                         .createdAt(product.getCreatedAt())
-                        .build())
+                .build())
                 .toList();
 
-        // 6. Build PageResponse với pagination metadata
         return PageResponse.<ProductDetailResponse>builder()
-                .currentPage(page)                          // Trang user request (1, 2, 3...)
-                .pageSize(pageable.getPageSize())           // Số items/trang
-                .totalPages(productPage.getTotalPages())    // Tổng số trang
-                .totalElements(productPage.getTotalElements()) // Tổng số items
-                .content(responses)                         // Data của trang hiện tại
+                .currentPage(currentPage)
+                .pageSize(pageable.getPageSize())
+                .totalPages(productPage.getTotalPages())
+                .totalElements(productPage.getTotalElements())
+                .content(responses)
                 .build();
     }
     @Override
@@ -150,6 +148,63 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findById(id)
                 .map(this::toProductDetailResponse)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    @Override
+    public ProductDetailResponse getProductBySlug(String slug) {
+        return productRepository.findBySlug(slug)
+                .map(this::toProductDetailResponse)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
+    @Override
+    public ProductDetailResponse updateProduct(String id, String userId, UpdateProductRequest request) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        checkProductAccess(product, userId);
+
+        if (request.categoryId() != null) {
+            if (request.categoryId().isBlank()) {
+                throw new ProductServiceException(ErrorCode.INVALID_CATEGORY_ID);
+            }
+            Category category = categoryRepository.findById(request.categoryId())
+                    .orElseThrow(() -> new ProductServiceException(ErrorCode.CATEGORY_NOT_FOUND));
+            product.setCategory(category);
+        }
+
+        if (request.name() != null) {
+            String name = request.name().trim();
+            product.setSlug(generateUniqueSlugForUpdate(name, product.getId(), product.getSlug()));
+            product.setName(name);
+        }
+
+        if (request.description() != null) {
+            product.setDescription(request.description());
+        }
+
+        if (request.price() != null) {
+            product.setPrice(request.price());
+        }
+
+        if (request.quantity() != null) {
+            product.setQuantity(request.quantity());
+        }
+
+        if (request.images() != null) {
+            product.setImages(request.images());
+        }
+
+        if (request.status() != null) {
+            product.setStatus(request.status());
+        }
+
+        productRepository.save(product);
+        sendProductUpdatedEvent(toProductUpdatedEvent(product));
+        log.info("Product updated successfully: id={}", product.getId());
+
+        return toProductDetailResponse(product);
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
@@ -163,19 +218,22 @@ public class ProductServiceImpl implements ProductService {
             throw new ProductServiceException(ErrorCode.UNAUTHORIZED);
         }
 
-        String userId = authentication.getName();
-        if (!product.getSellerId().equals(userId)) {
-            Set<String> authorities = authentication.getAuthorities()
-                    .stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toSet());
-
-            if (!authorities.contains("ROLE_ADMIN")) {
-                throw new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED);
-            }
-        }
+        checkProductAccess(product, authentication.getName());
 
         productRepository.delete(product);
+
+        ProductDeletedEvent productDeletedEvent = ProductDeletedEvent.builder()
+                .productId(product.getId())
+                .build();
+
+        kafkaTemplate.send("product-deleted", productDeletedEvent)
+                .whenComplete((res, throwable) -> {
+                    if (throwable != null) {
+                        log.error("Error while sending product deleted event", throwable);
+                        return;
+                    }
+                    log.info("Successfully sent product deleted event");
+                });
         log.info("Product deleted successfully: id={}", product.getId());
     }
 
@@ -195,10 +253,89 @@ public class ProductServiceImpl implements ProductService {
         return slug;
     }
 
+    private String generateUniqueSlugForUpdate(String name, String productId, String currentSlug) {
+        String baseSlug = SlugUtils.toSlug(name);
+        if (baseSlug.isBlank()) {
+            throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_NAME);
+        }
+
+        if (baseSlug.equals(currentSlug)) {
+            return currentSlug;
+        }
+
+        String slug = baseSlug;
+        int suffix = 1;
+        while (productRepository.existsBySlugAndIdNot(slug, productId)) {
+            slug = baseSlug + "-" + suffix;
+            suffix++;
+        }
+
+        return slug;
+    }
+
+    private void checkProductAccess(Product product, String userId) {
+        if (product.getSellerId().equals(userId)) {
+            return;
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new ProductServiceException(ErrorCode.UNAUTHORIZED);
+        }
+
+        Set<String> authorities = authentication.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toSet());
+
+        if (!authorities.contains("ROLE_ADMIN")) {
+            throw new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED);
+        }
+    }
+
+    private ProductUpdatedEvent toProductUpdatedEvent(Product product) {
+        Category category = product.getCategory();
+        return ProductUpdatedEvent.builder()
+                .productId(product.getId())
+                .name(product.getName())
+                .description(product.getDescription())
+                .price(product.getPrice().doubleValue())
+                .status(product.getStatus().name())
+                .createdAt(product.getCreatedAt())
+                .categoryId(category.getId())
+                .categoryName(category.getName())
+                .thumbnailUrl(getThumbnailUrl(product))
+                .inStock(product.getQuantity() != null && product.getQuantity() > 0)
+                .build();
+    }
+
+    private void sendProductCreatedEvent(ProductCreatedEvent event) {
+        kafkaTemplate.send("product-created", event)
+                .whenComplete((res, throwable) -> {
+                    if (throwable != null) {
+                        log.error("Error while sending product created event", throwable);
+                        return;
+                    }
+                    log.info("Successfully sent product created event");
+                });
+    }
+
+    private void sendProductUpdatedEvent(ProductUpdatedEvent event) {
+        kafkaTemplate.send("product-updated", event)
+                .whenComplete((res, throwable) -> {
+                    if (throwable != null) {
+                        log.error("Error while sending product updated event", throwable);
+                        return;
+                    }
+                    log.info("Successfully sent product updated event");
+                });
+    }
+
     private ProductDetailResponse toProductDetailResponse(Product product) {
         return ProductDetailResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
+                .slug(product.getSlug())
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .quantity(product.getQuantity())

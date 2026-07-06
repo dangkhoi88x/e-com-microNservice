@@ -1,6 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Login from "../pages/Login";
+import Register from "../pages/Register";
 import Products from "../pages/Products";
+import ProductCreate from "../pages/ProductCreate";
+import Search from "../pages/Search";
 import Categories from "../pages/Categories";
 import Profile from "../pages/Profile";
 import Notifications from "../pages/Notifications";
@@ -19,6 +22,7 @@ export default function AppRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         <Route
           path="/"
@@ -39,10 +43,28 @@ export default function AppRoutes() {
         />
 
         <Route
+          path="/products/new"
+          element={
+            <PrivateRoute>
+              <ProductCreate />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
           path="/categories"
           element={
             <PrivateRoute>
               <Categories />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/search"
+          element={
+            <PrivateRoute>
+              <Search />
             </PrivateRoute>
           }
         />
