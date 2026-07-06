@@ -42,6 +42,30 @@ const formatPrice = (value) => {
   }).format(Number(value));
 };
 
+const stockChipProps = (inStock) => {
+  if (inStock === true) {
+    return {
+      label: "In stock",
+      color: "success",
+      variant: "outlined",
+    };
+  }
+
+  if (inStock === false) {
+    return {
+      label: "Out of stock",
+      color: "error",
+      variant: "filled",
+    };
+  }
+
+  return {
+    label: "Unknown",
+    color: "default",
+    variant: "outlined",
+  };
+};
+
 const defaultFilters = {
   name: "",
   description: "",
@@ -299,6 +323,7 @@ export default function Search() {
                         <TableCell>Category</TableCell>
                         <TableCell>Status</TableCell>
                         <TableCell align="right">Price</TableCell>
+                        <TableCell>Stock</TableCell>
                         <TableCell>Created At</TableCell>
                       </TableRow>
                     </TableHead>
@@ -328,6 +353,12 @@ export default function Search() {
                           </TableCell>
                           <TableCell align="right">
                             {formatPrice(product.price)}
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              size="small"
+                              {...stockChipProps(product.inStock)}
+                            />
                           </TableCell>
                           <TableCell>
                             {formatDateTime(product.createdAt)}

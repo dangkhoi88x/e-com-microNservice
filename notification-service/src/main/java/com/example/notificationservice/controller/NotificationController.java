@@ -20,7 +20,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @GetMapping("/me")
+    @GetMapping({"/me", "/my-notifications"})
     public ApiResponse<List<NotificationResponse>> myNotifications(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         List<NotificationResponse> data = notificationService.myNotifications(userId);

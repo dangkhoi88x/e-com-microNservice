@@ -4,6 +4,7 @@ import com.example.orderservice.common.OrderStatus;
 import com.example.orderservice.dto.request.CreateOrderRequest;
 import com.example.orderservice.dto.response.ApiResponse;
 import com.example.orderservice.dto.response.OrderResponse;
+import com.example.orderservice.dto.response.PageResponse;
 import com.example.orderservice.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -44,11 +43,29 @@ public class OrderController {
                         .build());
     }
 
-    @GetMapping("/my-orders")
-    public ApiResponse<List<OrderResponse>> getMyOrders(@AuthenticationPrincipal Jwt jwt) {
-        List<OrderResponse> data = orderService.getMyOrders(jwt.getSubject());
+    @GetMapping
+    public ApiResponse<PageResponse<OrderResponse>> getAllOrders(
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "10") int size
+    ) {
+        PageResponse<OrderResponse> data = orderService.getAllOrders(page, size);
 
-        return ApiResponse.<List<OrderResponse>>builder()
+        return ApiResponse.<PageResponse<OrderResponse>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Orders retrieved successfully")
+                .data(data)
+                .build();
+    }
+
+    @GetMapping("/my-orders")
+    public ApiResponse<PageResponse<OrderResponse>> getMyOrders(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "10") int size
+    ) {
+        PageResponse<OrderResponse> data = orderService.getMyOrders(jwt.getSubject(), page, size);
+
+        return ApiResponse.<PageResponse<OrderResponse>>builder()
                 .status(HttpStatus.OK.value())
                 .message("Orders retrieved successfully")
                 .data(data)
@@ -79,6 +96,20 @@ public class OrderController {
         return ApiResponse.<OrderResponse>builder()
                 .status(HttpStatus.OK.value())
                 .message("Order status updated successfully")
+                .data(data)
+                .build();
+    }
+
+    @PutMapping("/{id}/cancel")
+    public ApiResponse<OrderResponse> cancelOrder(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String id
+    ) {
+        OrderResponse data = orderService.cancelOrder(jwt.getSubject(), id);
+
+        return ApiResponse.<OrderResponse>builder()
+                .status(HttpStatus.OK.value())
+                .message("Order cancelled successfully")
                 .data(data)
                 .build();
     }

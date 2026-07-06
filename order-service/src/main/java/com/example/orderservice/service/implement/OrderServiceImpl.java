@@ -1,12 +1,16 @@
 package com.example.orderservice.service.implement;
 
 
+import com.example.event.OrderCancelledEvent;
 import com.example.event.OrderCreatedEvent;
+import com.example.event.OrderItemEvent;
+import com.example.event.OrderStatusUpdatedEvent;
 import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.common.OrderStatus;
 import com.example.orderservice.dto.request.CreateOrderRequest;
 import com.example.orderservice.dto.response.OrderItemResponse;
 import com.example.orderservice.dto.response.OrderResponse;
+import com.example.orderservice.dto.response.PageResponse;
 import com.example.orderservice.dto.response.ProductDetailResponse;
 import com.example.orderservice.entity.Order;
 import com.example.orderservice.entity.OrderItem;
@@ -16,13 +20,19 @@ import com.example.orderservice.repository.OrderRepository;
 import com.example.orderservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +40,12 @@ import java.util.List;
 public class OrderServiceImpl implements OrderService {
 
     private static final String ORDER_CREATED_TOPIC = "order-created";
+    private static final String ORDER_CANCELLED_TOPIC = "order-cancelled";
+    private static final String ORDER_STATUS_UPDATED_TOPIC = "order-status-updated";
+    private static final Set<OrderStatus> CANCELLABLE_STATUSES = Set.of(
+            OrderStatus.PENDING,
+            OrderStatus.CONFIRMED
+    );
 
     private final OrderRepository orderRepository;
     private final ProductClient productClient;
@@ -85,14 +101,36 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderResponse> getMyOrders(String userId) {
-        return orderRepository.findByUserIdOrderByCreatedAtDesc(userId)
+    @Transactional(readOnly = true)
+    public PageResponse<OrderResponse> getMyOrders(String userId, int page, int size) {
+        Pageable pageable = createOrderPageable(page, size);
+        Page<Order> orderPage = orderRepository.findByUserId(userId, pageable);
+
+        List<OrderResponse> content = orderPage.getContent()
                 .stream()
                 .map(this::toOrderResponse)
                 .toList();
+
+        return toPageResponse(orderPage, content);
     }
 
     @Override
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @Transactional(readOnly = true)
+    public PageResponse<OrderResponse> getAllOrders(int page, int size) {
+        Pageable pageable = createOrderPageable(page, size);
+        Page<Order> orderPage = orderRepository.findAll(pageable);
+
+        List<OrderResponse> content = orderPage.getContent()
+                .stream()
+                .map(this::toOrderResponse)
+                .toList();
+
+        return toPageResponse(orderPage, content);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public OrderResponse getOrderDetail(String userId, String orderId) {
         Order order = orderRepository.findByIdAndUserId(orderId, userId)
                 .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
@@ -106,8 +144,27 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
 
+        OrderStatus oldStatus = order.getStatus();
         order.setStatus(status);
-        return toOrderResponse(orderRepository.save(order));
+        Order savedOrder = orderRepository.save(order);
+        publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
+        return toOrderResponse(savedOrder);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse cancelOrder(String userId, String orderId) {
+        Order order = orderRepository.findByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
+
+        if (!CANCELLABLE_STATUSES.contains(order.getStatus())) {
+            throw new OrderServiceException(ErrorCode.ORDER_CANNOT_BE_CANCELLED);
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        Order savedOrder = orderRepository.save(order);
+        publishOrderCancelledEvent(savedOrder);
+        return toOrderResponse(savedOrder);
     }
 
     private OrderResponse toOrderResponse(Order order) {
@@ -133,6 +190,22 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
+    private Pageable createOrderPageable(int page, int size) {
+        int currentPage = Math.max(page, 1);
+        int pageSize = Math.max(size, 1);
+        return PageRequest.of(currentPage - 1, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+    }
+
+    private PageResponse<OrderResponse> toPageResponse(Page<Order> orderPage, List<OrderResponse> content) {
+        return PageResponse.<OrderResponse>builder()
+                .currentPage(orderPage.getNumber() + 1)
+                .pageSize(orderPage.getSize())
+                .totalPages(orderPage.getTotalPages())
+                .totalElements(orderPage.getTotalElements())
+                .content(content)
+                .build();
+    }
+
     private void publishOrderCreatedEvent(Order order) {
         OrderCreatedEvent event = OrderCreatedEvent.builder()
                 .orderId(order.getId())
@@ -140,6 +213,13 @@ public class OrderServiceImpl implements OrderService {
                 .totalAmount(order.getTotalAmount())
                 .status(order.getStatus().name())
                 .createdAt(order.getCreatedAt())
+                .items(order.getItems()
+                        .stream()
+                        .map(item -> OrderItemEvent.builder()
+                                .productId(item.getProductId())
+                                .quantity(item.getQuantity())
+                                .build())
+                        .toList())
                 .build();
 
         kafkaTemplate.send(ORDER_CREATED_TOPIC, order.getId(), event)
@@ -150,6 +230,54 @@ public class OrderServiceImpl implements OrderService {
                     }
 
                     log.info("Published OrderCreatedEvent: orderId={}", order.getId());
+                });
+    }
+
+    private void publishOrderCancelledEvent(Order order) {
+        OrderCancelledEvent event = OrderCancelledEvent.builder()
+                .orderId(order.getId())
+                .userId(order.getUserId())
+                .totalAmount(order.getTotalAmount())
+                .status(order.getStatus().name())
+                .cancelledAt(Instant.now())
+                .build();
+
+        kafkaTemplate.send(ORDER_CANCELLED_TOPIC, order.getId(), event)
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        log.error("Failed to publish OrderCancelledEvent: orderId={}", order.getId(), throwable);
+                        return;
+                    }
+
+                    log.info("Published OrderCancelledEvent: orderId={}", order.getId());
+                });
+    }
+
+    private void publishOrderStatusUpdatedEvent(Order order, OrderStatus oldStatus) {
+        OrderStatus newStatus = order.getStatus();
+        OrderStatusUpdatedEvent event = OrderStatusUpdatedEvent.builder()
+                .orderId(order.getId())
+                .userId(order.getUserId())
+                .oldStatus(oldStatus.name())
+                .newStatus(newStatus.name())
+                .updatedAt(Instant.now())
+                .build();
+
+        kafkaTemplate.send(ORDER_STATUS_UPDATED_TOPIC, order.getId(), event)
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        log.error("Failed to publish OrderStatusUpdatedEvent: orderId={}, oldStatus={}, newStatus={}",
+                                order.getId(),
+                                oldStatus,
+                                newStatus,
+                                throwable);
+                        return;
+                    }
+
+                    log.info("Published OrderStatusUpdatedEvent: orderId={}, oldStatus={}, newStatus={}",
+                            order.getId(),
+                            oldStatus,
+                            newStatus);
                 });
     }
 }

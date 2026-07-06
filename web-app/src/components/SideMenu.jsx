@@ -12,8 +12,10 @@ import {
   Typography,
 } from "@mui/material";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
+import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
@@ -22,6 +24,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { logout } from "../services/authenticationService";
 
 const menuItems = [
+  {
+    label: "Dashboard",
+    path: "/dashboard",
+    icon: <DashboardOutlinedIcon />,
+  },
   {
     label: "Products",
     path: "/products",
@@ -36,6 +43,11 @@ const menuItems = [
     label: "Search",
     path: "/search",
     icon: <SearchOutlinedIcon />,
+  },
+  {
+    label: "Orders",
+    path: "/orders",
+    icon: <ShoppingCartOutlinedIcon />,
   },
   {
     label: "Profile",
@@ -93,7 +105,9 @@ export default function SideMenu({ drawerWidth, mobileOpen, onClose }) {
 
       <List sx={{ px: 1.25, py: 2, flexGrow: 1 }}>
         {menuItems.map((item) => {
-          const selected = location.pathname === item.path;
+          const selected =
+            location.pathname === item.path ||
+            (location.pathname === "/" && item.path === "/dashboard");
 
           return (
             <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>

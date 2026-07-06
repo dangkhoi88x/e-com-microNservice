@@ -30,7 +30,7 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      navigate("/products", { replace: true });
+      navigate("/dashboard", { replace: true });
     }
   }, [navigate]);
 
@@ -41,7 +41,7 @@ export default function Login() {
 
     try {
       await login(email, password);
-      navigate("/products", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       setErrorMessage(
         error.response?.data?.message ||

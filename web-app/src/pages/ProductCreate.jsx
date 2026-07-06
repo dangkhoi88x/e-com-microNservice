@@ -188,6 +188,9 @@ export default function ProductCreate() {
                 fullWidth
                 required
                 inputProps={{ min: 0 }}
+                helperText={
+                  Number(form.quantity) === 0 ? "This product starts out of stock." : " "
+                }
               />
             </Grid>
             <Grid item xs={12} sm={4}>

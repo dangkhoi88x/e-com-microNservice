@@ -32,3 +32,20 @@ export const logout = () => {
 export const isAuthenticated = () => {
   return Boolean(getToken());
 };
+
+export const getCurrentUserRoles = () => {
+  const token = getToken();
+  if (!token) return [];
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return Array.isArray(payload.roles) ? payload.roles : [];
+  } catch {
+    return [];
+  }
+};
+
+export const hasAnyRole = (...roles) => {
+  const currentRoles = getCurrentUserRoles();
+  return roles.some((role) => currentRoles.includes(role));
+};

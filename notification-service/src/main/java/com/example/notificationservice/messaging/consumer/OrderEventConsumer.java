@@ -1,6 +1,8 @@
 package com.example.notificationservice.messaging.consumer;
 
+import com.example.event.OrderCancelledEvent;
 import com.example.event.OrderCreatedEvent;
+import com.example.event.OrderStatusUpdatedEvent;
 import com.example.notificationservice.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,5 +20,21 @@ public class OrderEventConsumer {
     public void orderCreated(OrderCreatedEvent event) {
         log.info("Received OrderCreatedEvent: orderId={}, userId={}", event.getOrderId(), event.getUserId());
         notificationService.createNotificationOrderCreated(event);
+    }
+
+    @KafkaListener(topics = "order-cancelled", groupId = "notification-group")
+    public void orderCancelled(OrderCancelledEvent event) {
+        log.info("Received OrderCancelledEvent: orderId={}, userId={}", event.getOrderId(), event.getUserId());
+        notificationService.createNotificationOrderCancelled(event);
+    }
+
+    @KafkaListener(topics = "order-status-updated", groupId = "notification-group")
+    public void orderStatusUpdated(OrderStatusUpdatedEvent event) {
+        log.info("Received OrderStatusUpdatedEvent: orderId={}, userId={}, oldStatus={}, newStatus={}",
+                event.getOrderId(),
+                event.getUserId(),
+                event.getOldStatus(),
+                event.getNewStatus());
+        notificationService.createNotificationOrderStatusUpdated(event);
     }
 }

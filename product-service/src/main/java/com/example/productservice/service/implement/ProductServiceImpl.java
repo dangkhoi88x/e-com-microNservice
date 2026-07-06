@@ -17,6 +17,7 @@ import com.example.productservice.repository.ProductRepository;
 import com.example.productservice.service.ProductService;
 import com.example.productservice.repository.specification.ProductSpecification;
 import com.example.productservice.utils.SlugUtils;
+import com.example.event.OrderCreatedEvent;
 import event.ProductCreatedEvent;
 import event.ProductDeletedEvent;
 import event.ProductUpdatedEvent;
@@ -33,6 +34,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -235,6 +237,36 @@ public class ProductServiceImpl implements ProductService {
                     log.info("Successfully sent product deleted event");
                 });
         log.info("Product deleted successfully: id={}", product.getId());
+    }
+
+    @Override
+    @Transactional
+    public void reduceStockFromOrderCreatedEvent(OrderCreatedEvent event) {
+        if (event.getItems() == null || event.getItems().isEmpty()) {
+            log.warn("Skip stock reduction because order-created event has no items: orderId={}", event.getOrderId());
+            return;
+        }
+
+        event.getItems().forEach(item -> {
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_NOT_FOUND));
+
+            int orderedQuantity = item.getQuantity() == null ? 0 : item.getQuantity();
+            int currentQuantity = product.getQuantity() == null ? 0 : product.getQuantity();
+            if (orderedQuantity <= 0 || currentQuantity < orderedQuantity) {
+                throw new ProductServiceException(ErrorCode.PRODUCT_OUT_OF_STOCK);
+            }
+
+            product.setQuantity(currentQuantity - orderedQuantity);
+            Product savedProduct = productRepository.save(product);
+            sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
+
+            log.info("Reduced product stock: orderId={}, productId={}, quantity={}, remaining={}",
+                    event.getOrderId(),
+                    item.getProductId(),
+                    orderedQuantity,
+                    savedProduct.getQuantity());
+        });
     }
 
     private String generateUniqueSlug(String name) {

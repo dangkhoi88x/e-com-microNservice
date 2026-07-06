@@ -44,6 +44,30 @@ const formatPrice = (value) => {
   }).format(Number(value));
 };
 
+const getStockState = (quantity) => {
+  if (quantity === null || quantity === undefined) {
+    return {
+      label: "Unknown",
+      color: "default",
+      helper: "-",
+    };
+  }
+
+  if (Number(quantity) <= 0) {
+    return {
+      label: "Out of stock",
+      color: "error",
+      helper: "0 left",
+    };
+  }
+
+  return {
+    label: "In stock",
+    color: "success",
+    helper: `${quantity} left`,
+  };
+};
+
 const defaultFilters = {
   name: "",
   categoryId: "",
@@ -302,44 +326,58 @@ export default function Products() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {products.map((product) => (
-                    <TableRow key={product.id} hover>
-                      <TableCell>
-                        <Typography fontWeight={800}>{product.name}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {product.description || "No description"}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>{product.slug || "-"}</TableCell>
-                      <TableCell>
-                        <Chip
-                          size="small"
-                          label={product.status || "UNKNOWN"}
-                          color={
-                            product.status === "ACTIVE" ? "success" : "default"
-                          }
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        {formatPrice(product.price)}
-                      </TableCell>
-                      <TableCell align="right">
-                        {product.quantity ?? "-"}
-                      </TableCell>
-                      <TableCell>{formatDateTime(product.createdAt)}</TableCell>
-                      <TableCell align="right">
-                        <Tooltip title="Delete">
-                          <IconButton
-                            color="error"
-                            onClick={() => handleDelete(product)}
-                          >
-                            <DeleteOutlineOutlinedIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {products.map((product) => {
+                    const stock = getStockState(product.quantity);
+
+                    return (
+                      <TableRow key={product.id} hover>
+                        <TableCell>
+                          <Typography fontWeight={800}>{product.name}</Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {product.description || "No description"}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>{product.slug || "-"}</TableCell>
+                        <TableCell>
+                          <Chip
+                            size="small"
+                            label={product.status || "UNKNOWN"}
+                            color={
+                              product.status === "ACTIVE" ? "success" : "default"
+                            }
+                            variant="outlined"
+                          />
+                        </TableCell>
+                        <TableCell align="right">
+                          {formatPrice(product.price)}
+                        </TableCell>
+                        <TableCell align="right">
+                          <Stack alignItems="flex-end" spacing={0.5}>
+                            <Chip
+                              size="small"
+                              label={stock.label}
+                              color={stock.color}
+                              variant={stock.color === "error" ? "filled" : "outlined"}
+                            />
+                            <Typography variant="body2" color="text.secondary">
+                              {stock.helper}
+                            </Typography>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>{formatDateTime(product.createdAt)}</TableCell>
+                        <TableCell align="right">
+                          <Tooltip title="Delete">
+                            <IconButton
+                              color="error"
+                              onClick={() => handleDelete(product)}
+                            >
+                              <DeleteOutlineOutlinedIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>

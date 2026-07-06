@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 @Getter
 @Setter
@@ -20,4 +21,5 @@ public class OrderCreatedEvent {
     private BigDecimal totalAmount;
     private String status;
     private Instant createdAt;
+    private List<OrderItemEvent> items;
 }
