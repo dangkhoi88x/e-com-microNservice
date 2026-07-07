@@ -5,6 +5,7 @@ import com.example.event.OrderCancelledEvent;
 import com.example.event.OrderCreatedEvent;
 import com.example.event.OrderItemEvent;
 import com.example.event.OrderStatusUpdatedEvent;
+import com.example.event.PaymentSuccessEvent;
 import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.common.OrderStatus;
 import com.example.orderservice.dto.request.CreateOrderRequest;
@@ -165,6 +166,37 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
         publishOrderCancelledEvent(savedOrder);
         return toOrderResponse(savedOrder);
+    }
+
+    @Override
+    @Transactional
+    public void confirmOrderFromPaymentSuccess(PaymentSuccessEvent event) {
+        Order order = orderRepository.findById(event.getOrderId())
+                .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
+
+        if (order.getStatus() == OrderStatus.CONFIRMED) {
+            log.info("Skip payment success because order is already confirmed: orderId={}, paymentId={}",
+                    event.getOrderId(),
+                    event.getPaymentId());
+            return;
+        }
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            log.warn("Skip payment success because order is not pending: orderId={}, paymentId={}, status={}",
+                    event.getOrderId(),
+                    event.getPaymentId(),
+                    order.getStatus());
+            return;
+        }
+
+        OrderStatus oldStatus = order.getStatus();
+        order.setStatus(OrderStatus.CONFIRMED);
+        Order savedOrder = orderRepository.save(order);
+        publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
+
+        log.info("Order confirmed from payment success: orderId={}, paymentId={}",
+                event.getOrderId(),
+                event.getPaymentId());
     }
 
     private OrderResponse toOrderResponse(Order order) {

@@ -16,6 +16,7 @@ import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
@@ -48,6 +49,11 @@ const menuItems = [
     label: "Orders",
     path: "/orders",
     icon: <ShoppingCartOutlinedIcon />,
+  },
+  {
+    label: "Payments",
+    path: "/payments",
+    icon: <PaymentsOutlinedIcon />,
   },
   {
     label: "Profile",

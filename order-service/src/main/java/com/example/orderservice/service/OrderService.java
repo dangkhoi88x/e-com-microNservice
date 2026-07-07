@@ -1,5 +1,6 @@
 package com.example.orderservice.service;
 
+import com.example.event.PaymentSuccessEvent;
 import com.example.orderservice.common.OrderStatus;
 import com.example.orderservice.dto.request.CreateOrderRequest;
 import com.example.orderservice.dto.response.OrderResponse;
@@ -17,4 +18,6 @@ public interface OrderService {
     OrderResponse updateOrderStatus(String orderId, OrderStatus status);
 
     OrderResponse cancelOrder(String userId, String orderId);
+
+    void confirmOrderFromPaymentSuccess(PaymentSuccessEvent event);
 }

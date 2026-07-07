@@ -6,6 +6,7 @@ import Products from "../pages/Products";
 import ProductCreate from "../pages/ProductCreate";
 import Search from "../pages/Search";
 import Orders from "../pages/Orders";
+import Payments from "../pages/Payments";
 import Categories from "../pages/Categories";
 import Profile from "../pages/Profile";
 import Notifications from "../pages/Notifications";
@@ -85,6 +86,15 @@ export default function AppRoutes() {
           element={
             <PrivateRoute>
               <Orders />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/payments"
+          element={
+            <PrivateRoute>
+              <Payments />
             </PrivateRoute>
           }
         />

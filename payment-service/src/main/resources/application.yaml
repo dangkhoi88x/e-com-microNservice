@@ -4,8 +4,25 @@ server:
 spring:
   application:
     name: payment-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: root
+    password: 123456
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  kafka:
+    bootstrap-servers: localhost:9094
+
+jwt:
+  secret-key: "your-secret-key-here"
 
 eureka:
+  instance:
+    hostname: localhost
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://localhost:8761/eureka/

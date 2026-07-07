@@ -29,8 +29,8 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
         </processorPath>
-        <module name="profile-service" />
         <module name="api-gateway-service" />
+        <module name="profile-service" />
         <module name="notification-service" />
       </profile>
       <profile name="Annotation profile for payment-service" enabled="true">

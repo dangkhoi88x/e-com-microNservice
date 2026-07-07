@@ -3,9 +3,18 @@ package com.example.paymentservice.entity;
 import com.example.paymentservice.common.PaymentMethod;
 import com.example.paymentservice.common.PaymentStatus;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.math.BigDecimal;
 
+
+@Entity
+@Table(name = "payments")
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Payment extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
