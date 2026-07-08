@@ -30,10 +30,11 @@ public class ProductDocumentController {
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) Boolean inStock
+            @RequestParam(required = false) Boolean inStock,
+            @RequestParam(defaultValue = "createdAt,desc") String sort
     ) {
         SearchRequest request = new SearchRequest(categoryId, name, description, minPrice, maxPrice, status, inStock);
-        PageResponse<ProductDocument> data = productDocumentService.getAllWithSearch(page, size, request);
+        PageResponse<ProductDocument> data = productDocumentService.getAllWithSearch(page, size, request, sort);
 
         return ApiResponse.<PageResponse<ProductDocument>>builder()
                 .status(HttpStatus.OK.value())

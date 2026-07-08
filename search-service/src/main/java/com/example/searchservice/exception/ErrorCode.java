@@ -8,7 +8,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ErrorCode {
     INTERNAL_ERROR(500, "Unexpected error occurred while processing request in backend service", HttpStatus.INTERNAL_SERVER_ERROR),
-    ELASTICSEARCH_ERROR(500, "Failed to process request with Elasticsearch", HttpStatus.INTERNAL_SERVER_ERROR);
+    ELASTICSEARCH_ERROR(500, "Failed to process request with Elasticsearch", HttpStatus.INTERNAL_SERVER_ERROR),
+    INVALID_SEARCH_REQUEST(400, "Invalid search request", HttpStatus.BAD_REQUEST);
 
     private final int code;
     private final String message;

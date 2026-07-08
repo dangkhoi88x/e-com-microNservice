@@ -10,7 +10,7 @@ public interface ProductDocumentService {
 
     void deleteProductDocument(String id);
 
-    PageResponse<ProductDocument> getAllWithSearch(int page, int size, SearchRequest request);
+    PageResponse<ProductDocument> getAllWithSearch(int page, int size, SearchRequest request, String sort);
 
     AggregationResponse getAggregations(SearchRequest request);
 }
