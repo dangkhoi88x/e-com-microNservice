@@ -16,8 +16,11 @@ import com.example.inventoryservice.mapper.InventoryMapper;
 import com.example.inventoryservice.repository.InventoryRepository;
 import com.example.inventoryservice.repository.InventoryReservationRepository;
 import com.example.inventoryservice.service.InventoryService;
+import event.InventoryUpdatedEvent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -25,11 +28,15 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j(topic = "INVENTORY-SERVICE")
 public class InventoryServiceImpl implements InventoryService {
+
+    private static final String INVENTORY_UPDATED_TOPIC = "inventory-updated";
 
     private final InventoryRepository inventoryRepository;
     private final InventoryReservationRepository inventoryReservationRepository;
     private final InventoryMapper inventoryMapper;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
     public InventoryResponse createInventory(CreateInventoryRequest request) {
@@ -49,6 +56,7 @@ public class InventoryServiceImpl implements InventoryService {
                 .build();
 
         Inventory savedInventory = inventoryRepository.save(inventory);
+        publishInventoryUpdatedEvent(savedInventory);
 
         return inventoryMapper.toResponse(savedInventory);
     }
@@ -62,6 +70,18 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public List<InventoryResponse> getInventoriesByProductIds(List<String> productIds) {
+        List<String> distinctProductIds = productIds.stream()
+                .distinct()
+                .toList();
+
+        return inventoryRepository.findByProductIdIn(distinctProductIds)
+                .stream()
+                .map(inventoryMapper::toResponse)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public void reserveInventory(ReserveInventoryRequest request) {
         if (inventoryReservationRepository.existsByOrderId(request.orderId())) {
@@ -71,9 +91,8 @@ public class InventoryServiceImpl implements InventoryService {
         Instant now = Instant.now();
 
         for (ReserveInventoryItemRequest item : request.items()) {
-            Inventory inventory = inventoryRepository.findByProductId(item.productId())
+            Inventory inventory = inventoryRepository.findByProductIdForUpdate(item.productId())
                     .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
-
             if (inventory.getAvailableQuantity() < item.quantity()) {
                 throw new InventoryServiceException(ErrorCode.INSUFFICIENT_STOCK);
             }
@@ -93,6 +112,7 @@ public class InventoryServiceImpl implements InventoryService {
 
             inventoryRepository.save(inventory);
             inventoryReservationRepository.save(reservation);
+            publishInventoryUpdatedEvent(inventory);
         }
     }
 
@@ -118,6 +138,7 @@ public class InventoryServiceImpl implements InventoryService {
 
             inventoryRepository.save(inventory);
             inventoryReservationRepository.save(reservation);
+            publishInventoryUpdatedEvent(inventory);
         }
     }
 
@@ -143,6 +164,7 @@ public class InventoryServiceImpl implements InventoryService {
 
             inventoryRepository.save(inventory);
             inventoryReservationRepository.save(reservation);
+            publishInventoryUpdatedEvent(inventory);
         }
     }
 
@@ -182,5 +204,30 @@ public class InventoryServiceImpl implements InventoryService {
                 || inventory.getSoldQuantity() < 0) {
             throw new InventoryServiceException(ErrorCode.INVALID_INVENTORY_REQUEST);
         }
+    }
+
+    private void publishInventoryUpdatedEvent(Inventory inventory) {
+        InventoryUpdatedEvent event = InventoryUpdatedEvent.builder()
+                .productId(inventory.getProductId())
+                .availableQuantity(inventory.getAvailableQuantity())
+                .reservedQuantity(inventory.getReservedQuantity())
+                .soldQuantity(inventory.getSoldQuantity())
+                .inStock(inventory.getAvailableQuantity() != null && inventory.getAvailableQuantity() > 0)
+                .updatedAt(Instant.now())
+                .build();
+
+        kafkaTemplate.send(INVENTORY_UPDATED_TOPIC, inventory.getProductId(), event)
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        log.error("Failed to publish InventoryUpdatedEvent: productId={}",
+                                inventory.getProductId(),
+                                throwable);
+                        return;
+                    }
+
+                    log.info("Published InventoryUpdatedEvent: productId={}, availableQuantity={}",
+                            inventory.getProductId(),
+                            inventory.getAvailableQuantity());
+                });
     }
 }

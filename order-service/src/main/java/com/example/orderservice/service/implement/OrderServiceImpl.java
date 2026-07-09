@@ -5,6 +5,8 @@ import com.example.event.OrderCancelledEvent;
 import com.example.event.OrderCreatedEvent;
 import com.example.event.OrderItemEvent;
 import com.example.event.OrderStatusUpdatedEvent;
+import com.example.event.PaymentCancelledEvent;
+import com.example.event.PaymentFailedEvent;
 import com.example.event.PaymentSuccessEvent;
 import com.example.orderservice.client.InventoryClient;
 import com.example.orderservice.client.ProductClient;
@@ -81,10 +83,6 @@ public class OrderServiceImpl implements OrderService {
                 throw new OrderServiceException(ErrorCode.PRODUCT_NOT_ACTIVE);
             }
 
-            if (product.quantity() < itemRequest.quantity()) {
-                throw new OrderServiceException(ErrorCode.PRODUCT_OUT_OF_STOCK);
-            }
-
             BigDecimal subtotal = product.price()
                     .multiply(BigDecimal.valueOf(itemRequest.quantity()));
 
@@ -114,9 +112,11 @@ public class OrderServiceImpl implements OrderService {
             return toOrderResponse(reservedOrder);
         } catch (RuntimeException exception) {
             log.error("Failed to reserve inventory for order: orderId={}", savedOrder.getId(), exception);
+
             savedOrder.setStatus(OrderStatus.INVENTORY_FAILED);
             Order failedOrder = orderRepository.save(savedOrder);
             publishOrderStatusUpdatedEvent(failedOrder, oldStatus);
+
             return toOrderResponse(failedOrder);
         }
     }
@@ -221,6 +221,51 @@ public class OrderServiceImpl implements OrderService {
         log.info("Order confirmed from payment success: orderId={}, paymentId={}",
                 event.getOrderId(),
                 event.getPaymentId());
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrderFromPaymentFailed(PaymentFailedEvent event) {
+        cancelOrderFromPaymentEvent(event.getOrderId(), event.getPaymentId(), "failed");
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrderFromPaymentCancelled(PaymentCancelledEvent event) {
+        cancelOrderFromPaymentEvent(event.getOrderId(), event.getPaymentId(), "cancelled");
+    }
+
+    private void cancelOrderFromPaymentEvent(String orderId, String paymentId, String paymentStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
+
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            log.info("Skip payment {} because order is already cancelled: orderId={}, paymentId={}",
+                    paymentStatus,
+                    orderId,
+                    paymentId);
+            return;
+        }
+
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
+            log.warn("Skip payment {} because order is not pending payment: orderId={}, paymentId={}, status={}",
+                    paymentStatus,
+                    orderId,
+                    paymentId,
+                    order.getStatus());
+            return;
+        }
+
+        OrderStatus oldStatus = order.getStatus();
+        order.setStatus(OrderStatus.CANCELLED);
+        Order savedOrder = orderRepository.save(order);
+        publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
+        publishOrderCancelledEvent(savedOrder);
+
+        log.info("Order cancelled from payment {}: orderId={}, paymentId={}",
+                paymentStatus,
+                orderId,
+                paymentId);
     }
 
     private OrderResponse toOrderResponse(Order order) {

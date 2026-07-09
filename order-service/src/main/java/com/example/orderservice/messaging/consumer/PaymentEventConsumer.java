@@ -1,5 +1,7 @@
 package com.example.orderservice.messaging.consumer;
 
+import com.example.event.PaymentCancelledEvent;
+import com.example.event.PaymentFailedEvent;
 import com.example.event.PaymentSuccessEvent;
 import com.example.orderservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -21,5 +23,23 @@ public class PaymentEventConsumer {
                 event.getOrderId(),
                 event.getUserId());
         orderService.confirmOrderFromPaymentSuccess(event);
+    }
+
+    @KafkaListener(topics = "payment-failed", groupId = "order-group")
+    public void paymentFailed(PaymentFailedEvent event) {
+        log.info("Received PaymentFailedEvent: paymentId={}, orderId={}, userId={}",
+                event.getPaymentId(),
+                event.getOrderId(),
+                event.getUserId());
+        orderService.cancelOrderFromPaymentFailed(event);
+    }
+
+    @KafkaListener(topics = "payment-cancelled", groupId = "order-group")
+    public void paymentCancelled(PaymentCancelledEvent event) {
+        log.info("Received PaymentCancelledEvent: paymentId={}, orderId={}, userId={}",
+                event.getPaymentId(),
+                event.getOrderId(),
+                event.getUserId());
+        orderService.cancelOrderFromPaymentCancelled(event);
     }
 }

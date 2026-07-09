@@ -13,6 +13,7 @@ public enum ErrorCode {
     PRODUCT_SERVICE_UNAVAILABLE(503, "Product Service Unavailable", HttpStatus.SERVICE_UNAVAILABLE),
     ORDER_NOT_FOUND(404, "Order Not Found", HttpStatus.NOT_FOUND),
     ORDER_ACCESS_DENIED(403, "Order Access Denied", HttpStatus.FORBIDDEN),
+    INVENTORY_RESERVATION_FAILED(409, "Inventory reservation failed", HttpStatus.CONFLICT),
     ORDER_CANNOT_BE_CANCELLED(400, "Order cannot be cancelled", HttpStatus.BAD_REQUEST);
 
     private final int code;

@@ -37,11 +37,14 @@ public class OrderController {
     ) {
         String token = authorization.replace("Bearer ", "");
         OrderResponse data = orderService.createOrder(jwt.getSubject(), request, token);
+        String message = OrderStatus.INVENTORY_FAILED.name().equals(data.status())
+                ? "Order created but inventory reservation failed"
+                : "Order created successfully";
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.<OrderResponse>builder()
                         .status(HttpStatus.CREATED.value())
-                        .message("Order created successfully")
+                        .message(message)
                         .data(data)
                         .build());
     }

@@ -125,6 +125,10 @@ public class PaymentServiceImpl implements PaymentService {
             throw new PaymentServiceException(ErrorCode.PAYMENT_ALREADY_SUCCESS);
         }
 
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            throw new PaymentServiceException(ErrorCode.PAYMENT_CANNOT_BE_COMPLETED);
+        }
+
         payment.setStatus(PaymentStatus.SUCCESS);
         payment.setFailureReason(null);
 
@@ -142,6 +146,10 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (payment.getStatus() == PaymentStatus.SUCCESS) {
             throw new PaymentServiceException(ErrorCode.PAYMENT_ALREADY_SUCCESS);
+        }
+
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            throw new PaymentServiceException(ErrorCode.PAYMENT_CANNOT_BE_FAILED);
         }
 
         payment.setStatus(PaymentStatus.FAILED);

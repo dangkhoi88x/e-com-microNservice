@@ -1,5 +1,6 @@
 package com.example.productservice.service.implement;
 
+import com.example.productservice.client.InventoryClient;
 import com.example.productservice.common.ProductStatus;
 import com.example.productservice.dto.request.CreateProductRequest;
 import com.example.productservice.dto.request.SearchRequest;
@@ -9,7 +10,6 @@ import com.example.productservice.dto.response.PageResponse;
 import com.example.productservice.dto.response.ProductDetailResponse;
 import com.example.productservice.entity.Category;
 import com.example.productservice.entity.Product;
-import com.example.productservice.entity.ProductImage;
 import com.example.productservice.exception.ErrorCode;
 import com.example.productservice.exception.ProductServiceException;
 import com.example.productservice.repository.CategoryRepository;
@@ -17,7 +17,7 @@ import com.example.productservice.repository.ProductRepository;
 import com.example.productservice.service.ProductService;
 import com.example.productservice.repository.specification.ProductSpecification;
 import com.example.productservice.utils.SlugUtils;
-import com.example.event.OrderCreatedEvent;
+import event.InventoryUpdatedEvent;
 import event.ProductCreatedEvent;
 import event.ProductDeletedEvent;
 import event.ProductUpdatedEvent;
@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,8 +50,9 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final InventoryClient inventoryClient;
 
-    @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
+  //  @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
     @Override
     public CreateProductResponse createProduct(String sellerId, CreateProductRequest request) {
         Category category = categoryRepository.findById(request.categoryId())
@@ -121,20 +123,18 @@ public class ProductServiceImpl implements ProductService {
 
         // 4. Lấy content (danh sách products của trang hiện tại)
         List<Product> products = productPage.getContent();
+        Map<String, Integer> availableQuantities = inventoryClient.getAvailableQuantities(
+                products.stream()
+                        .map(Product::getId)
+                        .toList()
+        );
 
         // 5. Map Entity sang DTO
         List<ProductDetailResponse> responses = products.stream()
-                .map(product -> ProductDetailResponse.builder()
-                        .id(product.getId())
-                        .name(product.getName())
-                        .slug(product.getSlug())
-                        .description(product.getDescription())
-                        .price(product.getPrice())
-                        .quantity(product.getQuantity())
-                        .images(product.getImages())
-                        .status(product.getStatus())
-                        .createdAt(product.getCreatedAt())
-                .build())
+                .map(product -> toProductDetailResponse(
+                        product,
+                        availableQuantities.getOrDefault(product.getId(), product.getQuantity())
+                ))
                 .toList();
 
         return PageResponse.<ProductDetailResponse>builder()
@@ -148,18 +148,18 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDetailResponse getProductById(String id) {
         return productRepository.findById(id)
-                .map(this::toProductDetailResponse)
+                .map(this::toProductDetailResponseWithFreshInventory)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_NOT_FOUND));
     }
 
     @Override
     public ProductDetailResponse getProductBySlug(String slug) {
         return productRepository.findBySlug(slug)
-                .map(this::toProductDetailResponse)
+                .map(this::toProductDetailResponseWithFreshInventory)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_NOT_FOUND));
     }
 
-    @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
+    // @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
     @Override
     public ProductDetailResponse updateProduct(String id, String userId, UpdateProductRequest request) {
         Product product = productRepository.findById(id)
@@ -190,10 +190,6 @@ public class ProductServiceImpl implements ProductService {
             product.setPrice(request.price());
         }
 
-        if (request.quantity() != null) {
-            product.setQuantity(request.quantity());
-        }
-
         if (request.images() != null) {
             product.setImages(request.images());
         }
@@ -209,7 +205,7 @@ public class ProductServiceImpl implements ProductService {
         return toProductDetailResponse(product);
     }
 
-    @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
+   // @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
     @Override
     public void deleteProduct(String id) {
         Product product = productRepository.findById(id)
@@ -241,33 +237,24 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public void reduceStockFromOrderCreatedEvent(OrderCreatedEvent event) {
-        if (event.getItems() == null || event.getItems().isEmpty()) {
-            log.warn("Skip stock reduction because order-created event has no items: orderId={}", event.getOrderId());
+    public void syncStockFromInventoryEvent(InventoryUpdatedEvent event) {
+        Product product = productRepository.findById(event.getProductId())
+                .orElse(null);
+
+        if (product == null) {
+            log.warn("Skip inventory sync because product does not exist: productId={}", event.getProductId());
             return;
         }
 
-        event.getItems().forEach(item -> {
-            Product product = productRepository.findById(item.getProductId())
-                    .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_NOT_FOUND));
+        product.setQuantity(event.getAvailableQuantity());
+        Product savedProduct = productRepository.save(product);
+        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
 
-            int orderedQuantity = item.getQuantity() == null ? 0 : item.getQuantity();
-            int currentQuantity = product.getQuantity() == null ? 0 : product.getQuantity();
-            if (orderedQuantity <= 0 || currentQuantity < orderedQuantity) {
-                throw new ProductServiceException(ErrorCode.PRODUCT_OUT_OF_STOCK);
-            }
-
-            product.setQuantity(currentQuantity - orderedQuantity);
-            Product savedProduct = productRepository.save(product);
-            sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
-
-            log.info("Reduced product stock: orderId={}, productId={}, quantity={}, remaining={}",
-                    event.getOrderId(),
-                    item.getProductId(),
-                    orderedQuantity,
-                    savedProduct.getQuantity());
-        });
+        log.info("Synced product stock from inventory: productId={}, quantity={}",
+                savedProduct.getId(),
+                savedProduct.getQuantity());
     }
+
 
     private String generateUniqueSlug(String name) {
         String baseSlug = SlugUtils.toSlug(name);
@@ -364,13 +351,24 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductDetailResponse toProductDetailResponse(Product product) {
+        return toProductDetailResponse(product, product.getQuantity());
+    }
+
+    private ProductDetailResponse toProductDetailResponseWithFreshInventory(Product product) {
+        Integer availableQuantity = inventoryClient.getAvailableQuantity(product.getId())
+                .orElse(product.getQuantity());
+
+        return toProductDetailResponse(product, availableQuantity);
+    }
+
+    private ProductDetailResponse toProductDetailResponse(Product product, Integer quantity) {
         return ProductDetailResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
                 .slug(product.getSlug())
                 .description(product.getDescription())
                 .price(product.getPrice())
-                .quantity(product.getQuantity())
+                .quantity(quantity)
                 .images(product.getImages())
                 .status(product.getStatus())
                 .createdAt(product.getCreatedAt())

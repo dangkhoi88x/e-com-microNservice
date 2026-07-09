@@ -1,5 +1,6 @@
 package com.example.inventoryservice.controller;
 
+import com.example.inventoryservice.dto.request.BatchInventoryRequest;
 import com.example.inventoryservice.dto.request.CreateInventoryRequest;
 import com.example.inventoryservice.dto.request.InventoryOrderRequest;
 import com.example.inventoryservice.dto.request.ReserveInventoryRequest;
@@ -35,6 +36,11 @@ public class InventoryController {
     @GetMapping("/products/{productId}")
     public InventoryResponse getInventoryByProductId(@PathVariable String productId) {
         return inventoryService.getInventoryByProductId(productId);
+    }
+
+    @PostMapping("/products/batch")
+    public List<InventoryResponse> getInventoriesByProductIds(@Valid @RequestBody BatchInventoryRequest request) {
+        return inventoryService.getInventoriesByProductIds(request.productIds());
     }
 
     @PostMapping("/reserve")

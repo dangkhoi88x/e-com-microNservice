@@ -13,6 +13,8 @@ public interface InventoryService {
 
     InventoryResponse getInventoryByProductId(String productId);
 
+    List<InventoryResponse> getInventoriesByProductIds(List<String> productIds);
+
     void reserveInventory(ReserveInventoryRequest request);
 
     void confirmInventory(InventoryOrderRequest request);

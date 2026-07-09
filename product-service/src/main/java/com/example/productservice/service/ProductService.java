@@ -6,7 +6,7 @@ import com.example.productservice.dto.request.UpdateProductRequest;
 import com.example.productservice.dto.response.CreateProductResponse;
 import com.example.productservice.dto.response.PageResponse;
 import com.example.productservice.dto.response.ProductDetailResponse;
-import com.example.event.OrderCreatedEvent;
+import event.InventoryUpdatedEvent;
 
 import java.util.List;
 
@@ -17,5 +17,6 @@ public interface ProductService {
     ProductDetailResponse getProductBySlug(String slug);
     ProductDetailResponse updateProduct(String id, String userId, UpdateProductRequest request);
     void deleteProduct(String id);
-    void reduceStockFromOrderCreatedEvent(OrderCreatedEvent event);
+    void syncStockFromInventoryEvent(InventoryUpdatedEvent event);
+
 }
