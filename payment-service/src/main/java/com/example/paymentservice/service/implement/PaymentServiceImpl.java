@@ -186,7 +186,7 @@ public class PaymentServiceImpl implements PaymentService {
             throw new PaymentServiceException(ErrorCode.ORDER_ACCESS_DENIED);
         }
 
-        if (!"PENDING".equals(order.status())) {
+        if (!"PENDING_PAYMENT".equals(order.status())) {
             throw new PaymentServiceException(ErrorCode.ORDER_NOT_PAYABLE);
         }
     }

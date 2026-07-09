@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -31,9 +32,11 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
             @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader("Authorization") String authorization,
             @RequestBody @Valid CreateOrderRequest request
     ) {
-        OrderResponse data = orderService.createOrder(jwt.getSubject(), request);
+        String token = authorization.replace("Bearer ", "");
+        OrderResponse data = orderService.createOrder(jwt.getSubject(), request, token);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.<OrderResponse>builder()
@@ -103,9 +106,11 @@ public class OrderController {
     @PutMapping("/{id}/cancel")
     public ApiResponse<OrderResponse> cancelOrder(
             @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader("Authorization") String authorization,
             @PathVariable String id
     ) {
-        OrderResponse data = orderService.cancelOrder(jwt.getSubject(), id);
+        String token = authorization.replace("Bearer ", "");
+        OrderResponse data = orderService.cancelOrder(jwt.getSubject(), id, token);
 
         return ApiResponse.<OrderResponse>builder()
                 .status(HttpStatus.OK.value())

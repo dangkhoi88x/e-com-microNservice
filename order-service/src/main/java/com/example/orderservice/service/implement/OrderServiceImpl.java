@@ -6,9 +6,13 @@ import com.example.event.OrderCreatedEvent;
 import com.example.event.OrderItemEvent;
 import com.example.event.OrderStatusUpdatedEvent;
 import com.example.event.PaymentSuccessEvent;
+import com.example.orderservice.client.InventoryClient;
 import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.common.OrderStatus;
 import com.example.orderservice.dto.request.CreateOrderRequest;
+import com.example.orderservice.dto.request.InventoryOrderRequest;
+import com.example.orderservice.dto.request.ReserveInventoryItemRequest;
+import com.example.orderservice.dto.request.ReserveInventoryRequest;
 import com.example.orderservice.dto.response.OrderItemResponse;
 import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.PageResponse;
@@ -45,16 +49,18 @@ public class OrderServiceImpl implements OrderService {
     private static final String ORDER_STATUS_UPDATED_TOPIC = "order-status-updated";
     private static final Set<OrderStatus> CANCELLABLE_STATUSES = Set.of(
             OrderStatus.PENDING,
+            OrderStatus.PENDING_PAYMENT,
             OrderStatus.CONFIRMED
     );
 
     private final OrderRepository orderRepository;
     private final ProductClient productClient;
+    private final InventoryClient inventoryClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
     @Transactional
-    public OrderResponse createOrder(String userId, CreateOrderRequest request) {
+    public OrderResponse createOrder(String userId, CreateOrderRequest request, String token) {
         Order order = Order.builder()
                 .userId(userId)
                 .shippingAddress(request.shippingAddress())
@@ -96,9 +102,23 @@ public class OrderServiceImpl implements OrderService {
 
         order.setTotalAmount(totalAmount);
 
-        Order savedOrder = orderRepository.save(order);
-        publishOrderCreatedEvent(savedOrder);
-        return toOrderResponse(savedOrder);
+        Order savedOrder = orderRepository.saveAndFlush(order);
+        OrderStatus oldStatus = savedOrder.getStatus();
+
+        try {
+            reserveInventory(savedOrder, token);
+            savedOrder.setStatus(OrderStatus.PENDING_PAYMENT);
+            Order reservedOrder = orderRepository.save(savedOrder);
+            publishOrderStatusUpdatedEvent(reservedOrder, oldStatus);
+            publishOrderCreatedEvent(reservedOrder);
+            return toOrderResponse(reservedOrder);
+        } catch (RuntimeException exception) {
+            log.error("Failed to reserve inventory for order: orderId={}", savedOrder.getId(), exception);
+            savedOrder.setStatus(OrderStatus.INVENTORY_FAILED);
+            Order failedOrder = orderRepository.save(savedOrder);
+            publishOrderStatusUpdatedEvent(failedOrder, oldStatus);
+            return toOrderResponse(failedOrder);
+        }
     }
 
     @Override
@@ -154,12 +174,16 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse cancelOrder(String userId, String orderId) {
+    public OrderResponse cancelOrder(String userId, String orderId, String token) {
         Order order = orderRepository.findByIdAndUserId(orderId, userId)
                 .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!CANCELLABLE_STATUSES.contains(order.getStatus())) {
             throw new OrderServiceException(ErrorCode.ORDER_CANNOT_BE_CANCELLED);
+        }
+
+        if (order.getStatus() == OrderStatus.PENDING_PAYMENT) {
+            releaseInventory(order, token);
         }
 
         order.setStatus(OrderStatus.CANCELLED);
@@ -181,8 +205,8 @@ public class OrderServiceImpl implements OrderService {
             return;
         }
 
-        if (order.getStatus() != OrderStatus.PENDING) {
-            log.warn("Skip payment success because order is not pending: orderId={}, paymentId={}, status={}",
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
+            log.warn("Skip payment success because order is not pending payment: orderId={}, paymentId={}, status={}",
                     event.getOrderId(),
                     event.getPaymentId(),
                     order.getStatus());
@@ -263,6 +287,25 @@ public class OrderServiceImpl implements OrderService {
 
                     log.info("Published OrderCreatedEvent: orderId={}", order.getId());
                 });
+    }
+
+    private void reserveInventory(Order order, String token) {
+        ReserveInventoryRequest reserveRequest = new ReserveInventoryRequest(
+                order.getId(),
+                order.getItems()
+                        .stream()
+                        .map(item -> new ReserveInventoryItemRequest(
+                                item.getProductId(),
+                                item.getQuantity()
+                        ))
+                        .toList()
+        );
+
+        inventoryClient.reserveInventory(reserveRequest, token);
+    }
+
+    private void releaseInventory(Order order, String token) {
+        inventoryClient.releaseInventory(new InventoryOrderRequest(order.getId()), token);
     }
 
     private void publishOrderCancelledEvent(Order order) {

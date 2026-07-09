@@ -12,7 +12,17 @@ services:
       - product-postgres-data:/var/lib/postgresql/data
     networks:
       - microservice_network
-
+  inventory-postgres:
+    image: postgres:16
+    container_name: inventory-postgres
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - inventory_postgres_data:/var/lib/postgresql/data
   identity-postgres:
     image: postgres:17
     container_name: identity-postgres
@@ -136,5 +146,6 @@ volumes:
   mongo-data:
   kafka-data:
   elasticsearch_data:
+  inventory_postgres_data:
 networks:
   microservice_network:

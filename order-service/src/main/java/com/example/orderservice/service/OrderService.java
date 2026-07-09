@@ -7,7 +7,7 @@ import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.PageResponse;
 
 public interface OrderService {
-    OrderResponse createOrder(String userId, CreateOrderRequest request);
+    OrderResponse createOrder(String userId, CreateOrderRequest request, String token);
 
     PageResponse<OrderResponse> getMyOrders(String userId, int page, int size);
 
@@ -17,7 +17,7 @@ public interface OrderService {
 
     OrderResponse updateOrderStatus(String orderId, OrderStatus status);
 
-    OrderResponse cancelOrder(String userId, String orderId);
+    OrderResponse cancelOrder(String userId, String orderId, String token);
 
     void confirmOrderFromPaymentSuccess(PaymentSuccessEvent event);
 }
