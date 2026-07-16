@@ -8,21 +8,30 @@ const theme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: "#2563eb",
+      main: "#171717",
     },
     secondary: {
       main: "#0f766e",
     },
     background: {
-      default: "#f5f7fb",
+      default: "#f5f5f7",
+      paper: "#ffffff",
+    },
+    text: {
+      primary: "#171717",
+      secondary: "#737373",
     },
   },
   shape: {
-    borderRadius: 8,
+    borderRadius: 16,
   },
   typography: {
     fontFamily:
       'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    button: {
+      textTransform: "none",
+      fontWeight: 750,
+    },
   },
 });
 

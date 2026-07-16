@@ -1,4 +1,8 @@
 spring:
+  config:
+    import:
+      - optional:file:.env.dev[.properties]
+      - optional:file:../.env.dev[.properties]
   datasource:
     url: jdbc:postgresql://localhost:5433/identity-service
     driver-class-name: org.postgresql.Driver

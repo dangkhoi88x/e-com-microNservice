@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8090
   servlet:
     context-path: /identity/api/
 spring:
@@ -7,6 +7,9 @@ spring:
     name: IDENTITY-SERVICE
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  autoconfigure:
+    exclude:
+      - net.devh.boot.grpc.server.autoconfigure.GrpcServerSecurityAutoConfiguration
 eureka:
   instance:
     hostname: localhost

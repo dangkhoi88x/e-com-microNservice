@@ -3,40 +3,15 @@ import { useState } from "react";
 import Header from "../components/Header";
 import SideMenu from "../components/SideMenu";
 
-const drawerWidth = 280;
+const expandedWidth = 252;
+const collapsedWidth = 86;
 
 export default function MainLayout({ children }) {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const drawerWidth = collapsed ? collapsedWidth : expandedWidth;
 
-  const handleDrawerToggle = () => {
-    setMobileOpen((open) => !open);
-  };
-
-  return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <Header
-        drawerWidth={drawerWidth}
-        onMenuClick={handleDrawerToggle}
-        showMenuButton={!isDesktop}
-      />
-      <SideMenu
-        drawerWidth={drawerWidth}
-        mobileOpen={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-      />
-      <Box
-        component="main"
-        sx={{
-          ml: { md: `${drawerWidth}px` },
-          px: { xs: 2, sm: 3 },
-          py: 3,
-        }}
-      >
-        <Toolbar />
-        {children}
-      </Box>
-    </Box>
-  );
+  return <Box className="app-shell"><Header drawerWidth={drawerWidth} onMenuClick={() => setMobileOpen((open) => !open)} showMenuButton={!isDesktop} /><SideMenu drawerWidth={drawerWidth} collapsed={collapsed && isDesktop} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} onToggle={() => setCollapsed((value) => !value)} /><Box component="main" className="main-content" sx={{ ml: { md: `${drawerWidth}px` } }}><Toolbar />{children}</Box></Box>;
 }

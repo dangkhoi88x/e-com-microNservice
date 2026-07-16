@@ -42,7 +42,7 @@ public class JwtService {
                 .subject(userId)
                 .issueTime(now)
                 .expirationTime(expirationTime)
-                .issuer("http://localhost:8080")
+                .issuer("http://localhost:8090")
                 .claim("roles", roles)
                 .claim("typ", TokenType.ACCESS.name())
                 .jwtID(UUID.randomUUID().toString())
@@ -62,7 +62,7 @@ public class JwtService {
                 .subject(userId)
                 .issueTime(now)
                 .expirationTime(expirationTime)
-                .issuer("http://localhost:8080")
+                .issuer("http://localhost:8090")
                 .claim("typ", TokenType.REFRESH.name())
                 .jwtID(jti)
                 .build();

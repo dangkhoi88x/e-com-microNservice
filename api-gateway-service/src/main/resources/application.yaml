@@ -23,7 +23,7 @@ eureka:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
 authentication:
-  url: http://localhost:8080
+  url: http://localhost:8090
 grpc:
   client:
     identity-service:

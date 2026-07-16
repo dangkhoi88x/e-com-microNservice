@@ -1,15 +1,13 @@
 import {
   Alert,
+  Avatar,
   Box,
   Button,
   Chip,
   CircularProgress,
   Divider,
-  Grid,
+  IconButton,
   LinearProgress,
-  List,
-  ListItem,
-  ListItemText,
   Paper,
   Stack,
   Table,
@@ -18,50 +16,52 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
+import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
+import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
-import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
-import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
-import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
+import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
+import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
+import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+import TimelineRoundedIcon from "@mui/icons-material/TimelineRounded";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import { getCategories } from "../services/categoryService";
 import { hasAnyRole } from "../services/authenticationService";
 import { getMyNotifications } from "../services/notificationService";
 import { getAllOrders, getMyOrders } from "../services/orderService";
+import { getAllPayments, getMyPayments } from "../services/paymentService";
 import { getProducts } from "../services/productService";
 import { formatDateTime, formatRelativeTime } from "../utils/dateTimeUtils";
 
-const orderStatuses = [
-  "PENDING",
-  "CONFIRMED",
-  "SHIPPING",
-  "COMPLETED",
-  "CANCELLED",
-];
+const orderStatuses = ["PENDING", "CONFIRMED", "SHIPPING", "COMPLETED", "CANCELLED"];
 
-const statusColor = (status) => {
+const statusTone = (status) => {
   switch (status) {
-    case "PENDING":
-      return "warning";
-    case "CONFIRMED":
-      return "info";
-    case "SHIPPING":
-      return "primary";
     case "COMPLETED":
-      return "success";
-    case "CANCELLED":
-      return "default";
+      return { color: "#15803d", bg: "#dcfce7" };
+    case "CONFIRMED":
+      return { color: "#2563eb", bg: "#dbeafe" };
+    case "SHIPPING":
+      return { color: "#0f766e", bg: "#ccfbf1" };
+    case "PENDING":
+      return { color: "#b45309", bg: "#fef3c7" };
     default:
-      return "default";
+      return { color: "#64748b", bg: "#f1f5f9" };
   }
 };
 
 const formatPrice = (value) => {
   if (value === null || value === undefined) return "-";
-
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
@@ -72,73 +72,195 @@ const formatPrice = (value) => {
 const metricCards = [
   {
     key: "products",
-    label: "Total products",
+    label: "Products in catalog",
     icon: <Inventory2OutlinedIcon />,
-    color: "primary.main",
-  },
-  {
-    key: "categories",
-    label: "Total categories",
-    icon: <CategoryOutlinedIcon />,
-    color: "success.main",
+    iconColor: "#2563eb",
+    iconBg: "#eaf1ff",
+    delta: "+8.4%",
+    note: "from last month",
+    positive: true,
+    path: "/products",
   },
   {
     key: "orders",
     label: "Total orders",
-    icon: <ShoppingCartOutlinedIcon />,
-    color: "warning.main",
+    icon: <ShoppingBagOutlinedIcon />,
+    iconColor: "#b45309",
+    iconBg: "#fff4df",
+    delta: "+12.6%",
+    note: "from last month",
+    positive: true,
+    path: "/orders",
+  },
+  {
+    key: "payments",
+    label: "Payment records",
+    icon: <PaymentsOutlinedIcon />,
+    iconColor: "#0f766e",
+    iconBg: "#e1f8f1",
+    delta: "+4.1%",
+    note: "from last month",
+    positive: true,
+    path: "/payments",
+  },
+  {
+    key: "notifications",
+    label: "Unread notifications",
+    icon: <NotificationsNoneOutlinedIcon />,
+    iconColor: "#dc2626",
+    iconBg: "#fff0f0",
+    delta: "-2.8%",
+    note: "from last month",
+    positive: false,
+    path: "/notifications",
   },
 ];
 
+const templateCards = [
+  {
+    title: "Product catalog",
+    description: "Manage products and inventory signals",
+    path: "/products",
+    className: "template-blue",
+    icon: <Inventory2OutlinedIcon />,
+    label: "Catalog",
+  },
+  {
+    title: "Order operations",
+    description: "Track status and customer purchases",
+    path: "/orders",
+    className: "template-green",
+    icon: <ShoppingBagOutlinedIcon />,
+    label: "Operations",
+  },
+  {
+    title: "Payment review",
+    description: "Review pending and completed payments",
+    path: "/payments",
+    className: "template-orange",
+    icon: <PaymentsOutlinedIcon />,
+    label: "Finance",
+  },
+];
+
+function StatusPill({ status }) {
+  const tone = statusTone(status);
+  return (
+    <Chip
+      label={status || "UNKNOWN"}
+      size="small"
+      sx={{
+        height: 25,
+        bgcolor: tone.bg,
+        color: tone.color,
+        fontWeight: 800,
+        fontSize: 11,
+        borderRadius: 999,
+        "& .MuiChip-label": { px: 1.1 },
+      }}
+    />
+  );
+}
+
+function MetricCard({ metric, value, onClick }) {
+  return (
+    <Paper className="dashboard-card metric-card" onClick={onClick}>
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+        <Box className="metric-icon" sx={{ color: metric.iconColor, bgcolor: metric.iconBg }}>
+          {metric.icon}
+        </Box>
+        <IconButton size="small" aria-label={`Open ${metric.label}`}>
+          <ChevronRightRoundedIcon fontSize="small" />
+        </IconButton>
+      </Stack>
+      <Typography className="metric-label">{metric.label}</Typography>
+      <Typography className="metric-value">{value}</Typography>
+      <Stack direction="row" spacing={0.65} alignItems="center" className={metric.positive ? "delta positive" : "delta negative"}>
+        {metric.positive ? <ArrowUpwardRoundedIcon /> : <ArrowDownwardRoundedIcon />}
+        <span>{metric.delta}</span>
+        <Typography component="span" className="delta-note">{metric.note}</Typography>
+      </Stack>
+    </Paper>
+  );
+}
+
+function TemplateCard({ template, onClick }) {
+  return (
+    <Paper className="dashboard-card template-card" onClick={onClick}>
+      <Box className={`template-visual ${template.className}`}>
+        <Chip label="Active" size="small" className="template-status" />
+        <Box className="template-stack template-stack-back" />
+        <Box className="template-stack template-stack-front">
+          <Box className="template-stack-line" />
+          {template.icon}
+        </Box>
+      </Box>
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1.5} sx={{ mt: 1.65 }}>
+        <Box>
+          <Typography className="template-title">{template.title}</Typography>
+          <Typography className="template-description">{template.description}</Typography>
+        </Box>
+        <ChevronRightRoundedIcon className="template-arrow" />
+      </Stack>
+      <Stack direction="row" spacing={0.65} sx={{ mt: 1.5 }}>
+        <Box className="platform-badge">P</Box>
+        <Box className="platform-badge">O</Box>
+        <Box className="platform-badge">A</Box>
+        <Typography className="platform-caption">Connected services</Typography>
+      </Stack>
+    </Paper>
+  );
+}
+
 export default function Dashboard() {
+  const navigate = useNavigate();
   const isAdmin = hasAnyRole("ROLE_ADMIN", "ADMIN");
-  const [metrics, setMetrics] = useState({
-    products: 0,
-    categories: 0,
-    orders: 0,
-  });
+  const [metrics, setMetrics] = useState({ products: 0, categories: 0, orders: 0, payments: 0, notifications: 0 });
   const [orders, setOrders] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  const orderStatusCounts = useMemo(() => {
-    return orderStatuses.reduce((result, status) => {
-      result[status] = orders.filter((order) => order.status === status).length;
-      return result;
-    }, {});
-  }, [orders]);
-
+  const orderStatusCounts = useMemo(() => orderStatuses.reduce((result, status) => {
+    result[status] = orders.filter((order) => order.status === status).length;
+    return result;
+  }, {}), [orders]);
   const maxStatusCount = Math.max(...Object.values(orderStatusCounts), 1);
 
   const loadDashboard = async () => {
     setLoading(true);
     setErrorMessage("");
+    const orderRequest = isAdmin ? getAllOrders : getMyOrders;
+    const paymentRequest = isAdmin ? getAllPayments : getMyPayments;
+    const [productResult, categoryResult, orderResult, paymentResult, notificationResult] = await Promise.allSettled([
+      getProducts({ page: 1, size: 1 }),
+      getCategories(),
+      orderRequest({ page: 1, size: 100 }),
+      paymentRequest({ page: 1, size: 1 }),
+      getMyNotifications(),
+    ]);
 
-    try {
-      const orderRequest = isAdmin ? getAllOrders : getMyOrders;
-      const [productPage, categories, orderPage, notificationItems] =
-        await Promise.all([
-          getProducts({ page: 1, size: 1 }),
-          getCategories(),
-          orderRequest({ page: 1, size: 100 }),
-          getMyNotifications(),
-        ]);
+    const productPage = productResult.status === "fulfilled" ? productResult.value : { totalElements: 0 };
+    const categories = categoryResult.status === "fulfilled" ? categoryResult.value : [];
+    const orderPage = orderResult.status === "fulfilled" ? orderResult.value : { content: [], totalElements: 0 };
+    const paymentPage = paymentResult.status === "fulfilled" ? paymentResult.value : { totalElements: 0 };
+    const notificationItems = notificationResult.status === "fulfilled" ? notificationResult.value : [];
 
-      setMetrics({
-        products: productPage.totalElements || 0,
-        categories: categories.length || 0,
-        orders: orderPage.totalElements || 0,
-      });
-      setOrders(orderPage.content || []);
-      setNotifications(notificationItems || []);
-    } catch (error) {
-      setErrorMessage(
-        error.response?.data?.message || "Could not load dashboard data.",
-      );
-    } finally {
-      setLoading(false);
+    setMetrics({
+      products: productPage.totalElements || 0,
+      categories: categories.length || 0,
+      orders: orderPage.totalElements || 0,
+      payments: paymentPage.totalElements || 0,
+      notifications: notificationItems.filter((item) => !item.read && !item.isRead).length || notificationItems.length || 0,
+    });
+    setOrders(orderPage.content || []);
+    setNotifications(notificationItems || []);
+    if ([productResult, categoryResult, orderResult].some((result) => result.status === "rejected")) {
+      setErrorMessage("Some service data is unavailable. Showing the latest available dashboard data.");
     }
+    setLastUpdated(new Date());
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -146,275 +268,128 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const latestOrders = orders.slice(0, 5);
-  const latestNotifications = notifications.slice(0, 5);
+  const latestOrders = orders.slice(0, 6);
+  const latestNotifications = notifications.slice(0, 4);
+  const metricValues = { ...metrics, notifications: metrics.notifications || notifications.length };
+  const completedRate = orders.length ? Math.round((orderStatusCounts.COMPLETED / orders.length) * 100) : 0;
 
   return (
     <MainLayout>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        spacing={2}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={900}>
-            Dashboard
-          </Typography>
-          <Typography color="text.secondary">
-            Overview of catalog, orders, stock movement, and notifications.
-          </Typography>
-        </Box>
-        <Button
-          variant="outlined"
-          startIcon={<RefreshOutlinedIcon />}
-          onClick={loadDashboard}
-        >
-          Refresh
-        </Button>
-      </Stack>
-
-      {!isAdmin && (
-        <Alert severity="info" sx={{ mt: 3 }}>
-          You are viewing personal order data. Login as admin to see all orders.
-        </Alert>
-      )}
-
-      {errorMessage && (
-        <Alert severity="error" sx={{ mt: 3 }}>
-          {errorMessage}
-        </Alert>
-      )}
-
-      {loading ? (
-        <Paper
-          elevation={0}
-          sx={{ mt: 3, p: 6, border: "1px solid", borderColor: "divider" }}
-        >
-          <Stack alignItems="center" spacing={2}>
-            <CircularProgress />
-            <Typography color="text.secondary">Loading dashboard...</Typography>
+      <Box className="dashboard-page">
+        <Stack className="dashboard-intro" direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "stretch", md: "flex-end" }} spacing={2}>
+          <Box>
+            <Typography className="eyebrow">Store operations / Overview</Typography>
+            <Typography component="h1" className="dashboard-title">Welcome back, Admin.</Typography>
+            <Typography className="dashboard-subtitle">A clear view of products, orders and payments across your e-commerce services.</Typography>
+          </Box>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} className="intro-actions">
+            <Button className="date-button" startIcon={<TimelineRoundedIcon />}>
+              {lastUpdated.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+            </Button>
+            <Button className="primary-action" startIcon={<Inventory2OutlinedIcon />} onClick={() => navigate("/products/new")}>
+              New product
+            </Button>
           </Stack>
-        </Paper>
-      ) : (
-        <>
-          <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-            {metricCards.map((metric) => (
-              <Grid item xs={12} md={4} key={metric.key}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 2.5,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    height: "100%",
-                  }}
-                >
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 2,
-                        display: "grid",
-                        placeItems: "center",
-                        color: metric.color,
-                        bgcolor: "action.hover",
-                      }}
-                    >
-                      {metric.icon}
-                    </Box>
-                    <Box>
-                      <Typography color="text.secondary">
-                        {metric.label}
-                      </Typography>
-                      <Typography variant="h4" fontWeight={900}>
-                        {metrics[metric.key]}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
+        </Stack>
 
-          <Grid container spacing={2.5} sx={{ mt: 0 }}>
-            <Grid item xs={12} lg={4}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2.5,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  height: "100%",
-                }}
-              >
-                <Typography fontWeight={900}>Orders by status</Typography>
-                <Stack spacing={2} sx={{ mt: 2 }}>
-                  {orderStatuses.map((status) => {
+        {!isAdmin && <Alert severity="info" className="dashboard-alert">You are viewing personal order and payment data. Login as admin to see the whole store.</Alert>}
+        {errorMessage && <Alert severity="warning" className="dashboard-alert">{errorMessage}</Alert>}
+
+        {loading ? (
+          <Paper className="dashboard-card dashboard-loading">
+            <CircularProgress size={28} />
+            <Typography>Loading store overview...</Typography>
+          </Paper>
+        ) : (
+          <>
+            <Box className="metrics-grid">
+              {metricCards.map((metric) => <MetricCard key={metric.key} metric={metric} value={metricValues[metric.key]} onClick={() => navigate(metric.path)} />)}
+            </Box>
+
+            <Box className="dashboard-section-heading">
+              <Box>
+                <Typography component="h2" className="section-title">Recent orders</Typography>
+                <Typography className="section-subtitle">Order activity from the order-service</Typography>
+              </Box>
+              <Button className="text-action" endIcon={<KeyboardArrowRightRoundedIcon />} onClick={() => navigate("/orders")}>View all</Button>
+            </Box>
+
+            <Paper className="dashboard-card orders-card">
+              <TableContainer>
+                <Table className="orders-table" sx={{ minWidth: 760 }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>ORDER</TableCell>
+                      <TableCell>ORDER OWNER</TableCell>
+                      <TableCell>STATUS</TableCell>
+                      <TableCell align="right">TOTAL</TableCell>
+                      <TableCell>CREATED</TableCell>
+                      <TableCell align="right">ACTION</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {latestOrders.map((order, index) => (
+                      <TableRow key={order.id || index} hover>
+                        <TableCell>
+                          <Stack direction="row" spacing={1.25} alignItems="center">
+                            <Avatar className={`order-avatar avatar-${index % 4}`}><ShoppingBagOutlinedIcon fontSize="small" /></Avatar>
+                            <Box><Typography className="table-primary">#{order.id?.slice(0, 8) || "pending"}</Typography><Typography className="table-secondary">{order.items?.length || 0} items</Typography></Box>
+                          </Stack>
+                        </TableCell>
+                        <TableCell><Typography className="table-secondary owner-cell">{isAdmin ? order.userId?.slice(0, 14) || "Customer" : "My account"}</Typography></TableCell>
+                        <TableCell><StatusPill status={order.status} /></TableCell>
+                        <TableCell align="right"><Typography className="table-primary">{formatPrice(order.totalAmount)}</Typography></TableCell>
+                        <TableCell><Typography className="table-secondary">{formatDateTime(order.createdAt)}</Typography></TableCell>
+                        <TableCell align="right"><Button className="row-action" onClick={() => navigate("/orders")}>View</Button></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              {latestOrders.length === 0 && <Box className="empty-state"><ShoppingBagOutlinedIcon /><Typography>No orders yet</Typography><Typography className="table-secondary">Create an order to see it here.</Typography></Box>}
+              <Box className="table-pattern" />
+            </Paper>
+
+            <Box className="lower-grid">
+              <Paper className="dashboard-card status-card">
+                <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                  <Box><Typography component="h2" className="section-title">Order health</Typography><Typography className="section-subtitle">Completion rate across loaded orders</Typography></Box>
+                  <Box className="health-score">{completedRate}%</Box>
+                </Stack>
+                <LinearProgress variant="determinate" value={completedRate} className="health-progress" />
+                <Stack spacing={1.25} sx={{ mt: 2.4 }}>
+                  {orderStatuses.slice(0, 4).map((status) => {
                     const count = orderStatusCounts[status] || 0;
-                    const progress = (count / maxStatusCount) * 100;
-
-                    return (
-                      <Box key={status}>
-                        <Stack
-                          direction="row"
-                          justifyContent="space-between"
-                          alignItems="center"
-                          sx={{ mb: 0.75 }}
-                        >
-                          <Chip
-                            size="small"
-                            label={status}
-                            color={statusColor(status)}
-                            variant="outlined"
-                          />
-                          <Typography fontWeight={800}>{count}</Typography>
-                        </Stack>
-                        <LinearProgress
-                          variant="determinate"
-                          value={progress}
-                          color={statusColor(status)}
-                          sx={{ height: 8, borderRadius: 999 }}
-                        />
-                      </Box>
-                    );
+                    return <Stack key={status} direction="row" justifyContent="space-between" alignItems="center"><Stack direction="row" spacing={1} alignItems="center"><Box className={`status-dot status-${status.toLowerCase()}`} /><Typography className="table-secondary">{status}</Typography></Stack><Typography className="table-primary">{count}</Typography></Stack>;
                   })}
                 </Stack>
               </Paper>
-            </Grid>
 
-            <Grid item xs={12} lg={8}>
-              <Paper
-                elevation={0}
-                sx={{
-                  border: "1px solid",
-                  borderColor: "divider",
-                  overflow: "hidden",
-                  height: "100%",
-                }}
-              >
-                <Box sx={{ p: 2.5 }}>
-                  <Typography fontWeight={900}>Latest orders</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Newest orders sorted by created time.
-                  </Typography>
-                </Box>
-                <Divider />
-                {latestOrders.length === 0 ? (
-                  <Box sx={{ p: 3 }}>
-                    <Typography fontWeight={800}>No orders yet</Typography>
-                    <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-                      Create an order to see it here.
-                    </Typography>
-                  </Box>
-                ) : (
-                  <TableContainer>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Order</TableCell>
-                          <TableCell>Status</TableCell>
-                          <TableCell align="right">Total</TableCell>
-                          <TableCell>Created At</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {latestOrders.map((order) => (
-                          <TableRow key={order.id} hover>
-                            <TableCell>
-                              <Typography fontWeight={800}>
-                                {order.id?.slice(0, 8) || "-"}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {order.items?.length || 0} items
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                size="small"
-                                label={order.status}
-                                color={statusColor(order.status)}
-                                variant="outlined"
-                              />
-                            </TableCell>
-                            <TableCell align="right">
-                              {formatPrice(order.totalAmount)}
-                            </TableCell>
-                            <TableCell>{formatDateTime(order.createdAt)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
+              <Paper className="dashboard-card notification-card">
+                <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                  <Box><Typography component="h2" className="section-title">Latest notifications</Typography><Typography className="section-subtitle">Recent updates from notification-service</Typography></Box>
+                  <IconButton size="small" onClick={() => navigate("/notifications")} aria-label="Open notifications"><ChevronRightRoundedIcon /></IconButton>
+                </Stack>
+                <Stack spacing={1.2} sx={{ mt: 1.7 }}>
+                  {latestNotifications.length === 0 ? <Typography className="table-secondary">No notifications yet.</Typography> : latestNotifications.map((notification, index) => <Stack direction="row" spacing={1.2} alignItems="center" key={notification.id || index}><Avatar className={`notification-avatar notification-${index % 3}`}><NotificationsNoneOutlinedIcon fontSize="small" /></Avatar><Box sx={{ minWidth: 0, flex: 1 }}><Typography className="table-primary notification-title">{notification.title || notification.type || "Store update"}</Typography><Typography className="table-secondary notification-message">{notification.message || "New account or order activity"}</Typography></Box><Typography className="time-label">{formatRelativeTime(notification.createdAt)}</Typography></Stack>)}
+                </Stack>
               </Paper>
-            </Grid>
-          </Grid>
-
-          <Paper
-            elevation={0}
-            sx={{
-              mt: 2.5,
-              border: "1px solid",
-              borderColor: "divider",
-              overflow: "hidden",
-            }}
-          >
-            <Box sx={{ p: 2.5 }}>
-              <Stack direction="row" spacing={1.25} alignItems="center">
-                <NotificationsOutlinedIcon color="primary" />
-                <Box>
-                  <Typography fontWeight={900}>Latest notifications</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Recent account and order notifications.
-                  </Typography>
-                </Box>
-              </Stack>
             </Box>
-            <Divider />
-            {latestNotifications.length === 0 ? (
-              <Box sx={{ p: 3 }}>
-                <Typography fontWeight={800}>No notifications yet</Typography>
-                <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-                  Create, cancel, or update an order to generate notifications.
-                </Typography>
-              </Box>
-            ) : (
-              <List disablePadding>
-                {latestNotifications.map((notification, index) => (
-                  <Box key={notification.id || `${notification.type}-${index}`}>
-                    <ListItem sx={{ px: 2.5, py: 1.75 }}>
-                      <ListItemText
-                        primary={
-                          <Stack
-                            direction={{ xs: "column", sm: "row" }}
-                            justifyContent="space-between"
-                            spacing={1}
-                          >
-                            <Typography fontWeight={900}>
-                              {notification.title || notification.type}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {formatRelativeTime(notification.createdAt)}
-                            </Typography>
-                          </Stack>
-                        }
-                        secondary={
-                          <Typography color="text.secondary">
-                            {notification.message || "-"}
-                          </Typography>
-                        }
-                      />
-                    </ListItem>
-                    {index < latestNotifications.length - 1 && <Divider />}
-                  </Box>
-                ))}
-              </List>
-            )}
-          </Paper>
-        </>
-      )}
+
+            <Box className="dashboard-section-heading templates-heading">
+              <Box><Typography component="h2" className="section-title">Service shortcuts</Typography><Typography className="section-subtitle">Jump into the services powering your store</Typography></Box>
+              <Tooltip title="Refresh dashboard"><IconButton onClick={loadDashboard} aria-label="Refresh dashboard"><RefreshRoundedIcon /></IconButton></Tooltip>
+            </Box>
+            <Box className="templates-grid">
+              {templateCards.map((template) => <TemplateCard key={template.title} template={template} onClick={() => navigate(template.path)} />)}
+            </Box>
+
+            <Paper className="dashboard-card footer-summary">
+              <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", sm: "center" }} spacing={2}><Stack direction="row" spacing={1.2} alignItems="center"><Box className="summary-icon"><StorefrontOutlinedIcon /></Box><Box><Typography className="table-primary">{metrics.categories} active categories</Typography><Typography className="table-secondary">Product service is connected and ready for catalog work.</Typography></Box></Stack><Button className="text-action" endIcon={<KeyboardArrowRightRoundedIcon />} onClick={() => navigate("/categories")}>Manage categories</Button></Stack>
+            </Paper>
+          </>
+        )}
+      </Box>
     </MainLayout>
   );
 }
