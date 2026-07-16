@@ -1,5 +1,4 @@
 spring:
-
   datasource:
     url: jdbc:postgresql://localhost:5433/identity-service
     driver-class-name: org.postgresql.Driver
@@ -14,8 +13,14 @@ spring:
     redis:
       host: localhost
       port: 6379
+
   kafka:
     bootstrap-servers: localhost:9094
+
+grpc:
+  server:
+    port: 9090
+
 jwt:
   secret-key: ${JWT_SECRET}
   audience: ${JWT_AUDIENCE}

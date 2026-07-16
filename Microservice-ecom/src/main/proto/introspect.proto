@@ -1,0 +1,17 @@
+syntax="proto3";
+option java_multiple_files= true;
+option java_package= "com.javabuilder.authentication.grpc";
+
+package auth;
+
+message IntrospecRequest{
+  string token = 1;
+}
+
+message IntrospectResponse{
+  string user_id =1;
+  bool valid=2;
+}
+service IntrospectService{
+  rpc Introspect(IntrospecRequest) returns (IntrospectResponse);
+}
