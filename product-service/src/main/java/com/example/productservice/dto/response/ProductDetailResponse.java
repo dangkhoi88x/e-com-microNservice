@@ -14,6 +14,8 @@ public record ProductDetailResponse(
         String name,
         String slug,
         String description,
+        String categoryId,
+        String categoryName,
         BigDecimal price,
         Integer quantity,
         List<ProductImage> images,

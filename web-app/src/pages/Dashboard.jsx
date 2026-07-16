@@ -35,6 +35,9 @@ import TimelineRoundedIcon from "@mui/icons-material/TimelineRounded";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
+import { Badge } from "../components/ui/badge";
+import { Card } from "../components/ui/card";
+import { Button as ShadcnButton } from "../components/ui/button";
 import { getCategories } from "../services/categoryService";
 import { hasAnyRole } from "../services/authenticationService";
 import { getMyNotifications } from "../services/notificationService";
@@ -146,25 +149,19 @@ const templateCards = [
 function StatusPill({ status }) {
   const tone = statusTone(status);
   return (
-    <Chip
-      label={status || "UNKNOWN"}
-      size="small"
-      sx={{
-        height: 25,
-        bgcolor: tone.bg,
-        color: tone.color,
-        fontWeight: 800,
-        fontSize: 11,
-        borderRadius: 999,
-        "& .MuiChip-label": { px: 1.1 },
-      }}
-    />
+    <Badge
+      variant="outline"
+      className="status-shadcn-badge"
+      style={{ backgroundColor: tone.bg, color: tone.color, borderColor: tone.bg }}
+    >
+      {status || "UNKNOWN"}
+    </Badge>
   );
 }
 
 function MetricCard({ metric, value, onClick }) {
   return (
-    <Paper className="dashboard-card metric-card" onClick={onClick}>
+    <Card className="dashboard-card metric-card" onClick={onClick}>
       <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
         <Box className="metric-icon" sx={{ color: metric.iconColor, bgcolor: metric.iconBg }}>
           {metric.icon}
@@ -180,13 +177,13 @@ function MetricCard({ metric, value, onClick }) {
         <span>{metric.delta}</span>
         <Typography component="span" className="delta-note">{metric.note}</Typography>
       </Stack>
-    </Paper>
+    </Card>
   );
 }
 
 function TemplateCard({ template, onClick }) {
   return (
-    <Paper className="dashboard-card template-card" onClick={onClick}>
+    <Card className="dashboard-card template-card" onClick={onClick}>
       <Box className={`template-visual ${template.className}`}>
         <Chip label="Active" size="small" className="template-status" />
         <Box className="template-stack template-stack-back" />
@@ -208,7 +205,7 @@ function TemplateCard({ template, onClick }) {
         <Box className="platform-badge">A</Box>
         <Typography className="platform-caption">Connected services</Typography>
       </Stack>
-    </Paper>
+    </Card>
   );
 }
 
@@ -283,12 +280,8 @@ export default function Dashboard() {
             <Typography className="dashboard-subtitle">A clear view of products, orders and payments across your e-commerce services.</Typography>
           </Box>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} className="intro-actions">
-            <Button className="date-button" startIcon={<TimelineRoundedIcon />}>
-              {lastUpdated.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-            </Button>
-            <Button className="primary-action" startIcon={<Inventory2OutlinedIcon />} onClick={() => navigate("/products/new")}>
-              New product
-            </Button>
+            <ShadcnButton variant="outline" className="date-button"><TimelineRoundedIcon fontSize="small" />{lastUpdated.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</ShadcnButton>
+            <ShadcnButton className="primary-action" onClick={() => navigate("/products/new")}><Inventory2OutlinedIcon fontSize="small" />New product</ShadcnButton>
           </Stack>
         </Stack>
 

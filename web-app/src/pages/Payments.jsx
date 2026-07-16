@@ -32,6 +32,7 @@ import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { useEffect, useState } from "react";
+import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import { hasAnyRole } from "../services/authenticationService";
 import {
@@ -231,21 +232,12 @@ export default function Payments() {
 
   return (
     <MainLayout>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        spacing={2}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={900}>
-            Payments
-          </Typography>
-          <Typography color="text.secondary">
-            Review payment records and simulate development payment outcomes.
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1}>
+      <PageHeader
+        eyebrow="Finance"
+        title="Payments"
+        description="Review payment records and simulate development payment outcomes."
+        actions={
+          <>
           {isAdmin && (
             <Button
               variant={viewMode === "all" ? "contained" : "outlined"}
@@ -262,8 +254,9 @@ export default function Payments() {
           >
             Refresh
           </Button>
-        </Stack>
-      </Stack>
+          </>
+        }
+      />
 
       <Paper
         elevation={0}

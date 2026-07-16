@@ -1,6 +1,11 @@
 import httpClient from "../configurations/httpClient";
 import { API } from "../configurations/configuration";
-import { getToken, removeToken, setToken } from "./localStorageService";
+import {
+  getToken,
+  removeToken,
+  setRefreshToken,
+  setToken,
+} from "./localStorageService";
 
 export const login = async (email, password) => {
   const response = await httpClient.post(API.LOGIN, {
@@ -9,7 +14,9 @@ export const login = async (email, password) => {
   });
 
   const accessToken = response.data?.data?.accessToken;
+  const refreshToken = response.data?.data?.refreshToken;
   setToken(accessToken);
+  setRefreshToken(refreshToken);
 
   return response.data;
 };

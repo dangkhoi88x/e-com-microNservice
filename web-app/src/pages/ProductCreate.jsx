@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   FormControl,
-  Grid,
   InputLabel,
   MenuItem,
   Paper,
@@ -17,6 +16,7 @@ import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import { getCategories } from "../services/categoryService";
 import { createProduct } from "../services/productService";
@@ -98,20 +98,11 @@ export default function ProductCreate() {
 
   return (
     <MainLayout>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        spacing={2}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={900}>
-            Create Product
-          </Typography>
-          <Typography color="text.secondary">
-            Add a sellable item and publish it to search.
-          </Typography>
-        </Box>
+      <PageHeader
+        eyebrow="Product setup"
+        title="Create Product"
+        description="Add a sellable item and publish it to search."
+        actions={
         <Button
           variant="outlined"
           startIcon={<ArrowBackOutlinedIcon />}
@@ -119,11 +110,13 @@ export default function ProductCreate() {
         >
           Back
         </Button>
-      </Stack>
+        }
+      />
 
       <Paper
         elevation={0}
-        sx={{ mt: 3, p: 3, border: "1px solid", borderColor: "divider" }}
+        className="product-form-card"
+        sx={{ mt: 3, p: { xs: 2.5, md: 3 }, border: "1px solid", borderColor: "divider" }}
       >
         {errorMessage && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -132,8 +125,10 @@ export default function ProductCreate() {
         )}
 
         <Box component="form" onSubmit={handleSubmit}>
-          <Grid container spacing={2.5}>
-            <Grid item xs={12} md={6}>
+          <Stack spacing={3}>
+            <Box>
+              <Typography className="form-section-kicker">Basic information</Typography>
+              <Stack spacing={2}>
               <TextField
                 label="Product name"
                 value={form.name}
@@ -141,8 +136,6 @@ export default function ProductCreate() {
                 fullWidth
                 required
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
               <FormControl fullWidth required>
                 <InputLabel>Category</InputLabel>
                 <Select
@@ -157,8 +150,6 @@ export default function ProductCreate() {
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid item xs={12}>
               <TextField
                 label="Description"
                 value={form.description}
@@ -167,8 +158,12 @@ export default function ProductCreate() {
                 multiline
                 minRows={3}
               />
-            </Grid>
-            <Grid item xs={12} sm={4}>
+              </Stack>
+            </Box>
+
+            <Box>
+              <Typography className="form-section-kicker">Pricing & inventory</Typography>
+              <Stack spacing={2}>
               <TextField
                 label="Price"
                 type="number"
@@ -178,8 +173,6 @@ export default function ProductCreate() {
                 required
                 inputProps={{ min: 1 }}
               />
-            </Grid>
-            <Grid item xs={12} sm={4}>
               <TextField
                 label="Quantity"
                 type="number"
@@ -192,8 +185,6 @@ export default function ProductCreate() {
                   Number(form.quantity) === 0 ? "This product starts out of stock." : " "
                 }
               />
-            </Grid>
-            <Grid item xs={12} sm={4}>
               <FormControl fullWidth required>
                 <InputLabel>Status</InputLabel>
                 <Select
@@ -205,16 +196,18 @@ export default function ProductCreate() {
                   <MenuItem value="INACTIVE">Inactive</MenuItem>
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid item xs={12} md={8}>
+              </Stack>
+            </Box>
+
+            <Box>
+              <Typography className="form-section-kicker">Product image</Typography>
+              <Stack spacing={2}>
               <TextField
                 label="Image URL"
                 value={form.imageUrl}
                 onChange={setField("imageUrl")}
                 fullWidth
               />
-            </Grid>
-            <Grid item xs={6} md={2}>
               <TextField
                 label="Order"
                 type="number"
@@ -223,13 +216,11 @@ export default function ProductCreate() {
                 fullWidth
                 inputProps={{ min: 1 }}
               />
-            </Grid>
-            <Grid item xs={6} md={2}>
               <Stack
                 direction="row"
                 alignItems="center"
                 spacing={1}
-                sx={{ height: "100%" }}
+                className="primary-switch-row"
               >
                 <Switch
                   checked={form.isPrimary}
@@ -242,9 +233,11 @@ export default function ProductCreate() {
                 />
                 <Typography fontWeight={700}>Primary</Typography>
               </Stack>
-            </Grid>
-            <Grid item xs={12}>
-              <Stack direction="row" justifyContent="flex-end" spacing={1}>
+              </Stack>
+            </Box>
+
+            <Box className="form-action-bar">
+              <Stack direction={{ xs: "column-reverse", sm: "row" }} justifyContent="flex-end" spacing={1}>
                 <Button onClick={() => navigate("/products")}>Cancel</Button>
                 <Button
                   type="submit"
@@ -255,8 +248,8 @@ export default function ProductCreate() {
                   {submitting ? "Saving..." : "Create product"}
                 </Button>
               </Stack>
-            </Grid>
-          </Grid>
+            </Box>
+          </Stack>
         </Box>
       </Paper>
     </MainLayout>

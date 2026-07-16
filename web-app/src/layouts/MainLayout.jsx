@@ -13,5 +13,5 @@ export default function MainLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
   const drawerWidth = collapsed ? collapsedWidth : expandedWidth;
 
-  return <Box className="app-shell"><Header drawerWidth={drawerWidth} onMenuClick={() => setMobileOpen((open) => !open)} showMenuButton={!isDesktop} /><SideMenu drawerWidth={drawerWidth} collapsed={collapsed && isDesktop} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} onToggle={() => setCollapsed((value) => !value)} /><Box component="main" className="main-content" sx={{ ml: { md: `${drawerWidth}px` } }}><Toolbar />{children}</Box></Box>;
+  return <Box className="app-shell"><Header drawerWidth={drawerWidth} onMenuClick={() => setMobileOpen((open) => !open)} showMenuButton={!isDesktop} /><SideMenu drawerWidth={drawerWidth} collapsed={collapsed && isDesktop} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} onToggle={() => setCollapsed((value) => !value)} /><Box component="main" className="main-content" sx={{ ml: { md: `${drawerWidth}px` } }}><Toolbar /><Box className="admin-page-root">{children}</Box></Box></Box>;
 }

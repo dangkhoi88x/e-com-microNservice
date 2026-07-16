@@ -11,8 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.concurrent.CompletableFuture;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -20,27 +18,25 @@ public class IntrospectGrpcClient {
     private final IntrospectServiceGrpc.IntrospectServiceFutureStub futureStub;
 
     public Mono<IntrospectResponse> introspect(String token) {
-        IntrospecRequest introspecRequest = IntrospecRequest.newBuilder()
+        IntrospecRequest introspectRequest = IntrospecRequest.newBuilder()
                 .setToken(token)
                 .build();
 
-        CompletableFuture<IntrospectResponse> future = new CompletableFuture<>();
-        Futures.addCallback(
-                futureStub.introspect(introspecRequest),
-                new FutureCallback<>() {
+        return Mono.create(sink -> Futures.addCallback(
+                futureStub.introspect(introspectRequest),
+                new FutureCallback<IntrospectResponse>() {
                     @Override
-                    public void onSuccess(IntrospectResponse introspectResponse) {
-                        future.complete(introspectResponse);
+                    public void onSuccess(IntrospectResponse response) {
+                        sink.success(response);
                     }
 
                     @Override
                     public void onFailure(Throwable t) {
                         log.error("Token introspection failed", t);
-                        future.completeExceptionally(t);
+                        sink.error(t);
                     }
                 },
                 MoreExecutors.directExecutor()
-        );
-        return Mono.fromFuture(future);
+        ));
     }
 }

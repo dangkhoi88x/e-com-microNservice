@@ -39,6 +39,11 @@ export const createProduct = async (payload) => {
   return response.data?.data;
 };
 
+export const getProductById = async (id) => {
+  const response = await httpClient.get(`${API.PRODUCTS}/${id}`);
+  return response.data?.data;
+};
+
 export const updateProduct = async (id, payload) => {
   const response = await httpClient.put(`${API.PRODUCTS}/${id}`, payload);
   return response.data?.data;

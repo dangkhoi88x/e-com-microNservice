@@ -5,6 +5,7 @@ import com.example.notificationservice.dto.res.NotificationResponse;
 import com.example.notificationservice.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,18 @@ public class NotificationController {
         return ApiResponse.<List<NotificationResponse>>builder()
                 .status(HttpStatus.OK.value())
                 .message("My notifications successfully")
+                .data(data)
+                .build();
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    public ApiResponse<List<NotificationResponse>> adminNotifications() {
+        List<NotificationResponse> data = notificationService.allNotifications();
+
+        return ApiResponse.<List<NotificationResponse>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Admin notifications successfully")
                 .data(data)
                 .build();
     }

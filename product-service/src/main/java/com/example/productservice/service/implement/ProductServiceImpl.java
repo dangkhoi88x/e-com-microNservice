@@ -367,6 +367,8 @@ public class ProductServiceImpl implements ProductService {
                 .name(product.getName())
                 .slug(product.getSlug())
                 .description(product.getDescription())
+                .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
+                .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)
                 .price(product.getPrice())
                 .quantity(quantity)
                 .images(product.getImages())

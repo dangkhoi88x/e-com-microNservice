@@ -4,6 +4,7 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Products from "../pages/Products";
 import ProductCreate from "../pages/ProductCreate";
+import ProductEdit from "../pages/ProductEdit";
 import Search from "../pages/Search";
 import Orders from "../pages/Orders";
 import Payments from "../pages/Payments";
@@ -59,6 +60,15 @@ export default function AppRoutes() {
           element={
             <PrivateRoute>
               <ProductCreate />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/products/:id/edit"
+          element={
+            <PrivateRoute>
+              <ProductEdit />
             </PrivateRoute>
           }
         />

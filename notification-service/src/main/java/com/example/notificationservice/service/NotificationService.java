@@ -60,10 +60,13 @@ public class NotificationService {
     }
 
     public void createNotificationOrderStatusUpdated(OrderStatusUpdatedEvent event) {
+        boolean completed = "COMPLETED".equalsIgnoreCase(event.getNewStatus());
         Notification notification = Notification.builder()
                 .userId(event.getUserId())
-                .title("Order status updated")
-                .message("Your order " + event.getOrderId() + " status has been updated to " + event.getNewStatus())
+                .title(completed ? "Order completed" : "Order status updated")
+                .message(completed
+                        ? "Order " + event.getOrderId() + " has been completed successfully."
+                        : "Your order " + event.getOrderId() + " status has been updated to " + event.getNewStatus())
                 .type(NotificationType.ORDER_STATUS_UPDATED)
                 .build();
 
@@ -76,6 +79,13 @@ public class NotificationService {
 
     public List<NotificationResponse> myNotifications(String userId){
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(NotificationMapper::toResponse)
+                .toList();
+    }
+
+    public List<NotificationResponse> allNotifications(){
+        return notificationRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(NotificationMapper::toResponse)
                 .toList();

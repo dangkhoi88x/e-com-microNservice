@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -21,10 +22,12 @@ import {
   Typography,
 } from "@mui/material";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import { useEffect, useState } from "react";
+import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import {
   createCategory,
@@ -126,21 +129,12 @@ export default function Categories() {
 
   return (
     <MainLayout>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        spacing={2}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={900}>
-            Categories
-          </Typography>
-          <Typography color="text.secondary">
-            Organize product categories and slugs.
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1}>
+      <PageHeader
+        eyebrow="Store service"
+        title="Categories"
+        description="Organize product categories and slugs."
+        actions={
+          <>
           <Button
             variant="outlined"
             startIcon={<RefreshOutlinedIcon />}
@@ -155,10 +149,12 @@ export default function Categories() {
           >
             New category
           </Button>
-        </Stack>
-      </Stack>
+          </>
+        }
+      />
 
       <Paper
+        className="admin-data-panel"
         elevation={0}
         sx={{
           mt: 3,
@@ -185,49 +181,92 @@ export default function Categories() {
             </Typography>
           </Box>
         ) : (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Slug</TableCell>
-                  <TableCell>Description</TableCell>
-                  <TableCell>Created At</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {categories.map((category) => (
-                  <TableRow key={category.id} hover>
-                    <TableCell>
-                      <Typography fontWeight={800}>{category.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {category.id}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{category.slug || "-"}</TableCell>
-                    <TableCell>{category.description || "-"}</TableCell>
-                    <TableCell>{formatDateTime(category.createdAt)}</TableCell>
-                    <TableCell align="right">
-                      <Tooltip title="Edit">
-                        <IconButton onClick={() => openEditDialog(category)}>
-                          <EditOutlinedIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDelete(category)}
-                        >
-                          <DeleteOutlineOutlinedIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
+          <>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              justifyContent="space-between"
+              alignItems={{ xs: "stretch", sm: "center" }}
+              spacing={2}
+              className="panel-summary"
+            >
+              <Box>
+                <Typography fontWeight={900}>Catalog taxonomy</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {categories.length} active category records
+                </Typography>
+              </Box>
+              <Chip
+                label={`${categories.length} categories`}
+                color="primary"
+                variant="outlined"
+              />
+            </Stack>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Slug</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Created At</TableCell>
+                    <TableCell align="right">Actions</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {categories.map((category) => (
+                    <TableRow key={category.id} hover>
+                      <TableCell>
+                        <Stack direction="row" spacing={1.5} alignItems="center">
+                          <Box className="category-mark">
+                            <CategoryOutlinedIcon fontSize="small" />
+                          </Box>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography className="table-primary" noWrap>
+                              {category.name}
+                            </Typography>
+                            <Typography className="entity-id" noWrap>
+                              {category.id}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          size="small"
+                          label={category.slug || "no-slug"}
+                          className="soft-chip"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography className="table-secondary" noWrap>
+                          {category.description || "No description"}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>{formatDateTime(category.createdAt)}</TableCell>
+                      <TableCell align="right">
+                        <Box className="row-actions">
+                          <Tooltip title="Edit">
+                            <IconButton onClick={() => openEditDialog(category)}>
+                              <EditOutlinedIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              color="error"
+                              onClick={() => handleDelete(category)}
+                            >
+                              <DeleteOutlineOutlinedIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </>
         )}
       </Paper>
 

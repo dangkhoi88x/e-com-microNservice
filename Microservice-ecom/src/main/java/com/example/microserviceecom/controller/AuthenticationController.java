@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/auth")
@@ -32,7 +34,6 @@ public class AuthenticationController {
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
         cookie.setMaxAge(3600 * 24 * 14);
-        cookie.setDomain("localhost");
         cookie.setPath("/");
 
         response.addCookie(cookie);
@@ -45,8 +46,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh-token")
-    public ApiResponse<AuthenticationResponse> refreshToken(@CookieValue(name = "refresh_token") String refreshToken) {
-        var data = authenticationService.refreshToken(refreshToken);
+    public ApiResponse<AuthenticationResponse> refreshToken(
+            @CookieValue(name = "refresh_token", required = false) String refreshToken,
+            @RequestBody(required = false) Map<String, String> request
+    ) {
+        String token = refreshToken != null ? refreshToken : request != null ? request.get("refreshToken") : null;
+        var data = authenticationService.refreshToken(token);
         return ApiResponse.<AuthenticationResponse>builder()
                 .status(HttpStatus.OK.value())
                 .message("Refresh Token success")
@@ -61,7 +66,12 @@ public class AuthenticationController {
         String token = authHeader.replace("Bearer ", "");
 
         authenticationService.logout(token, refreshToken);
-        response.addCookie(new Cookie("refresh_token", null));
+        Cookie cookie = new Cookie("refresh_token", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
 
         return ApiResponse.<Void>builder()
                 .status(HttpStatus.OK.value())

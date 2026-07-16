@@ -6,7 +6,6 @@ import {
   CircularProgress,
   Divider,
   FormControl,
-  Grid,
   InputLabel,
   LinearProgress,
   MenuItem,
@@ -24,7 +23,9 @@ import {
   Typography,
 } from "@mui/material";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import InsightsOutlinedIcon from "@mui/icons-material/InsightsOutlined";
 import { useEffect, useState } from "react";
+import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import {
   getProductAggregations,
@@ -65,6 +66,8 @@ const stockChipProps = (inStock) => {
     variant: "outlined",
   };
 };
+
+const getResultInitial = (name = "") => name.trim().slice(0, 1) || "?";
 
 const defaultFilters = {
   name: "",
@@ -147,23 +150,30 @@ export default function Search() {
 
   return (
     <MainLayout>
-      <Box>
-        <Typography variant="h4" fontWeight={900}>
-          Search
-        </Typography>
-        <Typography color="text.secondary">
-          Query Elasticsearch with filters, pagination, and aggregations.
-        </Typography>
-      </Box>
+      <PageHeader
+        eyebrow="Discovery"
+        title="Search"
+        description="Query Elasticsearch with filters, pagination, and aggregations."
+      />
 
-      <Grid container spacing={3} sx={{ mt: 0.5 }}>
-        <Grid item xs={12} lg={3}>
-          <Paper
-            elevation={0}
-            sx={{ p: 2, border: "1px solid", borderColor: "divider" }}
-          >
-            <Typography fontWeight={900}>Filters</Typography>
-            <Stack spacing={2} sx={{ mt: 2 }}>
+      <Stack spacing={3} sx={{ mt: 2 }}>
+        <Paper
+          className="search-filter-card"
+          elevation={0}
+          sx={{ p: 2, border: "1px solid", borderColor: "divider" }}
+        >
+            <Stack direction="row" spacing={1.2} alignItems="center">
+              <Box className="insight-mark">
+                <SearchOutlinedIcon fontSize="small" />
+              </Box>
+              <Box>
+                <Typography fontWeight={900}>Filters</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Narrow indexed catalog records
+                </Typography>
+              </Box>
+            </Stack>
+            <Box className="search-filter-grid">
               <TextField
                 label="Name"
                 value={filters.name}
@@ -176,7 +186,7 @@ export default function Search() {
                 onChange={setField("description")}
                 fullWidth
               />
-              <FormControl fullWidth>
+              <FormControl fullWidth className="search-filter-compact">
                 <InputLabel>Status</InputLabel>
                 <Select
                   label="Status"
@@ -188,7 +198,7 @@ export default function Search() {
                   <MenuItem value="INACTIVE">Inactive</MenuItem>
                 </Select>
               </FormControl>
-              <FormControl fullWidth>
+              <FormControl fullWidth className="search-filter-compact">
                 <InputLabel>Stock</InputLabel>
                 <Select
                   label="Stock"
@@ -200,23 +210,21 @@ export default function Search() {
                   <MenuItem value="false">Out of stock</MenuItem>
                 </Select>
               </FormControl>
-              <Stack direction="row" spacing={1}>
-                <TextField
-                  label="Min price"
-                  type="number"
-                  value={filters.minPrice}
-                  onChange={setField("minPrice")}
-                  fullWidth
-                />
-                <TextField
-                  label="Max price"
-                  type="number"
-                  value={filters.maxPrice}
-                  onChange={setField("maxPrice")}
-                  fullWidth
-                />
-              </Stack>
-              <Stack direction="row" spacing={1}>
+              <TextField
+                label="Min price"
+                type="number"
+                value={filters.minPrice}
+                onChange={setField("minPrice")}
+                fullWidth
+              />
+              <TextField
+                label="Max price"
+                type="number"
+                value={filters.maxPrice}
+                onChange={setField("maxPrice")}
+                fullWidth
+              />
+              <Stack direction="row" spacing={1} className="search-filter-actions">
                 <Button fullWidth onClick={handleReset}>
                   Reset
                 </Button>
@@ -229,7 +237,7 @@ export default function Search() {
                   Search
                 </Button>
               </Stack>
-            </Stack>
+            </Box>
 
             <Divider sx={{ my: 2 }} />
 
@@ -237,7 +245,7 @@ export default function Search() {
             {loading ? (
               <LinearProgress sx={{ mt: 2 }} />
             ) : (
-              <Stack spacing={2} sx={{ mt: 2 }}>
+              <Box className="search-aggregation-grid">
                 <Box>
                   <Typography variant="body2" color="text.secondary">
                     Price stats
@@ -286,16 +294,34 @@ export default function Search() {
                     ))}
                   </Stack>
                 </Box>
-              </Stack>
+              </Box>
             )}
-          </Paper>
-        </Grid>
+        </Paper>
 
-        <Grid item xs={12} lg={9}>
-          <Paper
-            elevation={0}
-            sx={{ border: "1px solid", borderColor: "divider", overflow: "hidden" }}
-          >
+        <Paper
+          className="admin-data-panel"
+          elevation={0}
+          sx={{ border: "1px solid", borderColor: "divider", overflow: "hidden" }}
+        >
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              justifyContent="space-between"
+              alignItems={{ xs: "stretch", sm: "center" }}
+              spacing={2}
+              className="panel-summary"
+            >
+              <Box>
+                <Typography fontWeight={900}>Search results</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {pageInfo.totalElements} indexed products matched
+                </Typography>
+              </Box>
+              <Chip
+                label={`${products.length} shown`}
+                color="primary"
+                variant="outlined"
+              />
+            </Stack>
             {errorMessage && (
               <Alert severity="error" sx={{ m: 2 }}>
                 {errorMessage}
@@ -331,14 +357,33 @@ export default function Search() {
                       {products.map((product) => (
                         <TableRow key={product.productId} hover>
                           <TableCell>
-                            <Typography fontWeight={800}>
-                              {product.name}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {product.description || "No description"}
-                            </Typography>
+                            <Stack direction="row" spacing={1.5} alignItems="center">
+                              <Box className="product-thumb search-thumb">
+                                <Typography className="product-thumb-fallback">
+                                  {getResultInitial(product.name)}
+                                </Typography>
+                              </Box>
+                              <Box sx={{ minWidth: 0 }}>
+                                <Typography className="table-primary" noWrap>
+                                  {product.name}
+                                </Typography>
+                                <Typography className="table-secondary" noWrap>
+                                  {product.description || "No description"}
+                                </Typography>
+                                <Typography className="entity-id" noWrap>
+                                  {product.productId}
+                                </Typography>
+                              </Box>
+                            </Stack>
                           </TableCell>
-                          <TableCell>{product.categoryName || "-"}</TableCell>
+                          <TableCell>
+                            <Chip
+                              size="small"
+                              label={product.categoryName || "Uncategorized"}
+                              className="soft-chip"
+                              variant="outlined"
+                            />
+                          </TableCell>
                           <TableCell>
                             <Chip
                               size="small"
@@ -352,7 +397,9 @@ export default function Search() {
                             />
                           </TableCell>
                           <TableCell align="right">
-                            {formatPrice(product.price)}
+                            <Typography className="money-value">
+                              {formatPrice(product.price)}
+                            </Typography>
                           </TableCell>
                           <TableCell>
                             <Chip
@@ -392,9 +439,8 @@ export default function Search() {
                 </Stack>
               </>
             )}
-          </Paper>
-        </Grid>
-      </Grid>
+        </Paper>
+      </Stack>
     </MainLayout>
   );
 }

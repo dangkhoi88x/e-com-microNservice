@@ -2,10 +2,10 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Chip,
   CircularProgress,
   FormControl,
-  Grid,
   IconButton,
   InputLabel,
   MenuItem,
@@ -24,15 +24,19 @@ import {
   Typography,
 } from "@mui/material";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import MoreHorizOutlinedIcon from "@mui/icons-material/MoreHorizOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import { getCategories } from "../services/categoryService";
 import { deleteProduct, getProducts } from "../services/productService";
-import { formatDateTime } from "../utils/dateTimeUtils";
 
 const formatPrice = (value) => {
   if (value === null || value === undefined) return "-";
@@ -50,6 +54,7 @@ const getStockState = (quantity) => {
       label: "Unknown",
       color: "default",
       helper: "-",
+      tone: "unknown",
     };
   }
 
@@ -58,6 +63,16 @@ const getStockState = (quantity) => {
       label: "Out of stock",
       color: "error",
       helper: "0 left",
+      tone: "out",
+    };
+  }
+
+  if (Number(quantity) <= 5) {
+    return {
+      label: "Restock",
+      color: "warning",
+      helper: `${quantity} left`,
+      tone: "restock",
     };
   }
 
@@ -65,8 +80,22 @@ const getStockState = (quantity) => {
     label: "In stock",
     color: "success",
     helper: `${quantity} left`,
+    tone: "in",
   };
 };
+
+const getPrimaryImage = (images = []) => {
+  if (!Array.isArray(images) || images.length === 0) return "";
+
+  return images.find((image) => image.isPrimary)?.url || images[0]?.url || "";
+};
+
+const getSalesCount = (product) =>
+  Number(product.sales ?? product.soldQuantity ?? product.sold ?? 0);
+
+const getRevenue = (product) => Number(product.price || 0) * getSalesCount(product);
+
+const getRating = (product) => Number(product.rating ?? 5).toFixed(1);
 
 const defaultFilters = {
   name: "",
@@ -90,6 +119,15 @@ export default function Products() {
   const [filters, setFilters] = useState(defaultFilters);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  const selectedProducts = products.filter((product) =>
+    selectedIds.includes(product.id),
+  );
+  const allVisibleSelected =
+    products.length > 0 && selectedIds.length === products.length;
+  const someVisibleSelected =
+    selectedIds.length > 0 && selectedIds.length < products.length;
 
   const loadProducts = async (page = pageInfo.currentPage) => {
     setLoading(true);
@@ -102,6 +140,7 @@ export default function Products() {
         ...filters,
       });
       setProducts(data.content || []);
+      setSelectedIds([]);
       setPageInfo({
         currentPage: data.currentPage || page,
         pageSize: data.pageSize || pageInfo.pageSize,
@@ -157,23 +196,52 @@ export default function Products() {
     }
   };
 
+  const toggleProduct = (productId) => {
+    setSelectedIds((current) =>
+      current.includes(productId)
+        ? current.filter((id) => id !== productId)
+        : [...current, productId],
+    );
+  };
+
+  const toggleAllVisible = () => {
+    setSelectedIds(allVisibleSelected ? [] : products.map((product) => product.id));
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedProducts.length === 0) return;
+    if (!window.confirm(`Delete ${selectedProducts.length} selected products?`)) {
+      return;
+    }
+
+    try {
+      await Promise.all(selectedProducts.map((product) => deleteProduct(product.id)));
+      setSelectedIds([]);
+      await loadProducts(pageInfo.currentPage);
+    } catch (error) {
+      setErrorMessage(
+        error.response?.data?.message || "Could not delete selected products.",
+      );
+    }
+  };
+
+  const handleEditSelected = () => {
+    if (selectedProducts.length !== 1) {
+      window.alert("Please select exactly one product to edit.");
+      return;
+    }
+
+    navigate(`/products/${selectedProducts[0].id}/edit`);
+  };
+
   return (
     <MainLayout>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        spacing={2}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={900}>
-            Products
-          </Typography>
-          <Typography color="text.secondary">
-            View, filter, and manage product catalog data.
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1}>
+      <PageHeader
+        eyebrow="Store service"
+        title="Products"
+        description="View, filter, and manage product catalog data."
+        actions={
+          <>
           <Button
             variant="outlined"
             startIcon={<RefreshOutlinedIcon />}
@@ -188,23 +256,25 @@ export default function Products() {
           >
             New product
           </Button>
-        </Stack>
-      </Stack>
+          </>
+        }
+      />
 
       <Paper
+        className="admin-filter-panel"
         elevation={0}
         sx={{ mt: 3, p: 2, border: "1px solid", borderColor: "divider" }}
       >
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={3}>
+        <Box className="product-filter-grid">
+          <Box>
             <TextField
               label="Name"
               value={filters.name}
               onChange={handleFilterChange("name")}
               fullWidth
             />
-          </Grid>
-          <Grid item xs={12} md={3}>
+          </Box>
+          <Box>
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
               <Select
@@ -220,8 +290,8 @@ export default function Products() {
                 ))}
               </Select>
             </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6} md={2}>
+          </Box>
+          <Box>
             <FormControl fullWidth>
               <InputLabel>Status</InputLabel>
               <Select
@@ -234,8 +304,8 @@ export default function Products() {
                 <MenuItem value="INACTIVE">Inactive</MenuItem>
               </Select>
             </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6} md={2}>
+          </Box>
+          <Box>
             <FormControl fullWidth>
               <InputLabel>Stock</InputLabel>
               <Select
@@ -248,8 +318,8 @@ export default function Products() {
                 <MenuItem value="false">Out of stock</MenuItem>
               </Select>
             </FormControl>
-          </Grid>
-          <Grid item xs={6} md={1}>
+          </Box>
+          <Box>
             <TextField
               label="Min"
               type="number"
@@ -257,8 +327,8 @@ export default function Products() {
               onChange={handleFilterChange("minPrice")}
               fullWidth
             />
-          </Grid>
-          <Grid item xs={6} md={1}>
+          </Box>
+          <Box>
             <TextField
               label="Max"
               type="number"
@@ -266,8 +336,8 @@ export default function Products() {
               onChange={handleFilterChange("maxPrice")}
               fullWidth
             />
-          </Grid>
-          <Grid item xs={12}>
+          </Box>
+          <Box className="product-filter-actions">
             <Stack direction="row" spacing={1} justifyContent="flex-end">
               <Button variant="text" onClick={handleReset}>
                 Reset
@@ -280,11 +350,12 @@ export default function Products() {
                 Apply filters
               </Button>
             </Stack>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Paper>
 
       <Paper
+        className="admin-data-panel"
         elevation={0}
         sx={{
           mt: 3,
@@ -312,66 +383,117 @@ export default function Products() {
           </Box>
         ) : (
           <>
-            <TableContainer>
-              <Table>
+            <TableContainer className="inventory-table-wrap">
+              <Table className="inventory-grid-table">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Slug</TableCell>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        size="small"
+                        checked={allVisibleSelected}
+                        indeterminate={someVisibleSelected}
+                        onChange={toggleAllVisible}
+                      />
+                    </TableCell>
+                    <TableCell>Product</TableCell>
+                    <TableCell>Price</TableCell>
+                    <TableCell>Sales</TableCell>
+                    <TableCell>Revenue</TableCell>
+                    <TableCell>Stock</TableCell>
                     <TableCell>Status</TableCell>
-                    <TableCell align="right">Price</TableCell>
-                    <TableCell align="right">Quantity</TableCell>
-                    <TableCell>Created At</TableCell>
-                    <TableCell align="right">Actions</TableCell>
+                    <TableCell>Rating</TableCell>
+                    <TableCell align="center">+</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {products.map((product) => {
-                    const stock = getStockState(product.quantity);
+                {products.map((product) => {
+                  const stock = getStockState(product.quantity);
+                  const imageUrl = getPrimaryImage(product.images);
+                  const selected = selectedIds.includes(product.id);
 
-                    return (
-                      <TableRow key={product.id} hover>
+                  return (
+                      <TableRow
+                        key={product.id}
+                        hover
+                        selected={selected}
+                        className={selected ? "product-row-selected" : ""}
+                      >
+                        <TableCell padding="checkbox">
+                          <Checkbox
+                            size="small"
+                            checked={selected}
+                            onChange={() => toggleProduct(product.id)}
+                          />
+                        </TableCell>
                         <TableCell>
-                          <Typography fontWeight={800}>{product.name}</Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {product.description || "No description"}
+                          <Stack direction="row" spacing={1.5} alignItems="center">
+                            <Box className="product-thumb">
+                              {imageUrl ? (
+                                <Box
+                                  component="img"
+                                  src={imageUrl}
+                                  alt={product.name}
+                                  className="product-thumb-img"
+                                />
+                              ) : (
+                                <Typography className="product-thumb-fallback">
+                                  {(product.name || "?").slice(0, 1)}
+                                </Typography>
+                              )}
+                            </Box>
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography className="table-primary" noWrap>
+                                {product.name}
+                              </Typography>
+                              <Typography className="table-secondary" noWrap>
+                                {product.slug || product.description || "No description"}
+                              </Typography>
+                            </Box>
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          <Typography className="price-plain">
+                            {formatPrice(product.price)}
                           </Typography>
                         </TableCell>
-                        <TableCell>{product.slug || "-"}</TableCell>
+                        <TableCell>
+                          <Typography className="table-primary">
+                            {getSalesCount(product)} pcs
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography className="price-plain">
+                            {formatPrice(getRevenue(product))}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography className="table-primary">
+                            {product.quantity ?? "-"}
+                          </Typography>
+                        </TableCell>
                         <TableCell>
                           <Chip
                             size="small"
-                            label={product.status || "UNKNOWN"}
-                            color={
-                              product.status === "ACTIVE" ? "success" : "default"
-                            }
-                            variant="outlined"
+                            label={stock.label}
+                            className={`stock-pill stock-${stock.tone}`}
                           />
                         </TableCell>
-                        <TableCell align="right">
-                          {formatPrice(product.price)}
-                        </TableCell>
-                        <TableCell align="right">
-                          <Stack alignItems="flex-end" spacing={0.5}>
-                            <Chip
-                              size="small"
-                              label={stock.label}
-                              color={stock.color}
-                              variant={stock.color === "error" ? "filled" : "outlined"}
-                            />
-                            <Typography variant="body2" color="text.secondary">
-                              {stock.helper}
+                        <TableCell>
+                          <Stack direction="row" spacing={0.5} alignItems="center">
+                            <StarRoundedIcon className="rating-star" />
+                            <Typography className="table-primary">
+                              {getRating(product)}
                             </Typography>
                           </Stack>
                         </TableCell>
-                        <TableCell>{formatDateTime(product.createdAt)}</TableCell>
-                        <TableCell align="right">
+                        <TableCell align="center">
                           <Tooltip title="Delete">
                             <IconButton
+                              size="small"
                               color="error"
                               onClick={() => handleDelete(product)}
                             >
-                              <DeleteOutlineOutlinedIcon />
+                              <DeleteOutlineOutlinedIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
                         </TableCell>
@@ -398,6 +520,44 @@ export default function Products() {
                 onChange={(_, page) => loadProducts(page)}
               />
             </Stack>
+            {selectedIds.length > 0 && (
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                className="selection-toolbar"
+              >
+                <Typography className="selection-count">
+                  {selectedIds.length} Selected
+                </Typography>
+                <Button size="small" variant="outlined" startIcon={<AddOutlinedIcon />}>
+                  Apply Code
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<EditOutlinedIcon />}
+                  onClick={handleEditSelected}
+                >
+                  Edit Info
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="error"
+                  startIcon={<DeleteOutlineOutlinedIcon />}
+                  onClick={handleDeleteSelected}
+                >
+                  Delete
+                </Button>
+                <IconButton size="small">
+                  <MoreHorizOutlinedIcon />
+                </IconButton>
+                <IconButton size="small" onClick={() => setSelectedIds([])}>
+                  <CloseOutlinedIcon />
+                </IconButton>
+              </Stack>
+            )}
           </>
         )}
       </Paper>

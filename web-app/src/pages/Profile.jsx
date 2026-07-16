@@ -15,6 +15,7 @@ import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import { useEffect, useState } from "react";
+import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import { getMyProfile, updateMyProfile } from "../services/profileService";
 
@@ -109,20 +110,11 @@ export default function Profile() {
 
   return (
     <MainLayout>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        spacing={2}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={900}>
-            Profile
-          </Typography>
-          <Typography color="text.secondary">
-            Review and update current user profile.
-          </Typography>
-        </Box>
+      <PageHeader
+        eyebrow="Account"
+        title="Profile"
+        description="Review and update current user profile."
+        actions={
         <Button
           variant="outlined"
           startIcon={<RefreshOutlinedIcon />}
@@ -130,10 +122,12 @@ export default function Profile() {
         >
           Refresh
         </Button>
-      </Stack>
+        }
+      />
 
       {loading ? (
         <Paper
+          className="admin-data-panel profile-loading-card"
           elevation={0}
           sx={{
             mt: 3,
@@ -151,11 +145,13 @@ export default function Profile() {
         <Grid container spacing={3} sx={{ mt: 0.5 }}>
           <Grid item xs={12} md={4}>
             <Paper
+              className="profile-summary-card"
               elevation={0}
               sx={{ p: 3, border: "1px solid", borderColor: "divider" }}
             >
               <Stack alignItems="center" spacing={2}>
                 <Avatar
+                  className="profile-avatar"
                   src={profile.avatarUrl || undefined}
                   sx={{ width: 96, height: 96, bgcolor: "primary.main" }}
                 >
@@ -196,6 +192,7 @@ export default function Profile() {
 
           <Grid item xs={12} md={8}>
             <Paper
+              className="profile-form-card"
               elevation={0}
               sx={{ p: 3, border: "1px solid", borderColor: "divider" }}
             >

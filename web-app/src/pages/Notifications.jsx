@@ -20,8 +20,13 @@ import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import WavingHandOutlinedIcon from "@mui/icons-material/WavingHandOutlined";
 import { useEffect, useMemo, useState } from "react";
+import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
-import { getMyNotifications } from "../services/notificationService";
+import { hasAnyRole } from "../services/authenticationService";
+import {
+  getAdminNotifications,
+  getMyNotifications,
+} from "../services/notificationService";
 import { formatDateTime, formatRelativeTime } from "../utils/dateTimeUtils";
 
 const notificationConfig = {
@@ -60,6 +65,7 @@ const getNotificationConfig = (type) =>
   };
 
 export default function Notifications() {
+  const isAdmin = hasAnyRole("ROLE_ADMIN", "ADMIN");
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -74,7 +80,7 @@ export default function Notifications() {
     setErrorMessage("");
 
     try {
-      const data = await getMyNotifications();
+      const data = isAdmin ? await getAdminNotifications() : await getMyNotifications();
       setNotifications(data);
     } catch (error) {
       setErrorMessage(
@@ -91,20 +97,15 @@ export default function Notifications() {
 
   return (
     <MainLayout>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        spacing={2}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={900}>
-            Notifications
-          </Typography>
-          <Typography color="text.secondary">
-            Track account, order, and system notifications.
-          </Typography>
-        </Box>
+      <PageHeader
+        eyebrow="Account"
+        title="Notifications"
+        description={
+          isAdmin
+            ? "Track all order and system notifications for the store."
+            : "Track account, order, and system notifications."
+        }
+        actions={
         <Button
           variant="outlined"
           startIcon={<RefreshOutlinedIcon />}
@@ -112,7 +113,8 @@ export default function Notifications() {
         >
           Refresh
         </Button>
-      </Stack>
+        }
+      />
 
       <Paper
         elevation={0}
@@ -133,7 +135,7 @@ export default function Notifications() {
           <Box>
             <Typography fontWeight={900}>Inbox</Typography>
             <Typography variant="body2" color="text.secondary">
-              {notifications.length} notifications
+              {isAdmin ? "Admin inbox" : "My inbox"} · {notifications.length} notifications
             </Typography>
           </Box>
           <Chip
@@ -231,6 +233,11 @@ export default function Notifications() {
                           <Typography color="text.primary">
                             {notification.message || "-"}
                           </Typography>
+                          {isAdmin && notification.userId && (
+                            <Typography variant="caption" color="text.secondary">
+                              User: {notification.userId}
+                            </Typography>
+                          )}
                           <Typography variant="caption" color="text.secondary">
                             {formatDateTime(notification.createdAt)}
                           </Typography>

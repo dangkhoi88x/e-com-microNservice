@@ -7,7 +7,7 @@ spring:
     bootstrap-servers: localhost:9094
 elasticsearch:
   server-url: http://localhost:9200
-  api-key: ${ELASTICSEARCH_API_KEY:}
+  api-key: VlNsUUpwOEJsSGNOemV3bTg2UnA6LTNnemVDdmE3RXg4SU92R2JTbnoyQQ
 eureka:
   instance:
     hostname: localhost

@@ -23,6 +23,10 @@ public class SecurityConfiguration {
             "/api/v1/inventory/products/**"
     };
 
+    private static final String[] PUBLIC_POST_MATCHERS = {
+            "/api/v1/inventory/products/batch"
+    };
+
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
@@ -34,6 +38,7 @@ public class SecurityConfiguration {
                         .accessDeniedHandler(customAccessDeniedHandler))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET_MATCHERS).permitAll()
+                        .requestMatchers(HttpMethod.POST, PUBLIC_POST_MATCHERS).permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .authenticationEntryPoint(customAuthenticationEntryPoint)

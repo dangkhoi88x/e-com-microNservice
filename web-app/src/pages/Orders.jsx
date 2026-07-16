@@ -27,11 +27,16 @@ import {
 } from "@mui/material";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
+import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
+import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { useEffect, useState } from "react";
+import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import { hasAnyRole } from "../services/authenticationService";
+import { confirmInventory } from "../services/inventoryService";
 import {
   cancelOrder,
   getAllOrders,
@@ -44,17 +49,24 @@ const cancellableStatuses = new Set(["PENDING", "CONFIRMED"]);
 const orderStatuses = [
   "ALL",
   "PENDING",
+  "PENDING_PAYMENT",
+  "INVENTORY_FAILED",
   "CONFIRMED",
   "SHIPPING",
   "COMPLETED",
   "CANCELLED",
 ];
 const adminStatusActions = ["CONFIRMED", "SHIPPING", "COMPLETED"];
+const orderStatusSteps = ["PENDING", "PENDING_PAYMENT", "CONFIRMED", "SHIPPING", "COMPLETED"];
+const completableStatuses = new Set(["PENDING_PAYMENT", "CONFIRMED", "SHIPPING"]);
 
 const statusColor = (status) => {
   switch (status) {
     case "PENDING":
+    case "PENDING_PAYMENT":
       return "warning";
+    case "INVENTORY_FAILED":
+      return "error";
     case "CONFIRMED":
       return "info";
     case "SHIPPING":
@@ -76,6 +88,12 @@ const formatPrice = (value) => {
     currency: "VND",
     maximumFractionDigits: 0,
   }).format(Number(value));
+};
+
+const getCompletedSteps = (status) => {
+  const index = orderStatusSteps.indexOf(status);
+  if (index < 0) return 0;
+  return index + 1;
 };
 
 export default function Orders() {
@@ -178,6 +196,23 @@ export default function Orders() {
     }
   };
 
+  const handleCompleteOrder = async (order) => {
+    if (!window.confirm(`Mark order ${order.id} as completed?`)) return;
+
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      await confirmInventory(order.id);
+      await handleUpdateStatus(order, "COMPLETED");
+    } catch (error) {
+      setErrorMessage(
+        error.response?.data?.message ||
+          "Could not confirm inventory for this order.",
+      );
+    }
+  };
+
   const handleViewModeChange = () => {
     setViewMode((current) => (current === "mine" ? "all" : "mine"));
     setSelectedOrder(null);
@@ -195,21 +230,12 @@ export default function Orders() {
 
   return (
     <MainLayout>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        spacing={2}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={900}>
-            Orders
-          </Typography>
-          <Typography color="text.secondary">
-            Track orders, inspect items, and manage eligible order actions.
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1}>
+      <PageHeader
+        eyebrow="Fulfillment"
+        title="Orders"
+        description="Track orders, inspect items, and manage eligible order actions."
+        actions={
+          <>
           {isAdmin && (
             <Button
               variant={viewMode === "all" ? "contained" : "outlined"}
@@ -226,10 +252,12 @@ export default function Orders() {
           >
             Refresh
           </Button>
-        </Stack>
-      </Stack>
+          </>
+        }
+      />
 
       <Paper
+        className="admin-data-panel"
         elevation={0}
         sx={{
           mt: 3,
@@ -253,6 +281,28 @@ export default function Orders() {
             />
           ))}
         </Tabs>
+
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          justifyContent="space-between"
+          alignItems={{ xs: "stretch", sm: "center" }}
+          spacing={2}
+          className="panel-summary"
+        >
+          <Box>
+            <Typography fontWeight={900}>
+              {viewMode === "all" ? "All order activity" : "My order activity"}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {pageInfo.totalElements} orders tracked across fulfillment states
+            </Typography>
+          </Box>
+          <Chip
+            label={`${visibleOrders.length} visible`}
+            color="primary"
+            variant="outlined"
+          />
+        </Stack>
 
         {errorMessage && (
           <Alert severity="error" sx={{ m: 2 }}>
@@ -293,22 +343,44 @@ export default function Orders() {
                   {visibleOrders.map((order) => (
                     <TableRow key={order.id} hover>
                       <TableCell>
-                        <Typography fontWeight={800}>{order.id}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {viewMode === "all" ? order.userId : order.shippingAddress || "No shipping address"}
-                        </Typography>
+                        <Stack direction="row" spacing={1.5} alignItems="center">
+                          <Box className="order-mark">
+                            <ReceiptLongOutlinedIcon fontSize="small" />
+                          </Box>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography className="table-primary" noWrap>
+                              {order.id}
+                            </Typography>
+                            <Typography className="table-secondary" noWrap>
+                              {viewMode === "all" ? order.userId : order.shippingAddress || "No shipping address"}
+                            </Typography>
+                          </Box>
+                        </Stack>
                       </TableCell>
                       <TableCell>{renderStatus(order.status)}</TableCell>
                       <TableCell align="right">
-                        {formatPrice(order.totalAmount)}
+                        <Typography className="money-value">
+                          {formatPrice(order.totalAmount)}
+                        </Typography>
                       </TableCell>
                       <TableCell>{formatDateTime(order.createdAt)}</TableCell>
                       <TableCell align="right">
-                        <Tooltip title="View detail">
-                          <IconButton onClick={() => handleViewDetail(order)}>
-                            <VisibilityOutlinedIcon />
-                          </IconButton>
-                        </Tooltip>
+                        <Box className="row-actions">
+                          <Tooltip title="View detail">
+                            <IconButton onClick={() => handleViewDetail(order)}>
+                              <VisibilityOutlinedIcon />
+                            </IconButton>
+                          </Tooltip>
+                          {completableStatuses.has(order.status) && (
+                            <Tooltip title="Complete order">
+                              <IconButton
+                                color="success"
+                                onClick={() => handleCompleteOrder(order)}
+                              >
+                                <CheckCircleOutlineOutlinedIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         {isAdmin && viewMode === "all" && (
                           <Select
                             size="small"
@@ -343,6 +415,7 @@ export default function Orders() {
                             </IconButton>
                           </Tooltip>
                         )}
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -387,6 +460,36 @@ export default function Orders() {
             </Stack>
           ) : selectedOrder ? (
             <Stack spacing={3}>
+              <Box className="detail-hero">
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  justifyContent="space-between"
+                  alignItems={{ xs: "stretch", sm: "center" }}
+                  spacing={2}
+                >
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Fulfillment progress
+                    </Typography>
+                    <Typography fontWeight={900}>
+                      {selectedOrder.status || "UNKNOWN"}
+                    </Typography>
+                  </Box>
+                  <LocalShippingOutlinedIcon className="detail-hero-icon" />
+                </Stack>
+                <Box className="order-progress">
+                  <Box
+                    sx={{
+                      width: `${Math.min(
+                        100,
+                        (getCompletedSteps(selectedOrder.status) /
+                          orderStatusSteps.length) *
+                          100,
+                      )}%`,
+                    }}
+                  />
+                </Box>
+              </Box>
               <Stack
                 direction={{ xs: "column", sm: "row" }}
                 justifyContent="space-between"

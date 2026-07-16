@@ -8,6 +8,7 @@ public class NotificationMapper {
     public static NotificationResponse toResponse(Notification notification) {
         return NotificationResponse.builder()
                 .id(notification.getId())
+                .userId(notification.getUserId())
                 .title(notification.getTitle())
                 .message(notification.getMessage())
                 .type(notification.getType())
