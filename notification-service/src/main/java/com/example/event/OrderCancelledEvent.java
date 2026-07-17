@@ -16,6 +16,7 @@ import java.time.Instant;
 @AllArgsConstructor
 public class OrderCancelledEvent {
     private String orderId;
+    private String orderCode;
     private String userId;
     private BigDecimal totalAmount;
     private String status;

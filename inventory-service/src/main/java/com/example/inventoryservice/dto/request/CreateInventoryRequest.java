@@ -8,6 +8,8 @@ public record CreateInventoryRequest(
         @NotBlank(message = "productId is required")
         String productId,
 
+        String variantId,
+
         @NotNull(message = "availableQuantity is required")
         @Min(value = 0, message = "availableQuantity must be greater than or equal to 0")
         Integer availableQuantity

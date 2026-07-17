@@ -25,6 +25,10 @@ public record UpdateProductRequest(
 
         List<ProductImage> images,
 
+        List<ProductOptionRequest> options,
+
+        List<ProductVariantRequest> variants,
+
         ProductStatus status
 ) {
 }

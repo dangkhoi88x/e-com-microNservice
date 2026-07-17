@@ -15,6 +15,7 @@ import java.time.Instant;
 @AllArgsConstructor
 public class OrderStatusUpdatedEvent {
     private String orderId;
+    private String orderCode;
     private String userId;
     private String oldStatus;
     private String newStatus;

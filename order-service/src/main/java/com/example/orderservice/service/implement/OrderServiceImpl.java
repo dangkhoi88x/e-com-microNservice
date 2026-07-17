@@ -9,9 +9,11 @@ import com.example.event.PaymentCancelledEvent;
 import com.example.event.PaymentFailedEvent;
 import com.example.event.PaymentSuccessEvent;
 import com.example.orderservice.client.InventoryClient;
+import com.example.orderservice.client.CartClient;
 import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.common.OrderStatus;
 import com.example.orderservice.dto.request.CreateOrderRequest;
+import com.example.orderservice.dto.request.CheckoutOrderRequest;
 import com.example.orderservice.dto.request.InventoryOrderRequest;
 import com.example.orderservice.dto.request.ReserveInventoryItemRequest;
 import com.example.orderservice.dto.request.ReserveInventoryRequest;
@@ -19,6 +21,7 @@ import com.example.orderservice.dto.response.OrderItemResponse;
 import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.PageResponse;
 import com.example.orderservice.dto.response.ProductDetailResponse;
+import com.example.orderservice.dto.response.ProductVariantResponse;
 import com.example.orderservice.entity.Order;
 import com.example.orderservice.entity.OrderItem;
 import com.example.orderservice.exception.ErrorCode;
@@ -38,6 +41,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
 
@@ -49,6 +54,9 @@ public class OrderServiceImpl implements OrderService {
     private static final String ORDER_CREATED_TOPIC = "order-created";
     private static final String ORDER_CANCELLED_TOPIC = "order-cancelled";
     private static final String ORDER_STATUS_UPDATED_TOPIC = "order-status-updated";
+    private static final DateTimeFormatter ORDER_CODE_DATE_FORMAT = DateTimeFormatter
+            .ofPattern("yyyyMMdd")
+            .withZone(ZoneId.of("Asia/Ho_Chi_Minh"));
     private static final Set<OrderStatus> CANCELLABLE_STATUSES = Set.of(
             OrderStatus.PENDING,
             OrderStatus.PENDING_PAYMENT,
@@ -58,12 +66,14 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final ProductClient productClient;
     private final InventoryClient inventoryClient;
+    private final CartClient cartClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
     @Transactional
     public OrderResponse createOrder(String userId, CreateOrderRequest request, String token) {
         Order order = Order.builder()
+                .orderCode(generateOrderCode())
                 .userId(userId)
                 .shippingAddress(request.shippingAddress())
                 .status(OrderStatus.PENDING)
@@ -83,13 +93,20 @@ public class OrderServiceImpl implements OrderService {
                 throw new OrderServiceException(ErrorCode.PRODUCT_NOT_ACTIVE);
             }
 
-            BigDecimal subtotal = product.price()
+            ProductVariantResponse variant = findVariant(product, itemRequest.variantId());
+            BigDecimal itemPrice = variant != null ? variant.price() : product.price();
+            String itemName = variant != null
+                    ? product.name() + " - " + formatVariantAttributes(variant)
+                    : product.name();
+
+            BigDecimal subtotal = itemPrice
                     .multiply(BigDecimal.valueOf(itemRequest.quantity()));
 
             OrderItem orderItem = OrderItem.builder()
                     .productId(product.id())
-                    .productName(product.name())
-                    .price(product.price())
+                    .variantId(variant != null ? variant.id() : null)
+                    .productName(itemName)
+                    .price(itemPrice)
                     .quantity(itemRequest.quantity())
                     .subtotal(subtotal)
                     .build();
@@ -217,6 +234,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.CONFIRMED);
         Order savedOrder = orderRepository.save(order);
         publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
+        cartClient.finalize(savedOrder.getUserId(), savedOrder.getId());
 
         log.info("Order confirmed from payment success: orderId={}, paymentId={}",
                 event.getOrderId(),
@@ -261,6 +279,7 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
         publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
         publishOrderCancelledEvent(savedOrder);
+        cartClient.release(savedOrder.getUserId(), savedOrder.getId());
 
         log.info("Order cancelled from payment {}: orderId={}, paymentId={}",
                 paymentStatus,
@@ -273,6 +292,7 @@ public class OrderServiceImpl implements OrderService {
                 .stream()
                 .map(item -> new OrderItemResponse(
                         item.getProductId(),
+                        item.getVariantId(),
                         item.getProductName(),
                         item.getPrice(),
                         item.getQuantity(),
@@ -282,6 +302,7 @@ public class OrderServiceImpl implements OrderService {
 
         return new OrderResponse(
                 order.getId(),
+                order.getOrderCode(),
                 order.getUserId(),
                 order.getTotalAmount(),
                 order.getStatus().name(),
@@ -310,6 +331,7 @@ public class OrderServiceImpl implements OrderService {
     private void publishOrderCreatedEvent(Order order) {
         OrderCreatedEvent event = OrderCreatedEvent.builder()
                 .orderId(order.getId())
+                .orderCode(order.getOrderCode())
                 .userId(order.getUserId())
                 .totalAmount(order.getTotalAmount())
                 .status(order.getStatus().name())
@@ -318,6 +340,7 @@ public class OrderServiceImpl implements OrderService {
                         .stream()
                         .map(item -> OrderItemEvent.builder()
                                 .productId(item.getProductId())
+                                .variantId(item.getVariantId())
                                 .quantity(item.getQuantity())
                                 .build())
                         .toList())
@@ -341,6 +364,7 @@ public class OrderServiceImpl implements OrderService {
                         .stream()
                         .map(item -> new ReserveInventoryItemRequest(
                                 item.getProductId(),
+                                item.getVariantId(),
                                 item.getQuantity()
                         ))
                         .toList()
@@ -353,9 +377,52 @@ public class OrderServiceImpl implements OrderService {
         inventoryClient.releaseInventory(new InventoryOrderRequest(order.getId()), token);
     }
 
+    @Override
+    public OrderResponse checkout(String userId, CheckoutOrderRequest request, String token) {
+        List<CartClient.CartItem> items = cartClient.checkoutItems(userId);
+        if (items.isEmpty()) throw new OrderServiceException(ErrorCode.CART_CHECKOUT_EMPTY);
+        OrderResponse order = createOrder(userId, new CreateOrderRequest(request.shippingAddress(), items.stream()
+                .map(item -> new com.example.orderservice.dto.request.OrderItemRequest(item.productId(), item.variantId(), item.quantity())).toList()), token);
+        if (OrderStatus.PENDING_PAYMENT.name().equals(order.status())) {
+            cartClient.mark(userId, order.id(), items.stream().map(CartClient.CartItem::id).toList());
+        }
+        return order;
+    }
+
+    private ProductVariantResponse findVariant(ProductDetailResponse product, String variantId) {
+        if (variantId == null || variantId.isBlank()) {
+            return null;
+        }
+
+        if (product.variants() == null) {
+            throw new OrderServiceException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        ProductVariantResponse variant = product.variants()
+                .stream()
+                .filter(item -> variantId.equals(item.id()))
+                .findFirst()
+                .orElseThrow(() -> new OrderServiceException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        if (!"ACTIVE".equals(variant.status())) {
+            throw new OrderServiceException(ErrorCode.PRODUCT_NOT_ACTIVE);
+        }
+
+        return variant;
+    }
+
+    private String formatVariantAttributes(ProductVariantResponse variant) {
+        if (variant.attributes() == null || variant.attributes().isEmpty()) {
+            return variant.sku();
+        }
+
+        return String.join(", ", variant.attributes().values());
+    }
+
     private void publishOrderCancelledEvent(Order order) {
         OrderCancelledEvent event = OrderCancelledEvent.builder()
                 .orderId(order.getId())
+                .orderCode(order.getOrderCode())
                 .userId(order.getUserId())
                 .totalAmount(order.getTotalAmount())
                 .status(order.getStatus().name())
@@ -377,6 +444,7 @@ public class OrderServiceImpl implements OrderService {
         OrderStatus newStatus = order.getStatus();
         OrderStatusUpdatedEvent event = OrderStatusUpdatedEvent.builder()
                 .orderId(order.getId())
+                .orderCode(order.getOrderCode())
                 .userId(order.getUserId())
                 .oldStatus(oldStatus.name())
                 .newStatus(newStatus.name())
@@ -399,5 +467,19 @@ public class OrderServiceImpl implements OrderService {
                             oldStatus,
                             newStatus);
                 });
+    }
+
+    private String generateOrderCode() {
+        String orderCode;
+        do {
+            String date = ORDER_CODE_DATE_FORMAT.format(Instant.now());
+            String suffix = java.util.UUID.randomUUID()
+                    .toString()
+                    .replace("-", "")
+                    .substring(0, 8)
+                    .toUpperCase();
+            orderCode = "ORD-" + date + "-" + suffix;
+        } while (orderRepository.existsByOrderCode(orderCode));
+        return orderCode;
     }
 }

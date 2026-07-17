@@ -34,6 +34,8 @@ public class InventoryReservation {
 
     private String productId;
 
+    private String variantId;
+
     private Integer quantity;
 
     @Enumerated(EnumType.STRING)

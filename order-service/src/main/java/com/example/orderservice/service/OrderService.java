@@ -5,11 +5,13 @@ import com.example.event.PaymentFailedEvent;
 import com.example.event.PaymentSuccessEvent;
 import com.example.orderservice.common.OrderStatus;
 import com.example.orderservice.dto.request.CreateOrderRequest;
+import com.example.orderservice.dto.request.CheckoutOrderRequest;
 import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.PageResponse;
 
 public interface OrderService {
     OrderResponse createOrder(String userId, CreateOrderRequest request, String token);
+    OrderResponse checkout(String userId, CheckoutOrderRequest request, String token);
 
     PageResponse<OrderResponse> getMyOrders(String userId, int page, int size);
 

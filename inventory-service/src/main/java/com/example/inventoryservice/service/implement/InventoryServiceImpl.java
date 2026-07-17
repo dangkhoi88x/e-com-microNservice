@@ -40,7 +40,13 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public InventoryResponse createInventory(CreateInventoryRequest request) {
-        if (inventoryRepository.existsByProductId(request.productId())) {
+        if (request.variantId() != null && !request.variantId().isBlank()
+                && inventoryRepository.existsByVariantId(request.variantId())) {
+            throw new InventoryServiceException(ErrorCode.INVENTORY_ALREADY_EXISTS);
+        }
+
+        if ((request.variantId() == null || request.variantId().isBlank())
+                && inventoryRepository.existsByProductId(request.productId())) {
             throw new InventoryServiceException(ErrorCode.INVENTORY_ALREADY_EXISTS);
         }
 
@@ -48,6 +54,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         Inventory inventory = Inventory.builder()
                 .productId(request.productId())
+                .variantId(normalizeVariantId(request.variantId()))
                 .availableQuantity(request.availableQuantity())
                 .reservedQuantity(0)
                 .soldQuantity(0)
@@ -91,8 +98,7 @@ public class InventoryServiceImpl implements InventoryService {
         Instant now = Instant.now();
 
         for (ReserveInventoryItemRequest item : request.items()) {
-            Inventory inventory = inventoryRepository.findByProductIdForUpdate(item.productId())
-                    .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
+            Inventory inventory = findInventoryForUpdate(item.productId(), item.variantId());
             if (inventory.getAvailableQuantity() < item.quantity()) {
                 throw new InventoryServiceException(ErrorCode.INSUFFICIENT_STOCK);
             }
@@ -104,6 +110,7 @@ public class InventoryServiceImpl implements InventoryService {
             InventoryReservation reservation = InventoryReservation.builder()
                     .orderId(request.orderId())
                     .productId(item.productId())
+                    .variantId(normalizeVariantId(item.variantId()))
                     .quantity(item.quantity())
                     .status(ReservationStatus.PENDING)
                     .createdAt(now)
@@ -127,8 +134,7 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         for (InventoryReservation reservation : pendingReservations) {
-            Inventory inventory = inventoryRepository.findByProductId(reservation.getProductId())
-                    .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
+            Inventory inventory = findInventory(reservation.getProductId(), reservation.getVariantId());
 
             ensureReservedQuantityEnough(inventory, reservation);
             inventory.setReservedQuantity(inventory.getReservedQuantity() - reservation.getQuantity());
@@ -153,8 +159,7 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         for (InventoryReservation reservation : pendingReservations) {
-            Inventory inventory = inventoryRepository.findByProductId(reservation.getProductId())
-                    .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
+            Inventory inventory = findInventory(reservation.getProductId(), reservation.getVariantId());
 
             ensureReservedQuantityEnough(inventory, reservation);
             inventory.setReservedQuantity(inventory.getReservedQuantity() - reservation.getQuantity());
@@ -206,9 +211,40 @@ public class InventoryServiceImpl implements InventoryService {
         }
     }
 
+    private Inventory findInventoryForUpdate(String productId, String variantId) {
+        String normalizedVariantId = normalizeVariantId(variantId);
+        if (normalizedVariantId != null) {
+            return inventoryRepository.findByVariantIdForUpdate(normalizedVariantId)
+                    .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
+        }
+
+        return inventoryRepository.findByProductIdForUpdate(productId)
+                .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
+    }
+
+    private Inventory findInventory(String productId, String variantId) {
+        String normalizedVariantId = normalizeVariantId(variantId);
+        if (normalizedVariantId != null) {
+            return inventoryRepository.findByVariantId(normalizedVariantId)
+                    .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
+        }
+
+        return inventoryRepository.findByProductId(productId)
+                .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
+    }
+
+    private String normalizeVariantId(String variantId) {
+        if (variantId == null || variantId.isBlank()) {
+            return null;
+        }
+
+        return variantId.trim();
+    }
+
     private void publishInventoryUpdatedEvent(Inventory inventory) {
         InventoryUpdatedEvent event = InventoryUpdatedEvent.builder()
                 .productId(inventory.getProductId())
+                .variantId(inventory.getVariantId())
                 .availableQuantity(inventory.getAvailableQuantity())
                 .reservedQuantity(inventory.getReservedQuantity())
                 .soldQuantity(inventory.getSoldQuantity())

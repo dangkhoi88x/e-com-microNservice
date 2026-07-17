@@ -48,6 +48,7 @@ public class OrderEventConsumer {
     private OrderCreatedEvent toOrderCreatedEvent(Map<String, Object> payload) {
         return OrderCreatedEvent.builder()
                 .orderId(asString(payload.get("orderId")))
+                .orderCode(asString(payload.get("orderCode")))
                 .userId(asString(payload.get("userId")))
                 .totalAmount(asBigDecimal(payload.get("totalAmount")))
                 .status(asString(payload.get("status")))
@@ -58,6 +59,7 @@ public class OrderEventConsumer {
     private OrderCancelledEvent toOrderCancelledEvent(Map<String, Object> payload) {
         return OrderCancelledEvent.builder()
                 .orderId(asString(payload.get("orderId")))
+                .orderCode(asString(payload.get("orderCode")))
                 .userId(asString(payload.get("userId")))
                 .totalAmount(asBigDecimal(payload.get("totalAmount")))
                 .status(asString(payload.get("status")))
@@ -68,6 +70,7 @@ public class OrderEventConsumer {
     private OrderStatusUpdatedEvent toOrderStatusUpdatedEvent(Map<String, Object> payload) {
         return OrderStatusUpdatedEvent.builder()
                 .orderId(asString(payload.get("orderId")))
+                .orderCode(asString(payload.get("orderCode")))
                 .userId(asString(payload.get("userId")))
                 .oldStatus(asString(payload.get("oldStatus")))
                 .newStatus(asString(payload.get("newStatus")))

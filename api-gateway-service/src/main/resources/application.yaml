@@ -3,6 +3,15 @@
 spring:
   application:
     name: api-gateway-service
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: cart-service
+              uri: lb://cart-service
+              predicates:
+                - Path=/api/v1/cart/**
 server:
   port: 9191
 logging:

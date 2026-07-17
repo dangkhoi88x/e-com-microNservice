@@ -29,6 +29,10 @@ public record CreateProductRequest(
 
         List<ProductImage> images,
 
+        List<ProductOptionRequest> options,
+
+        List<ProductVariantRequest> variants,
+
         @NotNull(message = "Status is required")
         ProductStatus status
 

@@ -8,6 +8,7 @@ public record ReservationResponse(
         String id,
         String orderId,
         String productId,
+        String variantId,
         Integer quantity,
         ReservationStatus status,
         Instant createdAt,

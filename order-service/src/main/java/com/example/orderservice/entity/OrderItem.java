@@ -37,6 +37,8 @@ public class OrderItem extends BaseEntity {
     @Column(nullable = false)
     private String productId;
 
+    private String variantId;
+
     @Column(nullable = false)
     private String productName;
 

@@ -19,6 +19,8 @@ public enum ErrorCode {
     PRODUCT_NOT_FOUND(404, "Product not found", HttpStatus.NOT_FOUND),
     PRODUCT_OUT_OF_STOCK(400, "Product out of stock", HttpStatus.BAD_REQUEST),
     INVALID_PRODUCT_NAME(400, "Product name is invalid", HttpStatus.BAD_REQUEST),
+    DUPLICATE_PRODUCT_VARIANT_SKU(400, "Product variant SKU already exists", HttpStatus.BAD_REQUEST),
+    INVALID_PRODUCT_VARIANT_ATTRIBUTE(400, "Product variant attributes must match the configured product options", HttpStatus.BAD_REQUEST),
     INVALID_CATEGORY_ID(400, "Category id is invalid", HttpStatus.BAD_REQUEST),
     PRODUCT_ACCESS_DENIED(403, "You do not have permission to access this product", HttpStatus.FORBIDDEN),
 

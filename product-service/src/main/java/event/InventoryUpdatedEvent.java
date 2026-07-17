@@ -15,6 +15,7 @@ import java.time.Instant;
 @Setter
 public class InventoryUpdatedEvent {
     private String productId;
+    private String variantId;
     private Integer availableQuantity;
     private Integer reservedQuantity;
     private Integer soldQuantity;

@@ -3,17 +3,27 @@ package com.example.productservice.service.implement;
 import com.example.productservice.client.InventoryClient;
 import com.example.productservice.common.ProductStatus;
 import com.example.productservice.dto.request.CreateProductRequest;
+import com.example.productservice.dto.request.ProductVariantRequest;
+import com.example.productservice.dto.request.ProductOptionRequest;
+import com.example.productservice.dto.request.ProductOptionValueRequest;
 import com.example.productservice.dto.request.SearchRequest;
 import com.example.productservice.dto.request.UpdateProductRequest;
 import com.example.productservice.dto.response.CreateProductResponse;
 import com.example.productservice.dto.response.PageResponse;
 import com.example.productservice.dto.response.ProductDetailResponse;
+import com.example.productservice.dto.response.ProductVariantResponse;
+import com.example.productservice.dto.response.ProductOptionResponse;
+import com.example.productservice.dto.response.ProductOptionValueResponse;
 import com.example.productservice.entity.Category;
 import com.example.productservice.entity.Product;
+import com.example.productservice.entity.ProductVariant;
+import com.example.productservice.entity.ProductOption;
+import com.example.productservice.entity.ProductOptionValue;
 import com.example.productservice.exception.ErrorCode;
 import com.example.productservice.exception.ProductServiceException;
 import com.example.productservice.repository.CategoryRepository;
 import com.example.productservice.repository.ProductRepository;
+import com.example.productservice.repository.ProductVariantRepository;
 import com.example.productservice.service.ProductService;
 import com.example.productservice.repository.specification.ProductSpecification;
 import com.example.productservice.utils.SlugUtils;
@@ -37,6 +47,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,6 +59,7 @@ import java.util.stream.Collectors;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductVariantRepository productVariantRepository;
     private final CategoryRepository categoryRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final InventoryClient inventoryClient;
@@ -70,6 +82,8 @@ public class ProductServiceImpl implements ProductService {
                 .category(category)
                 .build();
 
+        replaceOptions(product, request.options());
+        replaceVariants(product, request.variants());
         productRepository.save(product);
         log.info("Product created successfully: id={}", product.getId());
 
@@ -95,6 +109,8 @@ public class ProductServiceImpl implements ProductService {
                 .price(product.getPrice())
                 .quantity(product.getQuantity())
                 .images(product.getImages())
+                .options(toOptionResponses(product.getOptions()))
+                .variants(toVariantResponses(product.getVariants()))
                 .status(product.getStatus())
                 .createdAt(product.getCreatedAt())
                 .build();
@@ -190,8 +206,22 @@ public class ProductServiceImpl implements ProductService {
             product.setPrice(request.price());
         }
 
+        if (request.quantity() != null) {
+            product.setQuantity(request.quantity());
+        }
+
         if (request.images() != null) {
             product.setImages(request.images());
+        }
+
+        if (request.options() != null) {
+            replaceOptions(product, request.options());
+        }
+
+        if (request.variants() != null) {
+            replaceVariants(product, request.variants());
+        } else if (request.options() != null) {
+            validateVariantAttributes(product.getVariants(), product);
         }
 
         if (request.status() != null) {
@@ -238,6 +268,26 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void syncStockFromInventoryEvent(InventoryUpdatedEvent event) {
+        if (event.getVariantId() != null && !event.getVariantId().isBlank()) {
+            ProductVariant variant = productVariantRepository.findById(event.getVariantId())
+                    .orElse(null);
+
+            if (variant == null) {
+                log.warn("Skip inventory sync because product variant does not exist: variantId={}", event.getVariantId());
+                return;
+            }
+
+            variant.setQuantity(event.getAvailableQuantity());
+            productVariantRepository.save(variant);
+            sendProductUpdatedEvent(toProductUpdatedEvent(variant.getProduct()));
+
+            log.info("Synced variant stock from inventory: productId={}, variantId={}, quantity={}",
+                    variant.getProduct().getId(),
+                    variant.getId(),
+                    variant.getQuantity());
+            return;
+        }
+
         Product product = productRepository.findById(event.getProductId())
                 .orElse(null);
 
@@ -372,6 +422,8 @@ public class ProductServiceImpl implements ProductService {
                 .price(product.getPrice())
                 .quantity(quantity)
                 .images(product.getImages())
+                .options(toOptionResponses(product.getOptions()))
+                .variants(toVariantResponses(product.getVariants()))
                 .status(product.getStatus())
                 .createdAt(product.getCreatedAt())
                 .build();
@@ -387,6 +439,137 @@ public class ProductServiceImpl implements ProductService {
                 .findFirst()
                 .orElse(product.getImages().getFirst())
                 .getUrl();
+    }
+
+    private void replaceVariants(Product product, List<ProductVariantRequest> variantRequests) {
+        product.getVariants().clear();
+
+        if (variantRequests == null || variantRequests.isEmpty()) {
+            return;
+        }
+
+        Set<String> usedSkus = new HashSet<>();
+        for (ProductVariantRequest request : variantRequests) {
+            validateVariantAttributes(request.attributes(), product);
+            ProductVariant variant = toVariant(product, request, usedSkus);
+            product.getVariants().add(variant);
+            usedSkus.add(variant.getSku());
+        }
+    }
+
+    private void replaceOptions(Product product, List<ProductOptionRequest> optionRequests) {
+        product.getOptions().clear();
+        if (optionRequests == null) return;
+        for (ProductOptionRequest request : optionRequests) {
+            ProductOption option = ProductOption.builder().product(product).name(request.name().trim())
+                    .displayName(request.displayName()).displayType(request.displayType())
+                    .displayOrder(request.displayOrder() == null ? 0 : request.displayOrder())
+                    .required(request.required() == null || request.required()).build();
+            if (request.values() != null) for (ProductOptionValueRequest value : request.values()) {
+                option.getValues().add(ProductOptionValue.builder().option(option).value(value.value().trim())
+                        .displayValue(value.displayValue()).colorHex(value.colorHex()).imageUrl(value.imageUrl())
+                        .displayOrder(value.displayOrder() == null ? 0 : value.displayOrder())
+                        .active(value.active() == null || value.active()).build());
+            }
+            product.getOptions().add(option);
+        }
+    }
+
+    private void validateVariantAttributes(Map<String, String> attributes, Product product) {
+        if (attributes == null || attributes.isEmpty()) return;
+        for (var attribute : attributes.entrySet()) {
+            ProductOption option = product.getOptions().stream().filter(item -> item.getName().equals(attribute.getKey())).findFirst()
+                    .orElseThrow(() -> new ProductServiceException(ErrorCode.INVALID_PRODUCT_VARIANT_ATTRIBUTE));
+            boolean valid = option.getValues().stream().anyMatch(value -> Boolean.TRUE.equals(value.getActive()) && value.getValue().equals(attribute.getValue()));
+            if (!valid) throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_VARIANT_ATTRIBUTE);
+        }
+    }
+
+    private void validateVariantAttributes(List<ProductVariant> variants, Product product) {
+        variants.forEach(variant -> validateVariantAttributes(variant.getAttributes(), product));
+    }
+
+    private List<ProductOptionResponse> toOptionResponses(List<ProductOption> options) {
+        if (options == null) return List.of();
+        return options.stream().map(option -> ProductOptionResponse.builder().id(option.getId()).name(option.getName())
+                .displayName(option.getDisplayName()).displayType(option.getDisplayType()).displayOrder(option.getDisplayOrder())
+                .required(option.getRequired()).values(option.getValues().stream().map(value -> ProductOptionValueResponse.builder()
+                        .id(value.getId()).value(value.getValue()).displayValue(value.getDisplayValue()).colorHex(value.getColorHex())
+                        .imageUrl(value.getImageUrl()).displayOrder(value.getDisplayOrder()).active(value.getActive()).build()).toList()).build()).toList();
+    }
+
+    private ProductVariant toVariant(Product product, ProductVariantRequest request, Set<String> usedSkus) {
+        String sku = normalizeSku(request.sku());
+        if (sku == null) {
+            sku = generateUniqueSku(product.getSlug(), usedSkus);
+        } else if (usedSkus.contains(sku)) {
+            throw new ProductServiceException(ErrorCode.DUPLICATE_PRODUCT_VARIANT_SKU);
+        } else if (variantSkuExists(request, sku)) {
+            throw new ProductServiceException(ErrorCode.DUPLICATE_PRODUCT_VARIANT_SKU);
+        }
+
+        ProductStatus status = request.status() != null ? request.status() : product.getStatus();
+        BigDecimal price = request.price() != null ? request.price() : product.getPrice();
+        Integer quantity = request.quantity() != null ? request.quantity() : 0;
+
+        return ProductVariant.builder()
+                .id(request.id())
+                .product(product)
+                .sku(sku)
+                .attributes(request.attributes())
+                .price(price)
+                .quantity(quantity)
+                .imageUrl(request.imageUrl())
+                .status(status)
+                .build();
+    }
+
+    private boolean variantSkuExists(ProductVariantRequest request, String sku) {
+        if (request.id() == null || request.id().isBlank()) {
+            return productVariantRepository.existsBySku(sku);
+        }
+
+        return productVariantRepository.existsBySkuAndIdNot(sku, request.id());
+    }
+
+    private List<ProductVariantResponse> toVariantResponses(List<ProductVariant> variants) {
+        if (variants == null) {
+            return List.of();
+        }
+
+        return variants.stream()
+                .map(variant -> ProductVariantResponse.builder()
+                        .id(variant.getId())
+                        .sku(variant.getSku())
+                        .attributes(variant.getAttributes())
+                        .price(variant.getPrice())
+                        .quantity(variant.getQuantity())
+                        .imageUrl(variant.getImageUrl())
+                        .status(variant.getStatus())
+                        .build())
+                .toList();
+    }
+
+    private String normalizeSku(String sku) {
+        if (sku == null || sku.isBlank()) {
+            return null;
+        }
+
+        return sku.trim().toUpperCase();
+    }
+
+    private String generateUniqueSku(String productSlug, Set<String> usedSkus) {
+        String baseSku = (productSlug == null || productSlug.isBlank())
+                ? "SKU"
+                : productSlug.toUpperCase().replace("-", "-");
+        String sku = baseSku;
+        int suffix = 1;
+        while (productVariantRepository.existsBySku(sku) || usedSkus.contains(sku)) {
+            sku = baseSku + "-" + suffix;
+            suffix++;
+        }
+
+        return sku;
     }
 
     public List<Product> searchProducts(String categoryId, ProductStatus status,

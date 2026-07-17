@@ -6,6 +6,7 @@ import java.util.List;
 
 public record OrderResponse(
         String id,
+        String orderCode,
         String userId,
         BigDecimal totalAmount,
         String status,

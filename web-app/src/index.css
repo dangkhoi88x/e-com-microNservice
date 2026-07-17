@@ -309,6 +309,35 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .product-form-card .MuiOutlinedInput-root fieldset { border-color: #d8dce3; }
 .product-form-card .MuiOutlinedInput-root:hover fieldset { border-color: #aeb6c4; }
 .product-form-card .MuiOutlinedInput-root.Mui-focused fieldset { border-color: #111827; border-width: 1px; }
+.variant-empty-state {
+  padding: 18px;
+  color: #71717a;
+  border: 1px dashed #cfd6df;
+  border-radius: 14px;
+  background: #fafbfc;
+  font-size: 13px;
+  font-weight: 650;
+}
+.variant-editor-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr)) 42px;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid #e8ebf0;
+  border-radius: 16px;
+  background: #fbfcff;
+}
+.variant-editor-row .MuiFormControl-root,
+.variant-editor-row .MuiTextField-root {
+  min-width: 0;
+}
+.variant-editor-row .MuiIconButton-root {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #f1d5d5;
+  background: #fff;
+}
 .profile-loading-card,
 .profile-summary-card,
 .profile-form-card {
@@ -385,6 +414,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .selection-toolbar .MuiIconButton-root { width: 32px; height: 32px; color: #52525b !important; border: 1px solid #e2e5ea; background: #fff; }
 .selection-count { min-width: 82px; color: #374151; font-size: 12px !important; font-weight: 800 !important; }
 
-@media (max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .templates-grid { grid-template-columns: repeat(3, minmax(170px, 1fr)); overflow-x: auto; padding-bottom: 3px; } .search-filter-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .search-filter-actions { grid-column: span 3; min-width: 0; } .search-aggregation-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .templates-grid { grid-template-columns: repeat(3, minmax(170px, 1fr)); overflow-x: auto; padding-bottom: 3px; } .search-filter-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .search-filter-actions { grid-column: span 3; min-width: 0; } .search-aggregation-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .variant-editor-row { grid-template-columns: repeat(2, minmax(0, 1fr)) 42px; } }
 @media (max-width: 900px) { .main-content { padding-right: 20px; padding-left: 20px; } .topbar-toolbar { padding: 0 20px !important; } .lower-grid { grid-template-columns: 1fr; }.product-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.product-filter-actions { grid-column: 1 / -1; min-width: 0; }.search-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.search-filter-actions { grid-column: 1 / -1; }.search-aggregation-grid { grid-template-columns: 1fr; } }
-@media (max-width: 600px) { .main-content { padding: 0 14px 30px; } .main-content > .MuiToolbar-root { min-height: 78px; } .topbar-toolbar { padding: 0 14px !important; gap: 6px; } .breadcrumb, .topbar-icon:nth-of-type(3), .avatar-button { display: none; } .global-search { width: auto; min-width: 0; flex: 1; } .dashboard-intro { margin-bottom: 23px; } .dashboard-title { font-size: 30px !important; } .dashboard-subtitle { font-size: 13px !important; } .intro-actions { width: 100%; } .intro-actions .MuiButton-root { flex: 1; } .metrics-grid { gap: 10px; } .metric-card { min-height: 151px; padding: 14px; } .metric-value { font-size: 24px !important; } .metric-label { margin-top: 14px !important; font-size: 10px !important; }.dashboard-section-heading { margin-top: 27px; }.templates-grid { grid-template-columns: repeat(3, 245px); }.footer-summary { padding: 14px; }.product-filter-grid, .search-filter-grid { grid-template-columns: 1fr; }.product-thumb { width: 46px; height: 46px; }.entity-id { max-width: 180px; } }
+@media (max-width: 600px) { .main-content { padding: 0 14px 30px; } .main-content > .MuiToolbar-root { min-height: 78px; } .topbar-toolbar { padding: 0 14px !important; gap: 6px; } .breadcrumb, .topbar-icon:nth-of-type(3), .avatar-button { display: none; } .global-search { width: auto; min-width: 0; flex: 1; } .dashboard-intro { margin-bottom: 23px; } .dashboard-title { font-size: 30px !important; } .dashboard-subtitle { font-size: 13px !important; } .intro-actions { width: 100%; } .intro-actions .MuiButton-root { flex: 1; } .metrics-grid { gap: 10px; } .metric-card { min-height: 151px; padding: 14px; } .metric-value { font-size: 24px !important; } .metric-label { margin-top: 14px !important; font-size: 10px !important; }.dashboard-section-heading { margin-top: 27px; }.templates-grid { grid-template-columns: repeat(3, 245px); }.footer-summary { padding: 14px; }.product-filter-grid, .search-filter-grid, .variant-editor-row { grid-template-columns: 1fr; }.product-thumb { width: 46px; height: 46px; }.entity-id { max-width: 180px; } }

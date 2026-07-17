@@ -155,7 +155,7 @@ export default function Orders() {
   };
 
   const handleCancelOrder = async (order) => {
-    if (!window.confirm(`Cancel order ${order.id}?`)) return;
+    if (!window.confirm(`Cancel order ${order.orderCode || order.id}?`)) return;
 
     setErrorMessage("");
     setSuccessMessage("");
@@ -197,7 +197,7 @@ export default function Orders() {
   };
 
   const handleCompleteOrder = async (order) => {
-    if (!window.confirm(`Mark order ${order.id} as completed?`)) return;
+    if (!window.confirm(`Mark order ${order.orderCode || order.id} as completed?`)) return;
 
     setErrorMessage("");
     setSuccessMessage("");
@@ -349,7 +349,7 @@ export default function Orders() {
                           </Box>
                           <Box sx={{ minWidth: 0 }}>
                             <Typography className="table-primary" noWrap>
-                              {order.id}
+                              {order.orderCode || order.id}
                             </Typography>
                             <Typography className="table-secondary" noWrap>
                               {viewMode === "all" ? order.userId : order.shippingAddress || "No shipping address"}
@@ -497,9 +497,12 @@ export default function Orders() {
               >
                 <Box>
                   <Typography variant="caption" color="text.secondary">
-                    Order ID
+                    Order code
                   </Typography>
-                  <Typography fontWeight={900}>{selectedOrder.id}</Typography>
+                  <Typography fontWeight={900}>{selectedOrder.orderCode || selectedOrder.id}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Internal ID: {selectedOrder.id}
+                  </Typography>
                 </Box>
                 <Box>{renderStatus(selectedOrder.status)}</Box>
               </Stack>

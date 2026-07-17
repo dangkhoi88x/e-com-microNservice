@@ -2,6 +2,7 @@ package com.example.orderservice.controller;
 
 import com.example.orderservice.common.OrderStatus;
 import com.example.orderservice.dto.request.CreateOrderRequest;
+import com.example.orderservice.dto.request.CheckoutOrderRequest;
 import com.example.orderservice.dto.response.ApiResponse;
 import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.PageResponse;
@@ -47,6 +48,12 @@ public class OrderController {
                         .message(message)
                         .data(data)
                         .build());
+    }
+
+    @PostMapping("/checkout")
+    public ResponseEntity<ApiResponse<OrderResponse>> checkout(@AuthenticationPrincipal Jwt jwt, @RequestHeader("Authorization") String authorization, @RequestBody @Valid CheckoutOrderRequest request) {
+        OrderResponse data = orderService.checkout(jwt.getSubject(), request, authorization.replace("Bearer ", ""));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.<OrderResponse>builder().status(HttpStatus.CREATED.value()).message("Checkout created successfully").data(data).build());
     }
 
     @GetMapping

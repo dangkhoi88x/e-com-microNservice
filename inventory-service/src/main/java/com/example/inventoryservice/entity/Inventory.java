@@ -32,6 +32,9 @@ public class Inventory {
     @Column(nullable = false, unique = true)
     private String productId;
 
+    @Column(unique = true)
+    private String variantId;
+
     @Column(nullable = false)
     private Integer availableQuantity;
 

@@ -17,6 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderCreatedEvent {
     private String orderId;
+    private String orderCode;
     private String userId;
     private BigDecimal totalAmount;
     private String status;

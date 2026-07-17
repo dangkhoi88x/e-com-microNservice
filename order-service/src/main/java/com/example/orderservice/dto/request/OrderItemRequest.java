@@ -8,6 +8,8 @@ public record OrderItemRequest(
         @NotBlank(message = "Product id cannot be blank")
         String productId,
 
+        String variantId,
+
         @NotNull(message = "Quantity is required")
         @Min(value = 1, message = "Quantity must be greater than 0")
         Integer quantity

@@ -39,7 +39,7 @@ public class NotificationService {
         Notification notification = Notification.builder()
                 .userId(event.getUserId())
                 .title("Order created")
-                .message("Your order " + event.getOrderId() + " has been created successfully. Total: " + event.getTotalAmount())
+                .message("Your order " + displayOrderCode(event.getOrderCode(), event.getOrderId()) + " has been created successfully. Total: " + event.getTotalAmount())
                 .type(NotificationType.ORDER_CREATED)
                 .build();
 
@@ -51,7 +51,7 @@ public class NotificationService {
         Notification notification = Notification.builder()
                 .userId(event.getUserId())
                 .title("Order cancelled")
-                .message("Your order " + event.getOrderId() + " has been cancelled successfully.")
+                .message("Your order " + displayOrderCode(event.getOrderCode(), event.getOrderId()) + " has been cancelled successfully.")
                 .type(NotificationType.ORDER_CANCELLED)
                 .build();
 
@@ -65,8 +65,8 @@ public class NotificationService {
                 .userId(event.getUserId())
                 .title(completed ? "Order completed" : "Order status updated")
                 .message(completed
-                        ? "Order " + event.getOrderId() + " has been completed successfully."
-                        : "Your order " + event.getOrderId() + " status has been updated to " + event.getNewStatus())
+                        ? "Order " + displayOrderCode(event.getOrderCode(), event.getOrderId()) + " has been completed successfully."
+                        : "Your order " + displayOrderCode(event.getOrderCode(), event.getOrderId()) + " status has been updated to " + event.getNewStatus())
                 .type(NotificationType.ORDER_STATUS_UPDATED)
                 .build();
 
@@ -89,5 +89,9 @@ public class NotificationService {
                 .stream()
                 .map(NotificationMapper::toResponse)
                 .toList();
+    }
+
+    private String displayOrderCode(String orderCode, String orderId) {
+        return orderCode == null || orderCode.isBlank() ? orderId : orderCode;
     }
 }

@@ -13,5 +13,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class OrderItemEvent {
     private String productId;
+    private String variantId;
     private Integer quantity;
 }

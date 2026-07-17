@@ -13,6 +13,7 @@ public class InventoryMapper {
         return new InventoryResponse(
                 inventory.getId(),
                 inventory.getProductId(),
+                inventory.getVariantId(),
                 inventory.getAvailableQuantity(),
                 inventory.getReservedQuantity(),
                 inventory.getSoldQuantity(),
@@ -26,6 +27,7 @@ public class InventoryMapper {
                 reservation.getId(),
                 reservation.getOrderId(),
                 reservation.getProductId(),
+                reservation.getVariantId(),
                 reservation.getQuantity(),
                 reservation.getStatus(),
                 reservation.getCreatedAt(),

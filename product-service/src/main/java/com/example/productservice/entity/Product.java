@@ -3,13 +3,11 @@ package com.example.productservice.entity;
 import com.example.productservice.common.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.sql.ast.tree.expression.JsonTableColumnDefinition;
 import org.hibernate.type.SqlTypes;
-import org.hibernate.type.descriptor.jdbc.SqlTypedJdbcType;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -44,6 +42,14 @@ import java.util.List;
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private List<ProductImage> images;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ProductVariant> variants = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ProductOption> options = new ArrayList<>();
 
     @Column(nullable = false, unique = true)
     private String slug;

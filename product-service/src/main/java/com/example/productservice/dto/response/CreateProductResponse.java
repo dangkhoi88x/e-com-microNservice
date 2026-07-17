@@ -17,6 +17,8 @@ public record CreateProductResponse(
         BigDecimal price,
         Integer quantity,
         List<ProductImage> images,
+        List<ProductOptionResponse> options,
+        List<ProductVariantResponse> variants,
         ProductStatus status,
         Instant createdAt
 

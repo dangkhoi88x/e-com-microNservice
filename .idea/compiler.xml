@@ -19,13 +19,14 @@
         <outputRelativeToContentRoot value="true" />
         <module name="discovery-server" />
       </profile>
-      <profile name="Annotation profile for search-service" enabled="true">
+      <profile name="Annotation profile for cart-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
         </processorPath>
+        <module name="cart-service" />
         <module name="payment-service" />
         <module name="inventory-service" />
         <module name="api-gateway-service" />
@@ -45,6 +46,7 @@
       <module name="ApiGateway-service" options="-parameters" />
       <module name="Microservice-ecom" options="-parameters" />
       <module name="api-gateway-service" options="-parameters" />
+      <module name="cart-service" options="-parameters" />
       <module name="discovery-server" options="-parameters" />
       <module name="inventory-service" options="-parameters" />
       <module name="notification-service" options="-parameters" />

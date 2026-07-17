@@ -34,6 +34,9 @@ public class Order extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(unique = true, updatable = false, length = 32)
+    private String orderCode;
+
     @Column(nullable = false)
     private String userId;
 
