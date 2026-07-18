@@ -1,0 +1,98 @@
+/* Compact discovery cards: show many products while preserving readable hierarchy. */
+.shop-product-grid {
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.shop-product-card { border-radius: 12px; cursor: pointer; }
+.shop-product-media > svg { font-size: 40px; }
+.shop-product-media span { top: 7px; left: 7px; padding: 3px 6px; font-size: 9px; }
+.shop-product-media button { top: 7px; right: 7px; width: 26px; height: 26px; }
+.shop-product-media button svg { font-size: 16px; }
+.shop-product-body { padding: 10px; }
+.shop-product-body small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 10px; }
+.shop-product-body h3 { min-height: 32px; margin: 3px 0; font-size: 12px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.shop-product-body strong { font-size: 13px; }
+.shop-product-body > div { margin-top: 7px; font-size: 11px; }
+.shop-product-body span svg { font-size: 13px; }
+.shop-product-body > div button { width: 27px; height: 27px; border-radius: 8px; }
+.shop-product-body > div button svg { font-size: 16px; }
+
+@media (max-width: 1180px) and (min-width: 721px) {
+  .shop-product-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+/* Amazon-inspired horizontal storefront navigation on desktop. */
+@media (min-width: 1181px) {
+  .shop-shell {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-rows: 74px 58px auto;
+  }
+
+  .shop-topbar {
+    grid-column: 1 / 3;
+    grid-row: 1;
+    padding: 0 28px;
+    gap: 20px;
+    background: #102534;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+  }
+
+  .shop-topbar::before {
+    content: "N  NovaShop";
+    white-space: pre;
+    color: #fff;
+    font: 800 20px 'Plus Jakarta Sans';
+    letter-spacing: -.8px;
+  }
+
+  .shop-search { border-radius: 9px; padding: 10px 14px; border: 0; }
+  .shop-search { flex: 0 1 760px; }
+  .shop-guest-actions { display: flex; align-items: center; gap: 9px; margin-left: auto; color: #789bae; font-size: 12px; font-weight: 700; }
+  .shop-guest-actions a { color: #fff; text-decoration: none; }
+  .shop-guest-actions a:last-child { padding: 8px 12px; border-radius: 7px; background: #3b82c4; }
+  .shop-top-actions > button { color: #d5e7f0; background: transparent; border-color: rgba(255,255,255,.19); }
+  .shop-top-actions .shop-avatar { color: #fff; background: linear-gradient(135deg, var(--baby), var(--deep)); }
+  .shop-top-actions > .shop-logout { width: auto; height: auto; padding: 9px 12px; color: #fff; background: #3b82c4; border-color: #3b82c4; font: 700 11px Inter; }
+
+  .shop-sidebar {
+    grid-column: 1 / 3;
+    grid-row: 2;
+    z-index: 2;
+    box-sizing: border-box;
+    height: 58px;
+    padding: 0 28px;
+    gap: 23px;
+    align-items: center;
+    flex-direction: row;
+    border: 0;
+    border-right: 0;
+    background: #1b3548;
+  }
+
+  .shop-sidebar > .shop-brand { display: none; }
+  .shop-sidebar nav { display: flex; align-items: center; gap: 3px; flex: 1; height: 100%; }
+  .shop-nav { width: auto; padding: 9px 10px; color: #e4f1f7; font-size: 12px; white-space: nowrap; }
+  .shop-nav svg { font-size: 17px; }
+  .shop-nav.active, .shop-nav:hover { color: #fff; background: rgba(169,214,232,.18); }
+  .shop-nav-divider { display: none; }
+  .shop-side-promo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    padding: 7px 10px;
+    white-space: nowrap;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 8px;
+    background: linear-gradient(100deg, #387eb6, #67b7d8);
+  }
+  .shop-side-promo small { display: none; }
+  .shop-side-promo h3 { margin: 0; font-size: 12px; }
+  .shop-side-promo p { display: none; }
+  .shop-side-promo button { padding: 5px 9px; font-size: 10px; }
+
+  .shop-main { grid-column: 1; grid-row: 3; padding-top: 26px; }
+  .shop-cart { grid-column: 2; grid-row: 3; padding-top: 26px; }
+}

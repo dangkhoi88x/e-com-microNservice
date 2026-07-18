@@ -41,3 +41,11 @@ export const updateOrderStatus = async (id, status) => {
   });
   return response.data?.data;
 };
+
+export const checkoutOrder = async ({ shippingAddress }) => {
+  const response = await httpClient.post(`${API.ORDERS}/checkout`, {
+    shippingAddress,
+  });
+
+  return response.data?.data;
+};

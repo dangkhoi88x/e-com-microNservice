@@ -1,0 +1,178 @@
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  BadgeCheck,
+  Check,
+  ChevronRight,
+  CircleAlert,
+  CreditCard,
+  LockKeyhole,
+  MapPin,
+  PackageCheck,
+  ShieldCheck,
+  TicketPercent,
+  Truck,
+  WalletCards,
+} from "lucide-react";
+import { checkoutOrder } from "../services/orderService";
+import { createPayment } from "../services/paymentService";
+import { isAuthenticated } from "../services/authenticationService";
+import "./Checkout.css";
+
+const readCart = () => {
+  try {
+    const savedCart = JSON.parse(sessionStorage.getItem("nova-shop-cart") || "[]");
+    return Array.isArray(savedCart) ? savedCart : [];
+  } catch {
+    return [];
+  }
+};
+
+const money = (value) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(value || 0);
+
+const paymentMethods = [
+  { value: "VNPAY", title: "VNPay", description: "Thanh toán an toàn qua VNPay", icon: CreditCard, mark: "V" },
+  { value: "MOMO", title: "Ví MoMo", description: "Mở ứng dụng MoMo để xác nhận", icon: WalletCards, mark: "M" },
+  { value: "BANK_TRANSFER", title: "Chuyển khoản ngân hàng", description: "Xác nhận thanh toán nhanh chóng", icon: BadgeCheck, mark: "BK" },
+  { value: "COD", title: "Thanh toán khi nhận hàng", description: "Thanh toán bằng tiền mặt khi giao", icon: Truck, mark: "COD" },
+];
+
+export default function Checkout() {
+  const navigate = useNavigate();
+  const [cart] = useState(readCart);
+  const [method, setMethod] = useState("VNPAY");
+  const [coupon, setCoupon] = useState("");
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [form, setForm] = useState({
+    email: "",
+    firstName: "",
+    lastName: "",
+    address: "",
+    ward: "",
+    city: "",
+    phone: "",
+  });
+
+  const subtotal = useMemo(() => cart.reduce((total, item) => total + (item.price || 0) * (item.quantity || 1), 0), [cart]);
+  const shipping = subtotal > 0 ? 30000 : 0;
+  const discount = couponApplied ? Math.min(Math.round(subtotal * 0.05), 100000) : 0;
+  const total = Math.max(0, subtotal + shipping - discount);
+  const selectedPayment = paymentMethods.find((item) => item.value === method);
+
+  const update = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+
+  const applyCoupon = () => {
+    if (!coupon.trim()) return;
+    setCouponApplied(true);
+  };
+
+  const handleCheckout = async (event) => {
+    event.preventDefault();
+    setNotice("");
+    if (!cart.length) return setNotice("Giỏ hàng đang trống. Hãy chọn sản phẩm trước khi thanh toán.");
+    if (!isAuthenticated()) return setNotice("Vui lòng đăng nhập để tạo đơn hàng và thanh toán.");
+
+    const shippingAddress = [form.address, form.ward, form.city].filter(Boolean).join(", ");
+    if (!form.email || !form.firstName || !form.lastName || !shippingAddress || !form.phone) {
+      return setNotice("Hãy điền đầy đủ thông tin giao hàng bắt buộc.");
+    }
+
+    setSubmitting(true);
+    try {
+      const order = await checkoutOrder({ shippingAddress });
+      const payment = await createPayment({ orderId: order.id, method });
+      sessionStorage.removeItem("nova-shop-cart");
+      navigate(`/payments?paymentId=${payment?.id || ""}`, { state: { order, payment, method } });
+    } catch (error) {
+      setNotice(error.response?.data?.message || "Không thể khởi tạo thanh toán. Vui lòng thử lại sau.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!cart.length) {
+    return (
+      <main className="checkout-empty">
+        <div className="checkout-empty-card">
+          <PackageCheck size={46} />
+          <p className="checkout-eyebrow">NovaShop checkout</p>
+          <h1>Giỏ hàng của bạn đang trống</h1>
+          <p>Khám phá những sản phẩm được chọn lọc và thêm món bạn yêu thích vào giỏ hàng.</p>
+          <Link to="/shop" className="checkout-primary"><ArrowLeft size={18} /> Tiếp tục mua sắm</Link>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="checkout-page">
+      <header className="checkout-header">
+        <Link className="checkout-brand" to="/shop"><span className="checkout-brand-mark">N</span> Nova<span>Shop</span></Link>
+        <div className="checkout-secure"><LockKeyhole size={16} /> Thanh toán bảo mật</div>
+      </header>
+
+      <section className="checkout-shell">
+        <div className="checkout-intro">
+          <Link to="/shop" className="checkout-back"><ArrowLeft size={16} /> Quay lại cửa hàng</Link>
+          <p className="checkout-eyebrow">CHECKOUT</p>
+          <h1>Hoàn tất đơn hàng của bạn</h1>
+          <p>Chỉ còn một bước nữa để những món bạn chọn lên đường đến với bạn.</p>
+          <ol className="checkout-steps">
+            <li className="is-active"><span><Check size={15} /></span> Giỏ hàng</li>
+            <li className="is-active"><span>2</span> Thông tin giao hàng</li>
+            <li><span>3</span> Thanh toán</li>
+          </ol>
+        </div>
+
+        <form className="checkout-layout" onSubmit={handleCheckout}>
+          <div className="checkout-main">
+            <section className="checkout-card">
+              <div className="checkout-card-title"><span className="checkout-icon"><MapPin size={19} /></span><div><h2>Giao đến đâu?</h2><p>Thông tin này giúp NovaShop giao đơn chính xác.</p></div></div>
+              <div className="checkout-fields">
+                <label className="checkout-field full"><span>Email nhận xác nhận <b>*</b></span><input required name="email" type="email" value={form.email} onChange={update} placeholder="ban@example.com" /></label>
+                <label className="checkout-field"><span>Họ <b>*</b></span><input required name="firstName" value={form.firstName} onChange={update} placeholder="Nguyễn" /></label>
+                <label className="checkout-field"><span>Tên <b>*</b></span><input required name="lastName" value={form.lastName} onChange={update} placeholder="Minh Anh" /></label>
+                <label className="checkout-field full"><span>Địa chỉ nhận hàng <b>*</b></span><input required name="address" value={form.address} onChange={update} placeholder="Số nhà, tên đường" /></label>
+                <label className="checkout-field"><span>Phường / Xã</span><input name="ward" value={form.ward} onChange={update} placeholder="Phường Bến Nghé" /></label>
+                <label className="checkout-field"><span>Tỉnh / Thành phố <b>*</b></span><input required name="city" value={form.city} onChange={update} placeholder="TP. Hồ Chí Minh" /></label>
+                <label className="checkout-field full"><span>Số điện thoại <b>*</b></span><input required name="phone" type="tel" value={form.phone} onChange={update} placeholder="090 123 4567" /></label>
+              </div>
+            </section>
+
+            <section className="checkout-card">
+              <div className="checkout-card-title"><span className="checkout-icon"><WalletCards size={19} /></span><div><h2>Chọn phương thức thanh toán</h2><p>Bạn có thể chọn phương thức phù hợp nhất.</p></div></div>
+              <div className="checkout-methods">
+                {paymentMethods.map((item) => {
+                  const Icon = item.icon;
+                  return <button type="button" key={item.value} onClick={() => setMethod(item.value)} className={`checkout-method ${method === item.value ? "is-selected" : ""}`}>
+                    <span className="checkout-radio">{method === item.value && <Check size={14} />}</span><span className="checkout-method-logo"><Icon size={18} /><i>{item.mark}</i></span><span><strong>{item.title}</strong><small>{item.description}</small></span><ChevronRight size={18} className="checkout-method-chevron" />
+                  </button>;
+                })}
+              </div>
+            </section>
+          </div>
+
+          <aside className="checkout-summary-wrap">
+            <section className="checkout-summary">
+              <div className="checkout-summary-head"><div><p>Đơn hàng của bạn</p><h2>{cart.length} sản phẩm</h2></div><Link to="/shop">Chỉnh sửa</Link></div>
+              <div className="checkout-items">
+                {cart.map((item) => <div className="checkout-item" key={item.id}><div className="checkout-item-image"><img src={item.imageUrl || "https://placehold.co/120x120/e7f2f8/3b82c4?text=Nova"} alt={item.name} /><b>×{item.quantity}</b></div><div><h3>{item.name}</h3><p>{item.categoryName || "NovaShop selection"}</p><strong>{money((item.price || 0) * (item.quantity || 1))}</strong></div></div>)}
+              </div>
+              <div className="checkout-coupon"><TicketPercent size={18} /><input value={coupon} onChange={(event) => { setCoupon(event.target.value); setCouponApplied(false); }} placeholder="Mã ưu đãi" /><button type="button" onClick={applyCoupon}>Áp dụng</button></div>
+              {couponApplied && <p className="checkout-coupon-success"><Check size={14} /> Đã áp dụng ưu đãi 5% (tối đa 100.000 ₫).</p>}
+              <div className="checkout-cost"><div><span>Tạm tính</span><b>{money(subtotal)}</b></div><div><span>Phí vận chuyển</span><b>{money(shipping)}</b></div>{discount > 0 && <div className="discount"><span>Ưu đãi</span><b>−{money(discount)}</b></div>}<div className="checkout-total"><span>Tổng thanh toán</span><b>{money(total)}</b></div></div>
+              {notice && <div className="checkout-notice"><CircleAlert size={18} /> {notice}</div>}
+              <button className="checkout-pay" type="submit" disabled={submitting}><LockKeyhole size={18} /> {submitting ? "Đang khởi tạo đơn hàng..." : `Xác nhận & thanh toán · ${money(total)}`}</button>
+              <div className="checkout-protection"><ShieldCheck size={19} /><p><b>Mua sắm an tâm</b><br />Đơn hàng được bảo vệ và thông tin thanh toán được mã hoá.</p></div>
+            </section>
+            <p className="checkout-help"><Truck size={16} /> Giao hàng tiêu chuẩn trong 2–5 ngày làm việc.</p>
+          </aside>
+        </form>
+      </section>
+    </main>
+  );
+}

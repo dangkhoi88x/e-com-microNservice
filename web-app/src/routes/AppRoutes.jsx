@@ -11,6 +11,14 @@ import Payments from "../pages/Payments";
 import Categories from "../pages/Categories";
 import Profile from "../pages/Profile";
 import Notifications from "../pages/Notifications";
+import Shop from "../pages/Shop";
+import ShopProductDetail from "../pages/ShopProductDetail";
+import Checkout from "../pages/Checkout";
+import Cart from "../pages/Cart";
+import ShopCategory from "../pages/ShopCategory";
+import CustomerOrders from "../pages/CustomerOrders";
+import MyAccount from "../pages/MyAccount";
+import CustomerProfile from "../pages/CustomerProfile";
 import { isAuthenticated } from "../services/authenticationService";
 
 function PrivateRoute({ children }) {
@@ -27,6 +35,14 @@ export default function AppRoutes() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/shop/products/:slug" element={<ShopProductDetail />} />
+        <Route path="/shop/categories/:slug" element={<ShopCategory />} />
+        <Route path="/shop/orders" element={<PrivateRoute><CustomerOrders /></PrivateRoute>} />
+        <Route path="/shop/account" element={<PrivateRoute><MyAccount /></PrivateRoute>} />
+        <Route path="/shop/account/profile" element={<PrivateRoute><CustomerProfile /></PrivateRoute>} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/cart" element={<Cart />} />
 
         <Route
           path="/"
