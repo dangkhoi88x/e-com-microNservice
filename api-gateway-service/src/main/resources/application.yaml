@@ -12,6 +12,10 @@ spring:
               uri: lb://cart-service
               predicates:
                 - Path=/api/v1/cart/**
+            - id: wishlist-service
+              uri: lb://wishlist-service
+              predicates:
+                - Path=/api/v1/wishlist/**
 server:
   port: 9191
 logging:

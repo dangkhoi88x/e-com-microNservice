@@ -8,6 +8,7 @@ import RemoveOutlinedIcon from "@mui/icons-material/RemoveOutlined";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import { getProductById, getProducts } from "../services/productService";
+import { getWishlist, toggleWishlist } from "../services/wishlistService";
 import "./ShopProductDetail.css";
 
 const money = (value) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(Number(value || 0));
@@ -49,6 +50,7 @@ export default function ShopProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState("");
   const [cartNotice, setCartNotice] = useState("");
+  const [wishlist, setWishlist] = useState(getWishlist);
 
   useEffect(() => {
     getProductById(id).then((data) => {
@@ -62,6 +64,19 @@ export default function ShopProductDetail() {
       .then((data) => setRelated((data.content || []).filter((item) => item.id !== product.id).slice(0, 4)))
       .catch(() => {});
   }, [product?.categoryId, product?.id]);
+  useEffect(() => {
+    const handleWishlist = (event) => {
+      if (!event.target.closest(".detail-wishlist") || !product) return;
+      event.preventDefault();
+      const next = toggleWishlist(product);
+      setWishlist(next);
+    };
+    document.addEventListener("click", handleWishlist);
+    return () => document.removeEventListener("click", handleWishlist);
+  }, [product]);
+  useEffect(() => {
+    document.querySelector(".detail-wishlist")?.classList.toggle("is-wishlisted", wishlist.some((item) => item.id === product?.id));
+  }, [product?.id, wishlist]);
 
   const variant = useMemo(() => (product?.variants || []).find((item) => Object.entries(selected).every(([key, value]) => item.attributes?.[key] === value)), [product, selected]);
   if (!product) return <main className="detail-loading">Đang tải sản phẩm…</main>;

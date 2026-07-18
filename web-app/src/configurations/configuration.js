@@ -13,6 +13,7 @@ export const API = {
   INVENTORY: "/inventory/api/v1/inventory",
   ORDERS: "/order/api/v1/orders",
   PAYMENTS: "/payment/api/v1/payments",
+  WISHLIST: "/api/v1/wishlist",
   MY_NOTIFICATIONS: "/notification/api/v1/notifications/my-notifications",
   ADMIN_NOTIFICATIONS: "/notification/api/v1/notifications/admin",
   SEARCH_PRODUCTS: "/api/v1/search/products",

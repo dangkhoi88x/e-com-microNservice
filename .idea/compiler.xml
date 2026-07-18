@@ -19,7 +19,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="discovery-server" />
       </profile>
-      <profile name="Annotation profile for cart-service" enabled="true">
+      <profile name="Annotation profile for wishlist-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -34,6 +34,7 @@
         <module name="product-service" />
         <module name="profile-service" />
         <module name="order-service" />
+        <module name="wishlist-service" />
         <module name="notification-service" />
       </profile>
     </annotationProcessing>
@@ -55,6 +56,7 @@
       <module name="product-service" options="-parameters" />
       <module name="profile-service" options="-parameters" />
       <module name="search-service" options="-parameters" />
+      <module name="wishlist-service" options="-parameters" />
     </option>
   </component>
 </project>

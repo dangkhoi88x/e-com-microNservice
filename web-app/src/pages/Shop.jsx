@@ -19,6 +19,7 @@ import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import { getCategories } from "../services/categoryService";
 import { getProducts } from "../services/productService";
 import { isAuthenticated, logout } from "../services/authenticationService";
+import { getWishlist, toggleWishlist } from "../services/wishlistService";
 import "./Shop.css";
 import "./ShopDense.css";
 
@@ -34,6 +35,7 @@ export default function Shop() {
   const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState(readShopCart);
   const [query, setQuery] = useState("");
+  const [wishlist, setWishlist] = useState(getWishlist);
   const loggedIn = isAuthenticated();
 
   useEffect(() => { Promise.all([getProducts({ page: 1, size: 12 }), getCategories()]).then(([productData, categoryData]) => { setProducts(productData.content || []); setCategories(categoryData || []); }).catch(() => {}); }, []);
@@ -48,7 +50,42 @@ export default function Shop() {
     document.addEventListener("click", openProductDetail);
     return () => document.removeEventListener("click", openProductDetail);
   }, [navigate, products]);
+  useEffect(() => {
+    const openWishlist = (event) => {
+      const button = event.target.closest(".shop-sidebar .shop-nav");
+      if (button?.textContent?.includes("Yêu thích")) navigate("/shop/wishlist");
+    };
+    document.addEventListener("click", openWishlist);
+    return () => document.removeEventListener("click", openWishlist);
+  }, [navigate]);
+  useEffect(() => {
+    document.querySelectorAll(".shop-product-card").forEach((card) => {
+      const name = card.querySelector(".shop-product-body h3")?.textContent;
+      const product = products.find((item) => item.name === name);
+      card.querySelector(".shop-product-media > button")?.classList.toggle("is-wishlisted", Boolean(product && wishlist.some((item) => item.id === product.id)));
+    });
+  }, [products, wishlist]);
   useEffect(() => { sessionStorage.setItem("nova-shop-cart", JSON.stringify(cart)); }, [cart]);
+  useEffect(() => {
+    const handleWishlist = (event) => {
+      const productButton = event.target.closest(".shop-product-media > button");
+      const wishlistButton = event.target.closest("button[aria-label='Sản phẩm yêu thích']");
+      if (wishlistButton) { navigate("/shop/wishlist"); return; }
+      if (!productButton) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const card = productButton.closest(".shop-product-card");
+      const name = card?.querySelector(".shop-product-body h3")?.textContent;
+      const product = products.find((item) => item.name === name);
+      if (product) {
+        const next = toggleWishlist(product);
+        setWishlist(next);
+        productButton.classList.toggle("is-wishlisted", next.some((item) => item.id === product.id));
+      }
+    };
+    document.addEventListener("click", handleWishlist, true);
+    return () => document.removeEventListener("click", handleWishlist, true);
+  }, [navigate, products]);
   const visibleProducts = useMemo(() => products.filter((item) => item.name?.toLowerCase().includes(query.toLowerCase())), [products, query]);
   const addToCart = (product) => setCart((current) => { const found = current.find((item) => item.id === product.id); return found ? current.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item) : [...current, { ...product, quantity: 1 }]; });
   const updateQuantity = (id, change) => setCart((current) => current.flatMap((item) => item.id === id ? (item.quantity + change > 0 ? [{ ...item, quantity: item.quantity + change }] : []) : [item]));
@@ -57,7 +94,7 @@ export default function Shop() {
 
   return <div className="shop-shell">
     <aside className="shop-sidebar"><Link className="shop-brand" to="/shop"><span>N</span>NovaShop</Link><nav>{navItems.map(([Icon, label], index) => <button className={`shop-nav ${index === 0 ? "active" : ""}`} key={label}><Icon />{label}</button>)}<div className="shop-nav-divider" /><button className="shop-nav" onClick={() => navigate("/shop/orders")}><ShoppingBagOutlinedIcon />Đơn hàng</button><button className="shop-nav"><FavoriteBorderOutlinedIcon />Yêu thích</button><button className="shop-nav" onClick={() => navigate("/shop/account")}><PersonOutlineOutlinedIcon />Tài khoản</button></nav><div className="shop-side-promo"><small>ƯU ĐÃI ĐẶC BIỆT</small><h3>Sale mùa hè -50%</h3><p>Áp dụng cho danh mục thời trang.</p><button>Mua ngay</button></div></aside>
-    <header className="shop-topbar"><label className="shop-search"><SearchOutlinedIcon /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm sản phẩm, thương hiệu..." /></label>{loggedIn ? <div className="shop-top-actions"><button aria-label="Sản phẩm yêu thích"><FavoriteBorderOutlinedIcon /></button><button aria-label="Thông báo"><NotificationsNoneOutlinedIcon /><b>3</b></button><button className="shop-logout" onClick={() => { logout(); window.location.assign("/shop"); }}>Đăng xuất</button></div> : <div className="shop-guest-actions"><Link to="/register">Đăng ký</Link><span>|</span><Link to="/login">Đăng nhập</Link></div>}</header>
+    <header className="shop-topbar"><label className="shop-search"><SearchOutlinedIcon /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm sản phẩm, thương hiệu..." /></label>{loggedIn ? <div className="shop-top-actions"><button aria-label="Sản phẩm yêu thích"><FavoriteBorderOutlinedIcon /></button><button aria-label="Thông báo"><NotificationsNoneOutlinedIcon /><b>3</b></button><button className="shop-logout" onClick={() => { logout(); window.location.assign("/shop"); }}>Đăng xuất</button></div> : <div className="shop-guest-actions"><Link to="/shop/register">Đăng ký</Link><span>|</span><Link to="/shop/login">Đăng nhập</Link></div>}</header>
     <main className="shop-main"><section className="shop-hero"><div><span className="shop-hero-tag">✦ Bộ sưu tập mới</span><h1>Tìm phong cách <em>của riêng bạn</em></h1><p>Khám phá thời trang, làm đẹp và công nghệ được tuyển chọn cho bạn.</p><button onClick={() => document.getElementById("best-deals")?.scrollIntoView({ behavior: "smooth" })}>Mua ngay →</button></div><div className="shop-hero-visual"><ShoppingBagOutlinedIcon /></div></section>
       <section className="shop-category-strip">{categories.slice(0, 6).map((category, index) => <button key={category.id} onClick={() => navigate(categoryUrl(category))}><span>{index % 3 === 0 ? <CheckroomOutlinedIcon /> : index % 3 === 1 ? <DevicesOtherOutlinedIcon /> : <CategoryOutlinedIcon />}</span>{category.name}</button>)}{categories.length === 0 && ["Thời trang", "Làm đẹp", "Điện tử", "Nhà cửa", "Thể thao"].map((name) => <button key={name}><span><CategoryOutlinedIcon /></span>{name}</button>)}</section>
       <section className="shop-promo-row"><article><small>FLASH SALE</small><strong>Giảm đến 70%</strong><button>Mua ngay →</button></article><article><small>MIỄN PHÍ VẬN CHUYỂN</small><strong>Đơn từ 500.000đ</strong><button>Mua ngay →</button></article><article><small>HÀNG MỚI VỀ</small><strong>Xu hướng mới nhất</strong><button>Mua ngay →</button></article></section>

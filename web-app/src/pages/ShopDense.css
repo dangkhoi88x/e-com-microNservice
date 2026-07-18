@@ -10,6 +10,7 @@
 .shop-product-media span { top: 7px; left: 7px; padding: 3px 6px; font-size: 9px; }
 .shop-product-media button { top: 7px; right: 7px; width: 26px; height: 26px; }
 .shop-product-media button svg { font-size: 16px; }
+.shop-product-media button.is-wishlisted { color: #d95765; background: #fff0f2; }
 .shop-product-body { padding: 10px; }
 .shop-product-body small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 10px; }
 .shop-product-body h3 { min-height: 32px; margin: 3px 0; font-size: 12px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }

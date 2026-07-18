@@ -74,7 +74,7 @@ export default function Checkout() {
     event.preventDefault();
     setNotice("");
     if (!cart.length) return setNotice("Giỏ hàng đang trống. Hãy chọn sản phẩm trước khi thanh toán.");
-    if (!isAuthenticated()) return setNotice("Vui lòng đăng nhập để tạo đơn hàng và thanh toán.");
+    if (!isAuthenticated()) return navigate("/shop/login?redirect=/checkout");
 
     const shippingAddress = [form.address, form.ward, form.city].filter(Boolean).join(", ");
     if (!form.email || !form.firstName || !form.lastName || !shippingAddress || !form.phone) {

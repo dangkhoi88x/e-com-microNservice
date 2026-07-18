@@ -19,6 +19,8 @@ import ShopCategory from "../pages/ShopCategory";
 import CustomerOrders from "../pages/CustomerOrders";
 import MyAccount from "../pages/MyAccount";
 import CustomerProfile from "../pages/CustomerProfile";
+import CustomerAuth from "../pages/CustomerAuth";
+import ShopWishlist from "../pages/ShopWishlist";
 import { isAuthenticated } from "../services/authenticationService";
 
 function PrivateRoute({ children }) {
@@ -36,6 +38,9 @@ export default function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/shop" element={<Shop />} />
+        <Route path="/shop/login" element={<CustomerAuth mode="login" />} />
+        <Route path="/shop/register" element={<CustomerAuth mode="register" />} />
+        <Route path="/shop/wishlist" element={<ShopWishlist />} />
         <Route path="/shop/products/:slug" element={<ShopProductDetail />} />
         <Route path="/shop/categories/:slug" element={<ShopCategory />} />
         <Route path="/shop/orders" element={<PrivateRoute><CustomerOrders /></PrivateRoute>} />
