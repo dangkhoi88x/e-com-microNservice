@@ -11,18 +11,18 @@ import java.util.List;
 import java.util.Optional;
 
 public interface InventoryRepository extends JpaRepository<Inventory, String> {
-    Optional<Inventory> findByProductId(String productId);
+    Optional<Inventory> findByProductIdAndVariantIdIsNull(String productId);
 
     Optional<Inventory> findByVariantId(String variantId);
 
-    List<Inventory> findByProductIdIn(List<String> productIds);
+    List<Inventory> findByProductIdInAndVariantIdIsNull(List<String> productIds);
 
-    boolean existsByProductId(String productId);
+    boolean existsByProductIdAndVariantIdIsNull(String productId);
 
     boolean existsByVariantId(String variantId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select i from Inventory i where i.productId = :productId")
+    @Query("select i from Inventory i where i.productId = :productId and i.variantId is null")
     Optional<Inventory> findByProductIdForUpdate(@Param("productId") String productId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

@@ -13,7 +13,7 @@ public interface PaymentService {
 
     PaymentResponse getPaymentDetail(String userId, String paymentId);
 
-    PaymentResponse markPaymentSuccess(String userId, String paymentId);
+    PaymentResponse markPaymentSuccess(String userId, String token, String paymentId);
 
     PaymentResponse markPaymentFailed(String userId, String paymentId);
 

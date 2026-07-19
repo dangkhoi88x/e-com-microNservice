@@ -14,7 +14,11 @@ public record UserProfileResponse(
         String lastName,
         String avatarUrl,
         String bio,
-        LocalDate birthDate
+        LocalDate birthDate,
+        String phoneNumber,
+        String address,
+        String city,
+        String postalCode
 ) {
 
 }

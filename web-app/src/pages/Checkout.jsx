@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -20,17 +20,9 @@ import {
 import { checkoutOrder } from "../services/orderService";
 import { createPayment } from "../services/paymentService";
 import { isAuthenticated } from "../services/authenticationService";
+import { getMyCart, removeCartItem, updateCartItem } from "../services/cartService";
 import "./Checkout.css";
 import "./CheckoutQuantityEditor.css";
-
-const readCart = () => {
-  try {
-    const savedCart = JSON.parse(sessionStorage.getItem("nova-shop-cart") || "[]");
-    return Array.isArray(savedCart) ? savedCart : [];
-  } catch {
-    return [];
-  }
-};
 
 const money = (value) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(value || 0);
@@ -43,12 +35,12 @@ const paymentMethods = [
 ];
 
 function CheckoutQuantityEditor({ cart, onChange }) {
-  return <div className="checkout-edit-items">{cart.map((item) => <div className="checkout-edit-item" key={item.id}><img src={item.imageUrl || "https://placehold.co/120x120/e7f2f8/3b82c4?text=Nova"} alt={item.name} /><div><h3>{item.name}</h3><strong>{money((item.price || 0) * (item.quantity || 1))}</strong></div><div className="checkout-quantity" aria-label={`Quantity ${item.name}`}><button type="button" onClick={() => onChange(item.id, -1)} disabled={Number(item.quantity || 1) <= 1}><Minus size={13} /></button><b>{item.quantity || 1}</b><button type="button" onClick={() => onChange(item.id, 1)}><Plus size={13} /></button></div></div>)}</div>;
+  return <div className="checkout-edit-items">{cart.map((item) => <div className="checkout-edit-item" key={item.id}><img src={item.imageUrl || "https://placehold.co/120x120/e7f2f8/3b82c4?text=Nova"} alt={item.productName} /><div><h3>{item.productName}</h3><strong>{money((item.price || 0) * (item.quantity || 1))}</strong></div><div className="checkout-quantity" aria-label={`Quantity ${item.productName}`}><button type="button" onClick={() => onChange(item.id, -1)} aria-label={`Giảm số lượng hoặc xóa ${item.productName}`}><Minus size={13} /></button><b>{item.quantity || 1}</b><button type="button" onClick={() => onChange(item.id, 1)}><Plus size={13} /></button></div></div>)}</div>;
 }
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const [cart, setCart] = useState(readCart);
+  const [cart, setCart] = useState([]);
   const [method, setMethod] = useState("VNPAY");
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
@@ -72,16 +64,25 @@ export default function Checkout() {
 
   const update = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
 
+  useEffect(() => {
+    getMyCart().then((data) => setCart(data.items || [])).catch(() => setNotice("Không thể tải giỏ hàng. Vui lòng đăng nhập lại."));
+  }, []);
+
   const applyCoupon = () => {
     if (!coupon.trim()) return;
     setCouponApplied(true);
   };
-  const changeQuantity = (itemId, amount) => {
-    setCart((current) => {
-      const next = current.map((item) => item.id === itemId ? { ...item, quantity: Math.max(1, Number(item.quantity || 1) + amount) } : item);
-      sessionStorage.setItem("nova-shop-cart", JSON.stringify(next));
-      return next;
-    });
+  const changeQuantity = async (itemId, amount) => {
+    const item = cart.find((entry) => entry.id === itemId);
+    if (!item) return;
+    try {
+      const updated = Number(item.quantity || 1) + amount <= 0
+        ? await removeCartItem(itemId)
+        : await updateCartItem(itemId, { quantity: Number(item.quantity || 1) + amount, selected: item.selected });
+      setCart(updated.items || []);
+    } catch (error) {
+      setNotice(error.response?.data?.message || "Không thể cập nhật giỏ hàng.");
+    }
   };
 
   const handleCheckout = async (event) => {
@@ -98,11 +99,15 @@ export default function Checkout() {
     setSubmitting(true);
     try {
       const order = await checkoutOrder({ shippingAddress });
+      if (order?.status !== "PENDING_PAYMENT") {
+        throw new Error(order?.status === "INVENTORY_FAILED"
+          ? "Một số sản phẩm không còn đủ tồn kho. Vui lòng điều chỉnh giỏ hàng rồi thử lại."
+          : "Đơn hàng chưa sẵn sàng để thanh toán. Vui lòng thử lại sau.");
+      }
       const payment = await createPayment({ orderId: order.id, method });
-      sessionStorage.removeItem("nova-shop-cart");
       navigate(`/payments?paymentId=${payment?.id || ""}`, { state: { order, payment, method } });
     } catch (error) {
-      setNotice(error.response?.data?.message || "Không thể khởi tạo thanh toán. Vui lòng thử lại sau.");
+      setNotice(error.response?.data?.message || error.response?.data?.error || error.message || "Không thể khởi tạo thanh toán. Vui lòng thử lại sau.");
     } finally {
       setSubmitting(false);
     }
@@ -175,7 +180,7 @@ export default function Checkout() {
               <CheckoutQuantityEditor cart={cart} onChange={changeQuantity} />
               <div className="checkout-summary-head"><div><p>Đơn hàng của bạn</p><h2>{cart.length} sản phẩm</h2></div><Link to="/shop">Chỉnh sửa</Link></div>
               <div className="checkout-items">
-                {cart.map((item) => <div className="checkout-item" key={item.id}><div className="checkout-item-image"><img src={item.imageUrl || "https://placehold.co/120x120/e7f2f8/3b82c4?text=Nova"} alt={item.name} /><b>×{item.quantity}</b></div><div><h3>{item.name}</h3><p>{item.categoryName || "NovaShop selection"}</p><strong>{money((item.price || 0) * (item.quantity || 1))}</strong></div></div>)}
+                {cart.map((item) => <div className="checkout-item" key={item.id}><div className="checkout-item-image"><img src={item.imageUrl || "https://placehold.co/120x120/e7f2f8/3b82c4?text=Nova"} alt={item.productName} /><b>×{item.quantity}</b></div><div><h3>{item.productName}</h3><p>{item.variantName || "NovaShop selection"}</p><strong>{money((item.price || 0) * (item.quantity || 1))}</strong></div></div>)}
               </div>
               <div className="checkout-coupon"><TicketPercent size={18} /><input value={coupon} onChange={(event) => { setCoupon(event.target.value); setCouponApplied(false); }} placeholder="Mã ưu đãi" /><button type="button" onClick={applyCoupon}>Áp dụng</button></div>
               {couponApplied && <p className="checkout-coupon-success"><Check size={14} /> Đã áp dụng ưu đãi 5% (tối đa 100.000 ₫).</p>}

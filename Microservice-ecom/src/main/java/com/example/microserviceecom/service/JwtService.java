@@ -36,7 +36,7 @@ public class JwtService {
     public String generateAccessToken(String userId, List<String> roles) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
         Date now = new Date();
-        Date expirationTime = Date.from(now.toInstant().plus(1, ChronoUnit.HOURS));
+        Date expirationTime = Date.from(now.toInstant().plus(15, ChronoUnit.MINUTES));
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(userId)
@@ -115,11 +115,6 @@ public class JwtService {
 
         TokenType type = TokenType.valueOf(signedJWT.getJWTClaimsSet().getClaim("typ").toString());
         if (type != TokenType.REFRESH) {
-            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
-        }
-
-        String jti = signedJWT.getJWTClaimsSet().getJWTID();
-        if (tokenService.findByJti(jti) == null) {
             throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
         }
 

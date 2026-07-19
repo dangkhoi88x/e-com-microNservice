@@ -19,7 +19,7 @@ public enum ErrorCode {
 
     PAYMENT_NOT_FOUND(404, "Payment not found", HttpStatus.NOT_FOUND),
     PAYMENT_ACCESS_DENIED(403, "You do not have permission to access this payment", HttpStatus.FORBIDDEN),
-    PAYMENT_ALREADY_EXISTS(400, "Payment already exists for this order", HttpStatus.BAD_REQUEST),
+    PAYMENT_ALREADY_EXISTS(409, "A pending payment already exists for this order", HttpStatus.CONFLICT),
     PAYMENT_ALREADY_SUCCESS(400, "Payment has already been completed", HttpStatus.BAD_REQUEST),
     PAYMENT_CANNOT_BE_COMPLETED(400, "Payment cannot be completed", HttpStatus.BAD_REQUEST),
     PAYMENT_CANNOT_BE_FAILED(400, "Payment cannot be failed", HttpStatus.BAD_REQUEST),

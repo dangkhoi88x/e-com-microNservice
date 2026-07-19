@@ -5,6 +5,7 @@ import com.example.event.OrderCancelledEvent;
 import com.example.event.OrderCreatedEvent;
 import com.example.event.OrderItemEvent;
 import com.example.event.OrderStatusUpdatedEvent;
+import com.example.event.CodPaymentCreatedEvent;
 import com.example.event.PaymentCancelledEvent;
 import com.example.event.PaymentFailedEvent;
 import com.example.event.PaymentSuccessEvent;
@@ -54,6 +55,7 @@ public class OrderServiceImpl implements OrderService {
     private static final String ORDER_CREATED_TOPIC = "order-created";
     private static final String ORDER_CANCELLED_TOPIC = "order-cancelled";
     private static final String ORDER_STATUS_UPDATED_TOPIC = "order-status-updated";
+    private static final String COD_METHOD = "COD";
     private static final DateTimeFormatter ORDER_CODE_DATE_FORMAT = DateTimeFormatter
             .ofPattern("yyyyMMdd")
             .withZone(ZoneId.of("Asia/Ho_Chi_Minh"));
@@ -177,7 +179,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    // @PreAuthorize("hasAnyAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @Transactional(readOnly = true)
+    public OrderResponse getOrderDetailForAdmin(String orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
+
+        return toOrderResponse(order);
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     public OrderResponse updateOrderStatus(String orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
@@ -211,19 +223,55 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    public void startShippingFromCodPayment(CodPaymentCreatedEvent event) {
+        Order order = orderRepository.findById(event.getOrderId())
+                .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
+
+        if (order.getStatus() == OrderStatus.SHIPPING || order.getStatus() == OrderStatus.COMPLETED) {
+            log.info("Skip COD shipping transition because order is already progressed: orderId={}, paymentId={}, status={}",
+                    event.getOrderId(), event.getPaymentId(), order.getStatus());
+            return;
+        }
+
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
+            log.warn("Skip COD shipping transition because order is not pending payment: orderId={}, paymentId={}, status={}",
+                    event.getOrderId(), event.getPaymentId(), order.getStatus());
+            return;
+        }
+
+        OrderStatus oldStatus = order.getStatus();
+        order.setStatus(OrderStatus.SHIPPING);
+        Order savedOrder = orderRepository.save(order);
+        publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
+
+        log.info("Order is shipping for COD payment: orderId={}, paymentId={}",
+                event.getOrderId(), event.getPaymentId());
+    }
+
+    @Override
+    @Transactional
     public void confirmOrderFromPaymentSuccess(PaymentSuccessEvent event) {
         Order order = orderRepository.findById(event.getOrderId())
                 .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
 
-        if (order.getStatus() == OrderStatus.CONFIRMED) {
-            log.info("Skip payment success because order is already confirmed: orderId={}, paymentId={}",
+        OrderStatus targetStatus = COD_METHOD.equals(event.getMethod())
+                ? OrderStatus.COMPLETED
+                : OrderStatus.CONFIRMED;
+
+        if (order.getStatus() == targetStatus) {
+            log.info("Skip payment success because order is already {}: orderId={}, paymentId={}",
+                    targetStatus,
                     event.getOrderId(),
                     event.getPaymentId());
             return;
         }
 
-        if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
-            log.warn("Skip payment success because order is not pending payment: orderId={}, paymentId={}, status={}",
+        boolean codOrderReady = COD_METHOD.equals(event.getMethod())
+                && (order.getStatus() == OrderStatus.PENDING_PAYMENT || order.getStatus() == OrderStatus.SHIPPING);
+        boolean onlineOrderReady = !COD_METHOD.equals(event.getMethod())
+                && order.getStatus() == OrderStatus.PENDING_PAYMENT;
+        if (!codOrderReady && !onlineOrderReady) {
+            log.warn("Skip payment success because order is not ready for completion: orderId={}, paymentId={}, status={}",
                     event.getOrderId(),
                     event.getPaymentId(),
                     order.getStatus());
@@ -231,12 +279,12 @@ public class OrderServiceImpl implements OrderService {
         }
 
         OrderStatus oldStatus = order.getStatus();
-        order.setStatus(OrderStatus.CONFIRMED);
+        order.setStatus(targetStatus);
         Order savedOrder = orderRepository.save(order);
         publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
         cartClient.finalize(savedOrder.getUserId(), savedOrder.getId());
 
-        log.info("Order confirmed from payment success: orderId={}, paymentId={}",
+        log.info("Order {} from payment success: orderId={}, paymentId={}", targetStatus,
                 event.getOrderId(),
                 event.getPaymentId());
     }

@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -91,6 +92,18 @@ public class OrderController {
             @PathVariable String id
     ) {
         OrderResponse data = orderService.getOrderDetail(jwt.getSubject(), id);
+
+        return ApiResponse.<OrderResponse>builder()
+                .status(HttpStatus.OK.value())
+                .message("Order retrieved successfully")
+                .data(data)
+                .build();
+    }
+
+    @GetMapping("/{id}/admin")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    public ApiResponse<OrderResponse> getOrderDetailForAdmin(@PathVariable String id) {
+        OrderResponse data = orderService.getOrderDetailForAdmin(id);
 
         return ApiResponse.<OrderResponse>builder()
                 .status(HttpStatus.OK.value())

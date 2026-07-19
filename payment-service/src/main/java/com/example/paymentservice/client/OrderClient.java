@@ -18,9 +18,21 @@ public class OrderClient {
     private final WebClient orderWebClient;
 
     public OrderResponse getOrderDetail(String orderId, String token) {
+        return getOrderDetail("/api/v1/orders/{id}", orderId, token);
+    }
+
+    /**
+     * Used only by an admin-confirmed payment result (for example COD).
+     * The order service enforces the ADMIN authority on this endpoint.
+     */
+    public OrderResponse getOrderDetailForAdmin(String orderId, String token) {
+        return getOrderDetail("/api/v1/orders/{id}/admin", orderId, token);
+    }
+
+    private OrderResponse getOrderDetail(String uri, String orderId, String token) {
         try {
             ApiResponse<OrderResponse> response = orderWebClient.get()
-                    .uri("/api/v1/orders/{id}", orderId)
+                    .uri(uri, orderId)
                     .headers(headers -> headers.setBearerAuth(token))
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<ApiResponse<OrderResponse>>() {

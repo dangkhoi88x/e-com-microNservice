@@ -31,7 +31,10 @@ public class KafkaConsumerConfiguration {
         return new DefaultKafkaConsumerFactory<>(
                 config,
                 new StringDeserializer(),
-                new JacksonJsonDeserializer<>(Object.class, false)
+                // Payment service attaches the concrete event type in Kafka headers.
+                // Keep those headers so listener methods receive CodPaymentCreatedEvent,
+                // PaymentSuccessEvent, etc. instead of a generic map.
+                new JacksonJsonDeserializer<>(Object.class, true)
         );
     }
 

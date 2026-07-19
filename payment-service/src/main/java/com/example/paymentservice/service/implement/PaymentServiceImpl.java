@@ -1,8 +1,10 @@
 package com.example.paymentservice.service.implement;
 
 import com.example.event.PaymentCancelledEvent;
+import com.example.event.CodPaymentCreatedEvent;
 import com.example.event.PaymentFailedEvent;
 import com.example.event.PaymentSuccessEvent;
+import com.example.paymentservice.common.PaymentMethod;
 import com.example.paymentservice.client.OrderClient;
 import com.example.paymentservice.common.PaymentStatus;
 import com.example.paymentservice.dto.request.CreatePaymentRequest;
@@ -21,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -36,6 +39,7 @@ import java.util.UUID;
 public class PaymentServiceImpl implements PaymentService {
 
     private static final String PAYMENT_CANCELLED_TOPIC = "payment-cancelled";
+    private static final String COD_PAYMENT_CREATED_TOPIC = "payment-cod-created";
     private static final String PAYMENT_FAILED_TOPIC = "payment-failed";
     private static final String PAYMENT_SUCCESS_TOPIC = "payment-success";
 
@@ -74,8 +78,19 @@ public class PaymentServiceImpl implements PaymentService {
                 .transactionCode(generateTransactionCode())
                 .build();
 
-        Payment savedPayment = paymentRepository.save(payment);
+        Payment savedPayment;
+        try {
+            // The database partial unique index is the final protection when
+            // concurrent requests both pass the exists(...) checks above.
+            savedPayment = paymentRepository.saveAndFlush(payment);
+        } catch (DataIntegrityViolationException exception) {
+            throw new PaymentServiceException(ErrorCode.PAYMENT_ALREADY_EXISTS);
+        }
         log.info("Payment created successfully: id={}, orderId={}", savedPayment.getId(), savedPayment.getOrderId());
+
+        if (savedPayment.getMethod() == PaymentMethod.COD) {
+            publishCodPaymentCreatedEvent(savedPayment);
+        }
 
         return PaymentMapper.toResponse(savedPayment);
     }
@@ -118,8 +133,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public PaymentResponse markPaymentSuccess(String userId, String paymentId) {
-        Payment payment = getPaymentForUser(userId, paymentId);
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    public PaymentResponse markPaymentSuccess(String userId, String token, String paymentId) {
+        Payment payment = getPaymentForAdmin(paymentId);
 
         if (payment.getStatus() == PaymentStatus.SUCCESS) {
             throw new PaymentServiceException(ErrorCode.PAYMENT_ALREADY_SUCCESS);
@@ -128,6 +144,11 @@ public class PaymentServiceImpl implements PaymentService {
         if (payment.getStatus() != PaymentStatus.PENDING) {
             throw new PaymentServiceException(ErrorCode.PAYMENT_CANNOT_BE_COMPLETED);
         }
+
+        // A COD/admin confirmation must not turn a payment into SUCCESS after
+        // its order was cancelled or otherwise left the payment stage.
+        OrderResponse order = orderClient.getOrderDetailForAdmin(payment.getOrderId(), token);
+        validateOrderCompletable(payment, order);
 
         payment.setStatus(PaymentStatus.SUCCESS);
         payment.setFailureReason(null);
@@ -141,8 +162,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     public PaymentResponse markPaymentFailed(String userId, String paymentId) {
-        Payment payment = getPaymentForUser(userId, paymentId);
+        Payment payment = getPaymentForAdmin(paymentId);
 
         if (payment.getStatus() == PaymentStatus.SUCCESS) {
             throw new PaymentServiceException(ErrorCode.PAYMENT_ALREADY_SUCCESS);
@@ -164,8 +186,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     public PaymentResponse cancelPayment(String userId, String paymentId) {
-        Payment payment = getPaymentForUser(userId, paymentId);
+        Payment payment = getPaymentForAdmin(paymentId);
 
         if (payment.getStatus() != PaymentStatus.PENDING) {
             throw new PaymentServiceException(ErrorCode.PAYMENT_CANNOT_BE_CANCELLED);
@@ -185,6 +208,11 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(() -> new PaymentServiceException(ErrorCode.PAYMENT_NOT_FOUND));
     }
 
+    private Payment getPaymentForAdmin(String paymentId) {
+        return paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new PaymentServiceException(ErrorCode.PAYMENT_NOT_FOUND));
+    }
+
     private void validateOrderPayable(String userId, OrderResponse order) {
         if (order == null) {
             throw new PaymentServiceException(ErrorCode.ORDER_NOT_FOUND);
@@ -195,6 +223,25 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         if (!"PENDING_PAYMENT".equals(order.status())) {
+            throw new PaymentServiceException(ErrorCode.ORDER_NOT_PAYABLE);
+        }
+    }
+
+    private void validateOrderCompletable(Payment payment, OrderResponse order) {
+        if (order == null) {
+            throw new PaymentServiceException(ErrorCode.ORDER_NOT_FOUND);
+        }
+
+        if (!payment.getUserId().equals(order.userId())) {
+            throw new PaymentServiceException(ErrorCode.ORDER_ACCESS_DENIED);
+        }
+
+        boolean codOrderReady = payment.getMethod() == PaymentMethod.COD
+                && ("PENDING_PAYMENT".equals(order.status()) || "SHIPPING".equals(order.status()));
+        boolean onlineOrderReady = payment.getMethod() != PaymentMethod.COD
+                && "PENDING_PAYMENT".equals(order.status());
+
+        if (!codOrderReady && !onlineOrderReady) {
             throw new PaymentServiceException(ErrorCode.ORDER_NOT_PAYABLE);
         }
     }
@@ -217,6 +264,27 @@ public class PaymentServiceImpl implements PaymentService {
 
     private String generateTransactionCode() {
         return "PAY-" + UUID.randomUUID();
+    }
+
+    private void publishCodPaymentCreatedEvent(Payment payment) {
+        CodPaymentCreatedEvent event = CodPaymentCreatedEvent.builder()
+                .paymentId(payment.getId())
+                .orderId(payment.getOrderId())
+                .userId(payment.getUserId())
+                .createdAt(Instant.now())
+                .build();
+
+        kafkaTemplate.send(COD_PAYMENT_CREATED_TOPIC, payment.getOrderId(), event)
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        log.error("Failed to publish CodPaymentCreatedEvent: paymentId={}, orderId={}",
+                                payment.getId(), payment.getOrderId(), throwable);
+                        return;
+                    }
+
+                    log.info("Published CodPaymentCreatedEvent: paymentId={}, orderId={}",
+                            payment.getId(), payment.getOrderId());
+                });
     }
 
     private void publishPaymentFailedEvent(Payment payment) {

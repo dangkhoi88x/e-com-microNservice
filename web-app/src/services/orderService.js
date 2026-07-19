@@ -49,3 +49,12 @@ export const checkoutOrder = async ({ shippingAddress }) => {
 
   return response.data?.data;
 };
+
+export const createOrder = async ({ shippingAddress, items }) => {
+  const response = await httpClient.post(API.ORDERS, {
+    shippingAddress,
+    items,
+  });
+
+  return response.data?.data;
+};

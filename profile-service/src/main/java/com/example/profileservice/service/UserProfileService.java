@@ -47,6 +47,10 @@ public class UserProfileService {
             .avatarUrl(userProfile.getAvatarUrl())
             .bio(userProfile.getBio())
             .birthDate(userProfile.getBirthDate())
+            .phoneNumber(userProfile.getPhoneNumber())
+            .address(userProfile.getAddress())
+            .city(userProfile.getCity())
+            .postalCode(userProfile.getPostalCode())
             .build();
         }
     public UserProfileResponse updateMyProfile(String userId, UpdateMyProfileRequest request) {
@@ -57,6 +61,10 @@ public class UserProfileService {
         userProfile.setAvatarUrl(request.avatarUrl());
         userProfile.setBio(request.bio());
         userProfile.setBirthDate(request.birthDate());
+        userProfile.setPhoneNumber(request.phoneNumber());
+        userProfile.setAddress(request.address());
+        userProfile.setCity(request.city());
+        userProfile.setPostalCode(request.postalCode());
         UserProfile savedProfile = userProfileRepository.save(userProfile);
 
         return UserProfileResponse.builder()
@@ -66,6 +74,10 @@ public class UserProfileService {
                 .avatarUrl(savedProfile.getAvatarUrl())
                 .bio(savedProfile.getBio())
                 .birthDate(savedProfile.getBirthDate())
+                .phoneNumber(savedProfile.getPhoneNumber())
+                .address(savedProfile.getAddress())
+                .city(savedProfile.getCity())
+                .postalCode(savedProfile.getPostalCode())
                 .build();
     }
 }

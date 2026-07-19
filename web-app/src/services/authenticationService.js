@@ -3,9 +3,10 @@ import { API } from "../configurations/configuration";
 import {
   getToken,
   removeToken,
-  setRefreshToken,
   setToken,
 } from "./localStorageService";
+
+let restorePromise = null;
 
 export const login = async (email, password) => {
   const response = await httpClient.post(API.LOGIN, {
@@ -14,9 +15,7 @@ export const login = async (email, password) => {
   });
 
   const accessToken = response.data?.data?.accessToken;
-  const refreshToken = response.data?.data?.refreshToken;
   setToken(accessToken);
-  setRefreshToken(refreshToken);
 
   return response.data;
 };
@@ -32,8 +31,30 @@ export const register = async ({ email, password, firstName, lastName }) => {
   return response.data;
 };
 
-export const logout = () => {
-  removeToken();
+export const restoreSession = () => {
+  if (!restorePromise) {
+    restorePromise = httpClient.post(API.REFRESH_TOKEN)
+      .then((response) => {
+        const accessToken = response.data?.data?.accessToken;
+        if (!accessToken) throw new Error("Missing refreshed access token");
+        setToken(accessToken);
+        return true;
+      })
+      .catch(() => {
+        removeToken();
+        return false;
+      })
+      .finally(() => { restorePromise = null; });
+  }
+  return restorePromise;
+};
+
+export const logout = async () => {
+  try {
+    await httpClient.post(API.LOGOUT);
+  } finally {
+    removeToken();
+  }
 };
 
 export const isAuthenticated = () => {

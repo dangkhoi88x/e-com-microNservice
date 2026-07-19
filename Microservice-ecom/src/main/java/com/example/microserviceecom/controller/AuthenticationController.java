@@ -5,15 +5,21 @@ import com.example.microserviceecom.dto.request.IntrospecRequest;
 import com.example.microserviceecom.dto.response.ApiResponse;
 import com.example.microserviceecom.dto.response.AuthenticationResponse;
 import com.example.microserviceecom.dto.response.IntrospectResponse;
+import com.example.microserviceecom.exception.AuthenticationException;
+import com.example.microserviceecom.exception.ErrorCode;
 import com.example.microserviceecom.service.AuthenticationService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +28,14 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
 
+    @org.springframework.beans.factory.annotation.Value("${security.refresh-cookie.secure:false}")
+    private boolean refreshCookieSecure;
+
+    @org.springframework.beans.factory.annotation.Value("${security.refresh-cookie.same-site:Lax}")
+    private String refreshCookieSameSite;
+
+    @org.springframework.beans.factory.annotation.Value("${security.refresh-request.allowed-origins}")
+    private String allowedRefreshOrigins;
 
     @PostMapping("/login")
 
@@ -30,48 +44,39 @@ public class AuthenticationController {
                                                             HttpServletResponse response) {
         var result = authenticationService.authenticate(request);
 
-        Cookie cookie = new Cookie("refresh_token", result.refreshToken());
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setMaxAge(3600 * 24 * 14);
-        cookie.setPath("/");
-
-        response.addCookie(cookie);
+        addRefreshCookie(response, result.refreshToken(), Duration.ofDays(14));
 
         return ApiResponse.<AuthenticationResponse>builder()
                 .status(HttpStatus.OK.value())
                 .message("Login success")
-                .data(result)
+                .data(new AuthenticationResponse(result.userId(), result.accessToken()))
                 .build();
     }
 
     @PostMapping("/refresh-token")
     public ApiResponse<AuthenticationResponse> refreshToken(
             @CookieValue(name = "refresh_token", required = false) String refreshToken,
-            @RequestBody(required = false) Map<String, String> request
+            @RequestHeader(value = "Origin", required = false) String origin,
+            HttpServletResponse response
     ) {
-        String token = refreshToken != null ? refreshToken : request != null ? request.get("refreshToken") : null;
-        var data = authenticationService.refreshToken(token);
+        validateRefreshOrigin(origin);
+        var data = authenticationService.refreshToken(refreshToken);
+        addRefreshCookie(response, data.refreshToken(), Duration.ofDays(14));
         return ApiResponse.<AuthenticationResponse>builder()
                 .status(HttpStatus.OK.value())
                 .message("Refresh Token success")
-                .data(data)
+                .data(new AuthenticationResponse(data.userId(), data.accessToken()))
                 .build();
     }
 
     @PostMapping("/logout")
-    public ApiResponse<Void> logout(@RequestHeader("Authorization") String authHeader,
-                       @CookieValue(name = "refresh_token") String refreshToken,
+    public ApiResponse<Void> logout(@RequestHeader(value = "Authorization", required = false) String authHeader,
+                       @CookieValue(name = "refresh_token", required = false) String refreshToken,
                        HttpServletResponse response) {
-        String token = authHeader.replace("Bearer ", "");
+        String token = authHeader != null ? authHeader.replace("Bearer ", "") : null;
 
         authenticationService.logout(token, refreshToken);
-        Cookie cookie = new Cookie("refresh_token", null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        response.addCookie(cookie);
+        addRefreshCookie(response, "", Duration.ZERO);
 
         return ApiResponse.<Void>builder()
                 .status(HttpStatus.OK.value())
@@ -86,6 +91,41 @@ public class AuthenticationController {
                 .message("Refresh Token success")
                 .data(data)
                 .build();
+    }
+
+    private void addRefreshCookie(HttpServletResponse response, String token, Duration maxAge) {
+        clearLegacyRefreshCookie(response);
+
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", token)
+                .httpOnly(true)
+                .secure(refreshCookieSecure)
+                .sameSite(refreshCookieSameSite)
+                .path("/identity/auth/")
+                .maxAge(maxAge)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    private void clearLegacyRefreshCookie(HttpServletResponse response) {
+        ResponseCookie legacyCookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(refreshCookieSecure)
+                .sameSite(refreshCookieSameSite)
+                .path("/")
+                .maxAge(Duration.ZERO)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, legacyCookie.toString());
+    }
+
+    private void validateRefreshOrigin(String origin) {
+        Set<String> allowedOrigins = Arrays.stream(allowedRefreshOrigins.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
+
+        if (origin == null || !allowedOrigins.contains(origin)) {
+            throw new AuthenticationException(ErrorCode.INVALID_REFRESH_ORIGIN);
+        }
     }
 
 }

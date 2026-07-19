@@ -1,10 +1,8 @@
 import axios from "axios";
 import { API, CONFIG } from "./configuration";
 import {
-  getRefreshToken,
   getToken,
   removeToken,
-  setRefreshToken,
   setToken,
 } from "../services/localStorageService.js";
 
@@ -46,7 +44,7 @@ httpClient.interceptors.response.use(
       if (!refreshPromise) {
         refreshPromise = axios.post(
           `${CONFIG.API_GATEWAY}${API.REFRESH_TOKEN}`,
-          { refreshToken: getRefreshToken() },
+          {},
           {
             withCredentials: true,
             headers: { "Content-Type": "application/json" },
@@ -56,14 +54,12 @@ httpClient.interceptors.response.use(
 
       const response = await refreshPromise;
       const accessToken = response.data?.data?.accessToken;
-      const refreshToken = response.data?.data?.refreshToken;
 
       if (!accessToken) {
         throw new Error("Missing refreshed access token");
       }
 
       setToken(accessToken);
-      setRefreshToken(refreshToken);
       originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
       return httpClient(originalRequest);

@@ -1,15 +1,102 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ClipboardList, Heart, LogOut, MapPin, Package, Pencil, Settings, ShoppingBag } from "lucide-react";
+import { Bell, Check, LogOut, Pencil, Save, Settings, Star, UserRound } from "lucide-react";
 import { logout } from "../services/authenticationService";
-import { getMyProfile } from "../services/profileService";
+import { getMyProfile, updateMyProfile } from "../services/profileService";
 import "./MyAccount.css";
 
+const emptyProfile = { firstName: "", lastName: "", avatarUrl: "", bio: "", birthDate: "", phoneNumber: "", address: "", city: "", postalCode: "" };
+
 export default function MyAccount() {
-  const [profile, setProfile] = useState(null);
-  useEffect(() => { getMyProfile().then(setProfile).catch(() => setProfile({})); }, []);
-  const name = `${profile?.firstName || "Khách"} ${profile?.lastName || "hàng"}`;
-  const initial = (profile?.firstName || "N").charAt(0).toUpperCase();
-  const leave = () => { logout(); window.location.assign("/shop"); };
-  return <main className="account-page"><header className="account-top"><Link to="/shop" className="account-brand"><i>N</i>Nova<span>Shop</span></Link><Link to="/shop"><ShoppingBag size={18} /> Tiếp tục mua sắm</Link></header><section className="account-shell"><div className="account-heading"><p>TÀI KHOẢN CỦA TÔI</p><h1>Chào, {profile ? name : "bạn"}!</h1><span>Quản lý hồ sơ và hành trình mua sắm của bạn.</span></div><section className="account-profile"><div className="account-avatar">{profile?.avatarUrl ? <img src={profile.avatarUrl} alt=""/> : initial}</div><div><h2>{name}</h2><p>{profile?.bio || "Thành viên NovaShop"}</p></div><Link to="/shop/account/profile"><Pencil size={15}/> Chỉnh sửa hồ sơ</Link></section><section className="account-grid"><Link to="/shop/orders"><span><ClipboardList size={22}/></span><div><h2>Đơn hàng của tôi</h2><p>Theo dõi, thanh toán lại và mua lại.</p></div></Link><button type="button"><span><MapPin size={22}/></span><div><h2>Sổ địa chỉ</h2><p>Quản lý địa chỉ giao hàng của bạn.</p></div></button><button type="button"><span><Heart size={22}/></span><div><h2>Sản phẩm yêu thích</h2><p>Lưu những món bạn muốn mua sau.</p></div></button><Link to="/shop/account/profile"><span><Settings size={22}/></span><div><h2>Cài đặt tài khoản</h2><p>Cập nhật thông tin cá nhân và bảo mật.</p></div></Link></section><section className="account-help"><Package size={22}/><p><b>Cần hỗ trợ về đơn hàng?</b>NovaShop luôn sẵn sàng hỗ trợ bạn 24/7.</p><Link to="/shop/orders">Xem đơn hàng</Link></section><button className="account-logout" onClick={leave}><LogOut size={17}/> Đăng xuất</button></section></main>;
+  const [form, setForm] = useState(emptyProfile);
+  const [notice, setNotice] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    getMyProfile()
+      .then((data) => setForm({
+        firstName: data?.firstName || "",
+        lastName: data?.lastName || "",
+        avatarUrl: data?.avatarUrl || "",
+        bio: data?.bio || "",
+        birthDate: data?.birthDate || "",
+        phoneNumber: data?.phoneNumber || "",
+        address: data?.address || "",
+        city: data?.city || "",
+        postalCode: data?.postalCode || "",
+      }))
+      .catch(() => setNotice("Không thể tải hồ sơ. Bạn vẫn có thể nhập và lưu lại thông tin."));
+  }, []);
+
+  const name = `${form.firstName || "Khách"} ${form.lastName || "hàng"}`;
+  const initial = (form.firstName || "N").charAt(0).toUpperCase();
+  const change = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  const leave = async () => { await logout(); window.location.assign("/shop"); };
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setNotice("");
+    try {
+      await updateMyProfile({ ...form, firstName: form.firstName.trim(), lastName: form.lastName.trim() });
+      setNotice("Thông tin hồ sơ đã được cập nhật.");
+    } catch (error) {
+      setNotice(error.response?.data?.message || "Không thể cập nhật hồ sơ.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <main className="account-page">
+      <section className="account-layout">
+        <aside className="account-sidebar">
+          <Link to="/shop" className="account-mobile-home">← Về cửa hàng</Link>
+          <p className="account-sidebar-kicker">TÀI KHOẢN</p>
+          <h1>Hồ sơ người dùng</h1>
+          <nav className="account-menu" aria-label="Tài khoản">
+            <button className="active" type="button"><UserRound size={20} />Thông tin cá nhân</button>
+            <button type="button" onClick={() => setNotice("Cài đặt thông báo sẽ sớm được cập nhật.")}><Settings size={20} />Cài đặt</button>
+            <button type="button" onClick={() => setNotice("Bạn đang nhận thông báo đơn hàng từ NovaShop.")}><Bell size={20} />Thông báo</button>
+          </nav>
+          <button className="account-logout" onClick={leave}><LogOut size={19} />Đăng xuất</button>
+        </aside>
+
+        <section className="account-content">
+          <div className="account-profile-hero">
+            <div className="account-avatar">
+              {form.avatarUrl ? <img src={form.avatarUrl} alt={`Ảnh đại diện ${name}`} /> : initial}
+              <span><Pencil size={14} /></span>
+            </div>
+            <div>
+              <p>HỒ SƠ CỦA BẠN</p>
+              <h2>{name}</h2>
+              <small>{form.bio || "Thành viên NovaShop"}</small>
+            </div>
+            <div className="account-member"><Star size={15} /> Thành viên NovaShop</div>
+          </div>
+
+          <form className="account-form" onSubmit={submit}>
+            <div className="account-form-heading">
+              <div><p>THÔNG TIN CÁ NHÂN</p><h2>Chỉnh sửa hồ sơ</h2></div>
+              <span>Những thay đổi sẽ được lưu vào tài khoản của bạn.</span>
+            </div>
+            <div className="account-form-fields">
+              <label>Họ <b>*</b><input required name="firstName" value={form.firstName} onChange={change} placeholder="Nhập họ" /></label>
+              <label>Tên <b>*</b><input required name="lastName" value={form.lastName} onChange={change} placeholder="Nhập tên" /></label>
+              <label>Ảnh đại diện URL<input name="avatarUrl" value={form.avatarUrl} onChange={change} placeholder="https://..." /></label>
+              <label>Số điện thoại<input name="phoneNumber" value={form.phoneNumber} onChange={change} placeholder="Ví dụ: 090 123 4567" /></label>
+              <label className="wide">Địa chỉ<input name="address" value={form.address} onChange={change} placeholder="Số nhà, tên đường, phường/xã" /></label>
+              <label>Thành phố / Tỉnh<input name="city" value={form.city} onChange={change} placeholder="Ví dụ: Hồ Chí Minh" /></label>
+              <label>Mã bưu chính<input name="postalCode" value={form.postalCode} onChange={change} placeholder="Ví dụ: 700000" /></label>
+              <label>Ngày sinh<input name="birthDate" type="date" value={form.birthDate} onChange={change} /></label>
+              <label>Giới thiệu<textarea name="bio" value={form.bio} onChange={change} placeholder="Giới thiệu ngắn về bạn" rows="3" /></label>
+            </div>
+            {notice && <p className="account-notice"><Check size={16} />{notice}</p>}
+            <button className="account-save" type="submit" disabled={saving}><Save size={17} />{saving ? "Đang lưu..." : "Lưu thay đổi"}</button>
+          </form>
+        </section>
+      </section>
+    </main>
+  );
 }

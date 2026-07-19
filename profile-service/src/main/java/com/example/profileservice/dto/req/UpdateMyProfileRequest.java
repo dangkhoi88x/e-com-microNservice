@@ -15,6 +15,14 @@ public record UpdateMyProfileRequest(
 
         String bio,
 
-        LocalDate birthDate
+        LocalDate birthDate,
+
+        String phoneNumber,
+
+        String address,
+
+        String city,
+
+        String postalCode
 ) {
 }

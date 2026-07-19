@@ -14,9 +14,9 @@ ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, description = EXCLUDED.de
 
 INSERT INTO products (id, name, description, price, quantity, seller_id, category_id, images, slug, status)
 VALUES
-  ('20000000-0000-0000-0000-000000000001', 'iPhone 15 Pro Max', 'Smartphone cao cấp với thiết kế titanium, camera Pro và hiệu năng mạnh mẽ.', 29990000, 40, 'seed-seller', '10000000-0000-0000-0000-000000000001',
+  ('20000000-0000-0000-0000-000000000001', 'iPhone 15 Pro Max', 'Smartphone cao cấp với thiết kế titanium, camera Pro và hiệu năng mạnh mẽ.', 29990000, 30, 'seed-seller', '10000000-0000-0000-0000-000000000001',
    '[{"url":"https://images.unsplash.com/photo-1696446701796-da61225697cc?auto=format&fit=crop&w=900&q=80","isPrimary":true,"displayOrder":0}]'::jsonb, 'iphone-15-pro-max', 'ACTIVE'),
-  ('20000000-0000-0000-0000-000000000002', 'Giày Nova Runner', 'Giày chạy bộ nhẹ, êm và phù hợp cho hoạt động hằng ngày.', 1290000, 80, 'seed-seller', '10000000-0000-0000-0000-000000000002',
+  ('20000000-0000-0000-0000-000000000002', 'Giày Nova Runner', 'Giày chạy bộ nhẹ, êm và phù hợp cho hoạt động hằng ngày.', 1290000, 48, 'seed-seller', '10000000-0000-0000-0000-000000000002',
    '[{"url":"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80","isPrimary":true,"displayOrder":0}]'::jsonb, 'giay-nova-runner', 'ACTIVE'),
   ('20000000-0000-0000-0000-000000000003', 'Serum Torriden Dưỡng Ẩm', 'Serum cấp ẩm sâu, làm dịu và phục hồi hàng rào bảo vệ da.', 350000, 60, 'seed-seller', '10000000-0000-0000-0000-000000000003',
    '[{"url":"https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&w=900&q=80","isPrimary":true,"displayOrder":0}]'::jsonb, 'serum-torriden-duong-am', 'ACTIVE'),
@@ -27,7 +27,7 @@ ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, description = EXCLUDED.de
 -- Add a larger catalog for category/search/list-page testing.
 INSERT INTO products (id, name, description, price, quantity, seller_id, category_id, images, slug, status)
 SELECT
-  gen_random_uuid()::text,
+  ('21000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid::text,
   'Sản phẩm mẫu Nova ' || n,
   'Sản phẩm dữ liệu mẫu phục vụ kiểm thử catalogue, tìm kiếm và phân trang.',
   99000 + n * 45000,
@@ -98,8 +98,5 @@ FROM (VALUES
 ) AS seed(id, sku, attributes, price, quantity, image_url, status)
 ON CONFLICT (sku) DO UPDATE SET price = EXCLUDED.price, quantity = EXCLUDED.quantity, status = EXCLUDED.status;
 
--- Optional inventory seed. Run these lines against inventory-service database only,
--- and keep one inventory row per product with the current inventory schema.
--- INSERT INTO inventories (id, product_id, available_quantity, reserved_quantity, sold_quantity, created_at, updated_at)
--- VALUES ('50000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 40, 0, 0, NOW(), NOW())
--- ON CONFLICT (product_id) DO UPDATE SET available_quantity = EXCLUDED.available_quantity;
+-- Inventory seed is in database/seed-inventory.sql because Inventory Service
+-- owns its database and stock is the source of truth.

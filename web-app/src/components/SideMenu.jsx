@@ -46,7 +46,7 @@ const workflowRuns = [
 export default function SideMenu({ drawerWidth, collapsed, mobileOpen, onClose, onToggle }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const handleLogout = () => { logout(); onClose?.(); navigate("/login", { replace: true }); };
+  const handleLogout = async () => { await logout(); onClose?.(); navigate("/login", { replace: true }); };
   const handleNavigate = (path) => { navigate(path); onClose?.(); };
 
   const drawerContent = (

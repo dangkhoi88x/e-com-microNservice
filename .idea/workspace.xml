@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/Khoi-Micro.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/controller/AuthenticationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/controller/AuthenticationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/dto/response/AuthenticationResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/dto/response/AuthenticationResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/exception/ErrorCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/exception/ErrorCode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/service/AuthenticationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/service/AuthenticationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/service/JwtService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/service/JwtService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/service/TokenService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/service/TokenService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservice-ecom/src/main/resources/application-dev.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Microservice-ecom/src/main/resources/application-dev.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservice-ecom/src/main/resources/application-prod.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Microservice-ecom/src/main/resources/application-prod.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway-service/src/main/java/com/example/apigatewayservice/configuration/GatewayCorsConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway-service/src/main/java/com/example/apigatewayservice/configuration/GatewayCorsConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/seed-products.sql" beforeDir="false" afterPath="$PROJECT_DIR$/database/seed-products.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/entity/Inventory.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/entity/Inventory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/repository/InventoryRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/repository/InventoryRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/service/implement/InventoryServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/service/implement/InventoryServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/configuration/KafkaConsumerConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/configuration/KafkaConsumerConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/controller/OrderController.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/controller/OrderController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/messaging/consumer/PaymentEventConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/messaging/consumer/PaymentEventConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/OrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/OrderService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/implement/OrderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/implement/OrderServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/client/OrderClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/client/OrderClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/controller/PaymentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/controller/PaymentController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/exception/ErrorCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/exception/ErrorCode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/service/PaymentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/service/PaymentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/service/implement/PaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/service/implement/PaymentServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/dto/req/UpdateMyProfileRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/dto/req/UpdateMyProfileRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/dto/res/UserProfileResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/dto/res/UserProfileResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/entity/UserProfile.java" beforeDir="false" afterPath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/entity/UserProfile.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/service/UserProfileService.java" beforeDir="false" afterPath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/service/UserProfileService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/App.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/components/Header.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/components/Header.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/components/ShopStoreHeader.css" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/components/ShopStoreHeader.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/components/ShopStoreHeader.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/components/ShopStoreHeader.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/components/SideMenu.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/components/SideMenu.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/configurations/configuration.js" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/configurations/configuration.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/configurations/httpClient.js" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/configurations/httpClient.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Cart.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Cart.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Checkout.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Checkout.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/CustomerOrders.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/CustomerOrders.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/MyAccount.css" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/MyAccount.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/MyAccount.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/MyAccount.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Payments.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Payments.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Shop.css" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Shop.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Shop.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Shop.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopDense.css" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopDense.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetail.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetail.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopWishlist.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopWishlist.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/services/authenticationService.js" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/services/authenticationService.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/services/localStorageService.js" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/services/localStorageService.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/services/orderService.js" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/services/orderService.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/services/wishlistService.js" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/services/wishlistService.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wishlist-service/src/main/java/com/example/wishlistservice/entity/WishlistItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/wishlist-service/src/main/java/com/example/wishlistservice/entity/WishlistItem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wishlist-service/src/main/java/com/example/wishlistservice/service/implement/WishlistServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/wishlist-service/src/main/java/com/example/wishlistservice/service/implement/WishlistServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wishlist-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/wishlist-service/src/main/resources/application.yaml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$/ApiGatewayService">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3GiDyRcG4JZlhVIJe2ZJafg7G9D" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Maven.api-gateway-service [clean].executor": "Run",
+    "Maven.api-gateway-service [compile].executor": "Run",
+    "Maven.api-gateway-service [org.apache.maven.plugins:maven-clean-plugin:3.5.0:clean].executor": "Run",
+    "Maven.api-gateway-service [verify].executor": "Run",
+    "Maven.e-com-microservice-workspace [clean].executor": "Run",
+    "Maven.e-com-microservice-workspace [verify].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Spring Boot.ApiGatewayServiceApplication.executor": "Run",
+    "Spring Boot.CartServiceApplication.executor": "Run",
+    "Spring Boot.DiscoveryServerApplication.executor": "Run",
+    "Spring Boot.InventoryServiceApplication.executor": "Run",
+    "Spring Boot.MicroserviceEcomApplication.executor": "Run",
+    "Spring Boot.NotificationServiceApplication.executor": "Run",
+    "Spring Boot.OrderServiceApplication.executor": "Run",
+    "Spring Boot.PaymentServiceApplication.executor": "Run",
+    "Spring Boot.ProductServiceApplication.executor": "Run",
+    "Spring Boot.ProfileServiceApplication.executor": "Run",
+    "Spring Boot.SearchServiceApplication.executor": "Run",
+    "Spring Boot.WishlistServiceApplication.executor": "Run",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "configurable.group.build"
+  }
+}]]></component>
+  <component name="RunDashboard">
+    <option name="configurationTypes">
+      <set>
+        <option value="Application" />
+        <option value="SpringBootApplicationConfigurationType" />
+      </set>
+    </option>
+    <option name="configurationStatuses">
+      <map>
+        <entry key="SpringBootApplicationConfigurationType">
+          <value>
+            <map>
+              <entry key="ApiGatewayServiceApplication" value="STOPPED" />
+              <entry key="DiscoveryServerApplication" value="STOPPED" />
+              <entry key="InventoryServiceApplication" value="FAILED" />
+              <entry key="OrderServiceApplication" value="STOPPED" />
+              <entry key="PaymentServiceApplication" value="STOPPED" />
+              <entry key="ProductServiceApplication" value="STOPPED" />
+              <entry key="ProfileServiceApplication" value="STOPPED" />
+            </map>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="RunManager" selected="Spring Boot.CartServiceApplication">
+    <configuration name="Notification" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="com.example.notificationservice.NotificationServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Unnamed" type="Application" factoryName="Application" nameIsGenerated="true">
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CartServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
+      <module name="cart-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.cartservice.CartServiceApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.cartservice.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MicroserviceEcomApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <envs>
+        <env name="JWT_SECRET" value="c04dba851cb883f69e9524aec19e9df7c22463e30fadaaced0bdba25a6865c21" />
+      </envs>
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
+      <module name="Microservice-ecom" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.microserviceecom.MicroserviceEcomApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.microserviceecom.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OrderServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
+      <module name="order-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.orderservice.OrderServiceApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.orderservice.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="PaymentServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
+      <module name="payment-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.paymentservice.PaymentServiceApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.paymentservice.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ProfileServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
+      <module name="profile-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.profileservice.ProfileServiceApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.profileservice.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SearchServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
+      <module name="search-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.searchservice.SearchServiceApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.searchservice.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.Notification" />
+      <item itemvalue="Application.Unnamed" />
+      <item itemvalue="Spring Boot.MicroserviceEcomApplication" />
+      <item itemvalue="Spring Boot.CartServiceApplication" />
+      <item itemvalue="Spring Boot.OrderServiceApplication" />
+      <item itemvalue="Spring Boot.PaymentServiceApplication" />
+      <item itemvalue="Spring Boot.ProfileServiceApplication" />
+      <item itemvalue="Spring Boot.SearchServiceApplication" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Spring Boot.PaymentServiceApplication" />
+        <item itemvalue="Spring Boot.OrderServiceApplication" />
+        <item itemvalue="Spring Boot.CartServiceApplication" />
+        <item itemvalue="Spring Boot.ProfileServiceApplication" />
+        <item itemvalue="Spring Boot.SearchServiceApplication" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-63390994e64e-intellij.indexing.shared.core-IU-262.8665.258" />
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.8665.258" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="" />
+      <created>1784445749626</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1784445749626</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

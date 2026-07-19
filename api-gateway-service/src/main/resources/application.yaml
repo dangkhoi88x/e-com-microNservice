@@ -41,6 +41,9 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
 authentication:
   url: http://localhost:8090
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173}
 grpc:
   client:
     identity-service:

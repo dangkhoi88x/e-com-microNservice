@@ -203,24 +203,20 @@ export default function Payments() {
   );
 
   const renderSimulationActions = (payment) => {
-    if (payment.status !== "PENDING") return null;
+    if (!isAdmin || payment.status !== "PENDING") return null;
 
     return (
       <>
-        {isAdmin && (
-          <>
-            <Tooltip title="Simulate success">
-              <IconButton color="success" onClick={() => handleMarkSuccess(payment)}>
-                <CheckCircleOutlineOutlinedIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Simulate failed">
-              <IconButton color="error" onClick={() => handleMarkFailed(payment)}>
-                <ErrorOutlineOutlinedIcon />
-              </IconButton>
-            </Tooltip>
-          </>
-        )}
+        <Tooltip title="Confirm COD payment">
+          <IconButton color="success" onClick={() => handleMarkSuccess(payment)}>
+            <CheckCircleOutlineOutlinedIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Mark payment failed">
+          <IconButton color="error" onClick={() => handleMarkFailed(payment)}>
+            <ErrorOutlineOutlinedIcon />
+          </IconButton>
+        </Tooltip>
         <Tooltip title="Cancel payment">
           <IconButton color="default" onClick={() => handleCancelPayment(payment)}>
             <CancelOutlinedIcon />

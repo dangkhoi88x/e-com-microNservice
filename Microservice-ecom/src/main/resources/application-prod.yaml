@@ -20,3 +20,11 @@ spring:
 jwt:
   secret-key: ${JWT_SECRET}
   audience: ${JWT_AUDIENCE}
+
+security:
+  refresh-cookie:
+    secure: true
+    same-site: Lax
+  refresh-request:
+    # Required in production, for example: https://shop.example.com
+    allowed-origins: ${SECURITY_REFRESH_ALLOWED_ORIGINS}

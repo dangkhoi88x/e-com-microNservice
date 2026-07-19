@@ -5,12 +5,14 @@ export const CONFIG = {
 export const API = {
   LOGIN: "/identity/auth/login",
   REFRESH_TOKEN: "/identity/auth/refresh-token",
+  LOGOUT: "/identity/auth/logout",
   REGISTER: "/identity/users",
   MY_PROFILE: "/profile/api/v1/user-profile/me",
 
   CATEGORIES: "/product/api/v1/categories",
   PRODUCTS: "/product/api/v1/products",
   INVENTORY: "/inventory/api/v1/inventory",
+  CART: "/api/v1/cart",
   ORDERS: "/order/api/v1/orders",
   PAYMENTS: "/payment/api/v1/payments",
   WISHLIST: "/api/v1/wishlist",

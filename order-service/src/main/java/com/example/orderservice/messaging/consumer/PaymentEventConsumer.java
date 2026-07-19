@@ -1,6 +1,7 @@
 package com.example.orderservice.messaging.consumer;
 
 import com.example.event.PaymentCancelledEvent;
+import com.example.event.CodPaymentCreatedEvent;
 import com.example.event.PaymentFailedEvent;
 import com.example.event.PaymentSuccessEvent;
 import com.example.orderservice.service.OrderService;
@@ -15,6 +16,13 @@ import org.springframework.stereotype.Component;
 public class PaymentEventConsumer {
 
     private final OrderService orderService;
+
+    @KafkaListener(topics = "payment-cod-created", groupId = "order-group")
+    public void codPaymentCreated(CodPaymentCreatedEvent event) {
+        log.info("Received CodPaymentCreatedEvent: paymentId={}, orderId={}, userId={}",
+                event.getPaymentId(), event.getOrderId(), event.getUserId());
+        orderService.startShippingFromCodPayment(event);
+    }
 
     @KafkaListener(topics = "payment-success", groupId = "order-group")
     public void paymentSuccess(PaymentSuccessEvent event) {

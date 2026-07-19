@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 public class WishlistItem extends AbstractEntity {
     @Column(name = "user_id", nullable = false) private String userId;
     @Column(name = "product_id", nullable = false) private String productId;
-    @Column(name = "variant_id") private String variantId;
+    @Column(name = "variant_id", nullable = false) private String variantId;
     @Column(nullable = false) private String productName;
     @Column(nullable = false, precision = 19, scale = 2) private BigDecimal price;
     private String imageUrl;

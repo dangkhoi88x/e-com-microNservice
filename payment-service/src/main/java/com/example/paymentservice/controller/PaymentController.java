@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -86,9 +87,14 @@ public class PaymentController {
     @PutMapping("/{id}/success")
     public ApiResponse<PaymentResponse> markPaymentSuccess(
             @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader("Authorization") String authorization,
             @PathVariable String id
     ) {
-        PaymentResponse data = paymentService.markPaymentSuccess(jwt.getSubject(), id);
+        PaymentResponse data = paymentService.markPaymentSuccess(
+                jwt.getSubject(),
+                authorization.replace("Bearer ", ""),
+                id
+        );
 
         return ApiResponse.<PaymentResponse>builder()
                 .status(HttpStatus.OK.value())

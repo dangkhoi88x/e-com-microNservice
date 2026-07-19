@@ -32,3 +32,10 @@ jwt:
 services:
   user-profile:
     url: http://localhost:8081
+
+security:
+  refresh-cookie:
+    secure: false
+    same-site: Lax
+  refresh-request:
+    allowed-origins: ${SECURITY_REFRESH_ALLOWED_ORIGINS:http://localhost:5173}

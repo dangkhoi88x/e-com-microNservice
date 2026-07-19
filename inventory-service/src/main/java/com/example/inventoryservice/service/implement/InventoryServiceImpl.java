@@ -46,7 +46,7 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         if ((request.variantId() == null || request.variantId().isBlank())
-                && inventoryRepository.existsByProductId(request.productId())) {
+                && inventoryRepository.existsByProductIdAndVariantIdIsNull(request.productId())) {
             throw new InventoryServiceException(ErrorCode.INVENTORY_ALREADY_EXISTS);
         }
 
@@ -70,7 +70,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public InventoryResponse getInventoryByProductId(String productId) {
-        Inventory inventory = inventoryRepository.findByProductId(productId)
+        Inventory inventory = inventoryRepository.findByProductIdAndVariantIdIsNull(productId)
                 .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
 
         return inventoryMapper.toResponse(inventory);
@@ -82,7 +82,7 @@ public class InventoryServiceImpl implements InventoryService {
                 .distinct()
                 .toList();
 
-        return inventoryRepository.findByProductIdIn(distinctProductIds)
+        return inventoryRepository.findByProductIdInAndVariantIdIsNull(distinctProductIds)
                 .stream()
                 .map(inventoryMapper::toResponse)
                 .toList();
@@ -229,7 +229,7 @@ public class InventoryServiceImpl implements InventoryService {
                     .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
         }
 
-        return inventoryRepository.findByProductId(productId)
+        return inventoryRepository.findByProductIdAndVariantIdIsNull(productId)
                 .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
     }
 

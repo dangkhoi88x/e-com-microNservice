@@ -29,10 +29,14 @@ public class Inventory {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false, unique = true)
+    /**
+     * A product has one aggregate row (variantId is null) and may have one row
+     * per variant. PostgreSQL partial unique indexes enforce that shape.
+     */
+    @Column(nullable = false)
     private String productId;
 
-    @Column(unique = true)
+    @Column
     private String variantId;
 
     @Column(nullable = false)

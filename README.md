@@ -546,6 +546,23 @@ Eureka: http://localhost:8761
 API Gateway: http://localhost:9191
 ```
 
+### Seed demo catalog and inventory
+
+The catalog and inventory are separate databases. Run the product seed first,
+then run the inventory seed so every seeded product has stock available for
+checkout, including the product variants.
+
+```bash
+docker compose exec -T product-postgres psql -U root -d postgres < database/seed-products.sql
+docker compose exec -T inventory-postgres psql -U postgres -d inventory_db < database/seed-inventory.sql
+```
+
+`seed-inventory.sql` is idempotent: it inserts only missing inventory rows and
+does not overwrite quantities that have already changed through an order flow.
+For an existing database created by an older version of the product seed, use a
+fresh demo database before reseeding because the older sample-product IDs were
+random rather than deterministic.
+
 ### 2. Start Services
 
 Nên chạy theo thứ tự:

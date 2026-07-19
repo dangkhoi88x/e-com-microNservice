@@ -28,5 +28,9 @@ public class UserProfile {
     private String avatarUrl;
     private String bio;
     private LocalDate birthDate;
+    private String phoneNumber;
+    private String address;
+    private String city;
+    private String postalCode;
 
 }
