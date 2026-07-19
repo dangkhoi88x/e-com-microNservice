@@ -18,4 +18,5 @@ export const API = {
   ADMIN_NOTIFICATIONS: "/notification/api/v1/notifications/admin",
   SEARCH_PRODUCTS: "/api/v1/search/products",
   SEARCH_AGGREGATIONS: "/api/v1/search/products/aggregations",
+  SEARCH_SUGGESTIONS: "/api/v1/search/products/suggestions",
 };

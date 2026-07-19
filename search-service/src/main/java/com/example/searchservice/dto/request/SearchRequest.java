@@ -1,6 +1,7 @@
 package com.example.searchservice.dto.request;
 
-public record SearchRequest(String categoryId,
+public record SearchRequest(String q,
+                            String categoryId,
                             String name,
                             String description,
                             Double minPrice,

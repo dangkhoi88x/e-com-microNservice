@@ -80,3 +80,9 @@ export const getProductAggregations = async (params = {}) => {
     }
   );
 };
+
+export const searchProductSuggestions = async (query, size = 8) => {
+  if (!query || query.trim().length < 2) return [];
+  const response = await httpClient.get(API.SEARCH_SUGGESTIONS, { params: { q: query.trim(), size } });
+  return response.data?.data || [];
+};

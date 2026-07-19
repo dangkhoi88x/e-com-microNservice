@@ -19,12 +19,13 @@ import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import { getCategories } from "../services/categoryService";
-import { getProducts } from "../services/productService";
+import { getProducts, searchProductSuggestions } from "../services/productService";
 import { isAuthenticated, logout } from "../services/authenticationService";
 import { getWishlist, toggleWishlist } from "../services/wishlistService";
 import "./Shop.css";
 import "./ShopDense.css";
 import "./ShopFlashSale.css";
+import "./ShopLandingSuggestions.css";
 
 const formatPrice = (value) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(Number(value || 0));
 const readShopCart = () => { try { const saved = JSON.parse(sessionStorage.getItem("nova-shop-cart") || "[]"); return Array.isArray(saved) ? saved : []; } catch { return []; } };
@@ -48,6 +49,13 @@ function ShopFlashSale({ products, onOpen }) {
   const shown = products.length ? Array.from({ length: Math.min(viewSize, products.length) }, (_, index) => products[(start + index) % products.length]) : [];
   const move = (step) => setStart((current) => products.length ? (current + step + products.length) % products.length : 0);
   return <section className="shop-flash-sale"><header><div><LocalOfferOutlinedIcon /><b>FLASH SALE</b><time>{countdown.map((part, index) => <i key={index}>{part}</i>)}</time></div><button onClick={() => document.getElementById("best-deals")?.scrollIntoView({ behavior: "smooth" })}>Xem tất cả ›</button></header><div className="shop-flash-carousel"><button className="shop-flash-arrow left" aria-label="Sản phẩm Flash Sale trước" onClick={() => move(-viewSize)}><ChevronLeftOutlinedIcon /></button><div className="shop-flash-sale-list">{shown.map((product, index) => <article key={`${product.id}-${index}`} onClick={() => onOpen(product)}><div className="shop-flash-image"><span>−{20 + index * 7}%</span>{product.images?.find((image) => image.isPrimary)?.url || product.images?.[0]?.url ? <img src={product.images?.find((image) => image.isPrimary)?.url || product.images?.[0]?.url} alt={product.name} /> : <ShoppingBagOutlinedIcon />}</div><strong>{formatPrice(product.price)}</strong><div><i style={{ width: `${34 + index * 9}%` }} />SELLING FAST</div></article>)}</div><button className="shop-flash-arrow right" aria-label="Sản phẩm Flash Sale tiếp theo" onClick={() => move(viewSize)}><ChevronRightOutlinedIcon /></button></div></section>;
+}
+
+function ShopLandingSuggestions({ query, onOpen }) {
+  const [items, setItems] = useState([]);
+  useEffect(() => { const timer = window.setTimeout(() => searchProductSuggestions(query).then(setItems).catch(() => setItems([])), 300); return () => window.clearTimeout(timer); }, [query]);
+  if (!items.length) return null;
+  return <div className="shop-landing-suggestions">{items.map((item) => <button key={item.productId} onClick={() => onOpen(item)}>{item.thumbnailUrl && <img src={item.thumbnailUrl} alt=""/>}<span>{item.name}<small>{formatPrice(item.price)}</small></span></button>)}</div>;
 }
 
 export default function Shop() {
@@ -122,7 +130,7 @@ export default function Shop() {
     document.addEventListener("click", handleWishlist, true);
     return () => document.removeEventListener("click", handleWishlist, true);
   }, [navigate, products]);
-  const visibleProducts = useMemo(() => products.filter((item) => item.name?.toLowerCase().includes(query.toLowerCase())), [products, query]);
+  const visibleProducts = products;
   const addToCart = (product) => setCart((current) => { const found = current.find((item) => item.id === product.id); return found ? current.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item) : [...current, { ...product, quantity: 1 }]; });
   const updateQuantity = (id, change) => setCart((current) => current.flatMap((item) => item.id === id ? (item.quantity + change > 0 ? [{ ...item, quantity: item.quantity + change }] : []) : [item]));
   const total = cart.reduce((sum, item) => sum + Number(item.price || 0) * item.quantity, 0);
@@ -140,5 +148,7 @@ export default function Shop() {
       <ShopFlashSale products={products} onOpen={(product) => navigate(productUrl(product))} />
     </main>
     <aside className="shop-cart"><div className="shop-cart-card"><div className="shop-cart-head"><h3>Giỏ hàng ({cart.reduce((sum, item) => sum + item.quantity, 0)})</h3><CloseOutlinedIcon /></div>{cart.length === 0 ? <div className="shop-cart-empty"><ShoppingBagOutlinedIcon /><p>Giỏ hàng đang trống.</p><small>Thêm sản phẩm để xem tổng tiền.</small></div> : <><div>{cart.map((item) => <div className="shop-cart-line" key={item.id}><div>{imageUrl(item) ? <img src={imageUrl(item)} alt="" /> : <ShoppingBagOutlinedIcon />}</div><section><b>{item.name}</b><small>{formatPrice(item.price)}</small><p><button onClick={() => updateQuantity(item.id, -1)}><RemoveOutlinedIcon /></button>{item.quantity}<button onClick={() => updateQuantity(item.id, 1)}><AddShoppingCartOutlinedIcon /></button></p></section><button onClick={() => setCart((items) => items.filter((cartItem) => cartItem.id !== item.id))}><DeleteOutlineOutlinedIcon /></button></div>)}</div><div className="shop-cart-summary"><p><span>Tạm tính</span><b>{formatPrice(total)}</b></p><p><span>Vận chuyển</span><b>Miễn phí</b></p><p className="total"><span>Tổng cộng</span><b>{formatPrice(total)}</b></p><button onClick={() => navigate("/cart")}>Thanh toán ({cart.reduce((sum, item) => sum + item.quantity, 0)})</button></div></>}</div></aside>
+    <ShopLandingSuggestions query={query} onOpen={(product) => navigate(productUrl({ ...product, id: product.productId }))} />
   </div>;
 }
+

@@ -92,6 +92,17 @@ public class ProductDocumentServiceImpl implements ProductDocumentService {
         }
     }
 
+    @Override
+    public List<ProductDocument> getSuggestions(String query, int size) {
+        if (query == null || query.trim().length() < 2) return Collections.emptyList();
+        try {
+            return productDocumentRepository.suggestions(query.trim(), Math.min(Math.max(size, 1), 10));
+        } catch (IOException exception) {
+            log.error("Failed to get product suggestions", exception);
+            throw new SearchServiceException(ErrorCode.ELASTICSEARCH_ERROR);
+        }
+    }
+
     private List<CategoryCount> toCategoryCounts(Aggregate aggregate) {
         if (aggregate == null || !aggregate.isSterms()) {
             return Collections.emptyList();

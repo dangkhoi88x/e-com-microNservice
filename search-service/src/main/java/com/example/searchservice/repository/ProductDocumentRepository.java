@@ -94,6 +94,15 @@ public class ProductDocumentRepository {
         return response.aggregations();
     }
 
+    public List<ProductDocument> suggestions(String query, int size) throws IOException {
+        SearchResponse<ProductDocument> response = elasticsearchClient.search(s -> s
+                        .index(PRODUCT_INDEX)
+                        .size(size)
+                        .query(q -> q.matchBoolPrefix(m -> m.field("name").query(query))),
+                ProductDocument.class);
+        return response.hits().hits().stream().map(Hit::source).filter(java.util.Objects::nonNull).toList();
+    }
+
     private Query buildSearchQuery(SearchRequest request) {
         if (request == null) {
             return Query.of(q -> q.matchAll(m -> m));
@@ -101,6 +110,13 @@ public class ProductDocumentRepository {
 
         List<Query> mustQueries = new ArrayList<>();
         List<Query> filterQueries = new ArrayList<>();
+
+        if (StringUtils.hasText(request.q())) {
+            mustQueries.add(Query.of(q -> q.bool(b -> b
+                    .should(buildTextSearchQuery("name", request.q()))
+                    .should(buildTextSearchQuery("description", request.q()))
+                    .minimumShouldMatch("1"))));
+        }
 
         if (StringUtils.hasText(request.name())) {
             mustQueries.add(buildTextSearchQuery("name", request.name()));

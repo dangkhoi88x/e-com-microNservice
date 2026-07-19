@@ -9,15 +9,15 @@ import RemoveOutlinedIcon from "@mui/icons-material/RemoveOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
-import { getProductById, getProducts } from "../services/productService";
+import { getProductById, searchProducts } from "../services/productService";
 import { getWishlist, toggleWishlistTransaction } from "../services/wishlistService";
 import "./ShopProductDetail.css";
 import "./ShopProductDetailDense.css";
 
 const money = (value) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(Number(value || 0));
-const firstImage = (product) => product?.images?.find((image) => image.isPrimary)?.url || product?.images?.[0]?.url;
+const firstImage = (product) => product?.thumbnailUrl || product?.images?.find((image) => image.isPrimary)?.url || product?.images?.[0]?.url;
 const slugify = (value) => (value || "san-pham").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-const productUrl = (item) => `/shop/products/${slugify(item.name)}-${item.id}`;
+const productUrl = (item) => `/shop/products/${slugify(item.name)}-${item.productId || item.id}`;
 const productIdFromSlug = (slug) => slug?.match(/[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i)?.[0] || slug;
 const getCartCount = () => {
   try { return JSON.parse(sessionStorage.getItem("nova-shop-cart") || "[]").reduce((total, item) => total + Number(item.quantity || 0), 0); } catch { return 0; }
@@ -55,17 +55,17 @@ export default function ShopProductDetail() {
     getProductById(id).then((data) => { setProduct(data); setActiveImage(firstImage(data) || ""); setSelected({}); setQuantity(1); }).catch(() => setProduct(null));
   }, [id]);
   useEffect(() => {
-    getProducts({ page: 1, size: 60 }).then((data) => setCatalogProducts(data.content || [])).catch(() => {});
+    searchProducts({ page: 1, size: 60, inStock: true, sort: "createdAt,desc" }).then((data) => setCatalogProducts(data.content || [])).catch(() => {});
   }, []);
   useEffect(() => {
     if (!product?.categoryId) return;
-    getProducts({ page: 1, size: 8, categoryId: product.categoryId }).then((data) => setRelated((data.content || []).filter((item) => item.id !== product.id).slice(0, 4))).catch(() => {});
+    searchProducts({ page: 1, size: 5, categoryId: product.categoryId, inStock: true, sort: "createdAt,desc" }).then((data) => setRelated((data.content || []).filter((item) => (item.productId || item.id) !== product.id).slice(0, 4))).catch(() => setRelated([]));
   }, [product?.categoryId, product?.id]);
 
   const variant = useMemo(() => (product?.variants || []).find((item) => Object.entries(selected).every(([key, value]) => item.attributes?.[key] === value)), [product, selected]);
   const searchResults = useMemo(() => {
     const keyword = productSearch.trim().toLocaleLowerCase("vi-VN");
-    return keyword ? catalogProducts.filter((item) => item.id !== product?.id && item.name?.toLocaleLowerCase("vi-VN").includes(keyword)).slice(0, 6) : [];
+    return keyword ? catalogProducts.filter((item) => (item.productId || item.id) !== product?.id && item.name?.toLocaleLowerCase("vi-VN").includes(keyword)).slice(0, 6) : [];
   }, [catalogProducts, product?.id, productSearch]);
   const wished = wishlist.some((item) => item.id === product?.id);
   if (!product) return <main className="detail-loading">Đang tải sản phẩm…</main>;
@@ -93,7 +93,7 @@ export default function ShopProductDetail() {
       <Link to="/shop"><ShoppingBagOutlinedIcon /> NovaShop</Link>
       <div className="detail-search-wrap">
         <label className="detail-search"><SearchOutlinedIcon /><input value={productSearch} onChange={(event) => setProductSearch(event.target.value)} placeholder="Tìm sản phẩm khác..." aria-label="Tìm sản phẩm" /></label>
-        {searchResults.length > 0 && <div className="detail-search-results">{searchResults.map((item) => <Link key={item.id} to={productUrl(item)} onClick={() => setProductSearch("")}><img src={firstImage(item)} alt="" /><span>{item.name}<small>{money(item.price)}</small></span></Link>)}</div>}
+        {searchResults.length > 0 && <div className="detail-search-results">{searchResults.map((item) => <Link key={item.productId || item.id} to={productUrl(item)} onClick={() => setProductSearch("")}><img src={firstImage(item)} alt="" /><span>{item.name}<small>{money(item.price)}</small></span></Link>)}</div>}
       </div>
       <div className="detail-header-actions"><Link className="detail-cart-link" to="/cart"><AddShoppingCartOutlinedIcon /> Giỏ hàng {cartCount > 0 && <b>{cartCount}</b>}</Link><button onClick={() => navigate(-1)}><ArrowBackOutlinedIcon /> Quay lại</button></div>
     </header>

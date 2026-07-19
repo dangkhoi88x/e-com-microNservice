@@ -22,6 +22,7 @@ import CustomerProfile from "../pages/CustomerProfile";
 import CustomerAuth from "../pages/CustomerAuth";
 import ShopWishlist from "../pages/ShopWishlist";
 import ShopHotDeals from "../pages/ShopHotDeals";
+import ShopSearch from "../pages/ShopSearch";
 import ShopStoreHeader from "../components/ShopStoreHeader";
 import "../components/StorefrontLayout.css";
 import { isAuthenticated } from "../services/authenticationService";
@@ -49,6 +50,7 @@ export default function AppRoutes() {
         <Route path="/shop/register" element={<CustomerAuth mode="register" />} />
         <Route path="/shop/wishlist" element={<StorefrontLayout><ShopWishlist /></StorefrontLayout>} />
         <Route path="/shop/hot-deals" element={<StorefrontLayout><ShopHotDeals /></StorefrontLayout>} />
+        <Route path="/shop/search" element={<ShopSearch />} />
         <Route path="/shop/products/:slug" element={<StorefrontLayout showBack><ShopProductDetail /></StorefrontLayout>} />
         <Route path="/shop/categories/:slug" element={<ShopCategory />} />
         <Route path="/shop/orders" element={<PrivateRoute><StorefrontLayout><CustomerOrders /></StorefrontLayout></PrivateRoute>} />

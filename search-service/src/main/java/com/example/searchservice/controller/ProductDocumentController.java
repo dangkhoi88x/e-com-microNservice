@@ -24,6 +24,7 @@ public class ProductDocumentController {
     public ApiResponse<PageResponse<ProductDocument>> searchProducts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q,
             @RequestParam(required = false) String categoryId,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String description,
@@ -33,13 +34,25 @@ public class ProductDocumentController {
             @RequestParam(required = false) Boolean inStock,
             @RequestParam(defaultValue = "createdAt,desc") String sort
     ) {
-        SearchRequest request = new SearchRequest(categoryId, name, description, minPrice, maxPrice, status, inStock);
+        SearchRequest request = new SearchRequest(q, categoryId, name, description, minPrice, maxPrice, status, inStock);
         PageResponse<ProductDocument> data = productDocumentService.getAllWithSearch(page, size, request, sort);
 
         return ApiResponse.<PageResponse<ProductDocument>>builder()
                 .status(HttpStatus.OK.value())
                 .message("Products retrieved successfully")
                 .data(data)
+                .build();
+    }
+
+    @GetMapping("/products/suggestions")
+    public ApiResponse<java.util.List<ProductDocument>> suggestions(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        return ApiResponse.<java.util.List<ProductDocument>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Product suggestions retrieved successfully")
+                .data(productDocumentService.getSuggestions(q, size))
                 .build();
     }
 
@@ -53,7 +66,7 @@ public class ProductDocumentController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Boolean inStock
     ) {
-        SearchRequest request = new SearchRequest(categoryId, name, description, minPrice, maxPrice, status, inStock);
+        SearchRequest request = new SearchRequest(null, categoryId, name, description, minPrice, maxPrice, status, inStock);
         AggregationResponse data = productDocumentService.getAggregations(request);
 
         return ApiResponse.<AggregationResponse>builder()
