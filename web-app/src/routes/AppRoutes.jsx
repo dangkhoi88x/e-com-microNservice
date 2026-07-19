@@ -21,6 +21,9 @@ import MyAccount from "../pages/MyAccount";
 import CustomerProfile from "../pages/CustomerProfile";
 import CustomerAuth from "../pages/CustomerAuth";
 import ShopWishlist from "../pages/ShopWishlist";
+import ShopHotDeals from "../pages/ShopHotDeals";
+import ShopStoreHeader from "../components/ShopStoreHeader";
+import "../components/StorefrontLayout.css";
 import { isAuthenticated } from "../services/authenticationService";
 
 function PrivateRoute({ children }) {
@@ -29,6 +32,10 @@ function PrivateRoute({ children }) {
   }
 
   return children;
+}
+
+function StorefrontLayout({ children, showBack = false }) {
+  return <div className="storefront-layout"><ShopStoreHeader showBack={showBack} />{children}</div>;
 }
 
 export default function AppRoutes() {
@@ -40,11 +47,12 @@ export default function AppRoutes() {
         <Route path="/shop" element={<Shop />} />
         <Route path="/shop/login" element={<CustomerAuth mode="login" />} />
         <Route path="/shop/register" element={<CustomerAuth mode="register" />} />
-        <Route path="/shop/wishlist" element={<ShopWishlist />} />
-        <Route path="/shop/products/:slug" element={<ShopProductDetail />} />
+        <Route path="/shop/wishlist" element={<StorefrontLayout><ShopWishlist /></StorefrontLayout>} />
+        <Route path="/shop/hot-deals" element={<StorefrontLayout><ShopHotDeals /></StorefrontLayout>} />
+        <Route path="/shop/products/:slug" element={<StorefrontLayout showBack><ShopProductDetail /></StorefrontLayout>} />
         <Route path="/shop/categories/:slug" element={<ShopCategory />} />
-        <Route path="/shop/orders" element={<PrivateRoute><CustomerOrders /></PrivateRoute>} />
-        <Route path="/shop/account" element={<PrivateRoute><MyAccount /></PrivateRoute>} />
+        <Route path="/shop/orders" element={<PrivateRoute><StorefrontLayout><CustomerOrders /></StorefrontLayout></PrivateRoute>} />
+        <Route path="/shop/account" element={<PrivateRoute><StorefrontLayout><MyAccount /></StorefrontLayout></PrivateRoute>} />
         <Route path="/shop/account/profile" element={<PrivateRoute><CustomerProfile /></PrivateRoute>} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/cart" element={<Cart />} />

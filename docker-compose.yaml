@@ -37,6 +37,23 @@ services:
     networks:
       - microservice_network
 
+  wishlist-service:
+    build:
+      context: ./wishlist-service
+    container_name: wishlist-service
+    ports:
+      - "8091:8091"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://product-postgres:5432/postgres
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
+      SERVICES_PRODUCT_BASE_URL: http://host.docker.internal:8084
+    depends_on:
+      - product-postgres
+    networks:
+      - microservice_network
+
   redis:
     image: redis:8.6.2
     container_name: redis

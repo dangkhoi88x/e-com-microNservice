@@ -9,7 +9,9 @@ import {
   CreditCard,
   LockKeyhole,
   MapPin,
+  Minus,
   PackageCheck,
+  Plus,
   ShieldCheck,
   TicketPercent,
   Truck,
@@ -19,6 +21,7 @@ import { checkoutOrder } from "../services/orderService";
 import { createPayment } from "../services/paymentService";
 import { isAuthenticated } from "../services/authenticationService";
 import "./Checkout.css";
+import "./CheckoutQuantityEditor.css";
 
 const readCart = () => {
   try {
@@ -39,9 +42,13 @@ const paymentMethods = [
   { value: "COD", title: "Thanh toán khi nhận hàng", description: "Thanh toán bằng tiền mặt khi giao", icon: Truck, mark: "COD" },
 ];
 
+function CheckoutQuantityEditor({ cart, onChange }) {
+  return <div className="checkout-edit-items">{cart.map((item) => <div className="checkout-edit-item" key={item.id}><img src={item.imageUrl || "https://placehold.co/120x120/e7f2f8/3b82c4?text=Nova"} alt={item.name} /><div><h3>{item.name}</h3><strong>{money((item.price || 0) * (item.quantity || 1))}</strong></div><div className="checkout-quantity" aria-label={`Quantity ${item.name}`}><button type="button" onClick={() => onChange(item.id, -1)} disabled={Number(item.quantity || 1) <= 1}><Minus size={13} /></button><b>{item.quantity || 1}</b><button type="button" onClick={() => onChange(item.id, 1)}><Plus size={13} /></button></div></div>)}</div>;
+}
+
 export default function Checkout() {
   const navigate = useNavigate();
-  const [cart] = useState(readCart);
+  const [cart, setCart] = useState(readCart);
   const [method, setMethod] = useState("VNPAY");
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
@@ -68,6 +75,13 @@ export default function Checkout() {
   const applyCoupon = () => {
     if (!coupon.trim()) return;
     setCouponApplied(true);
+  };
+  const changeQuantity = (itemId, amount) => {
+    setCart((current) => {
+      const next = current.map((item) => item.id === itemId ? { ...item, quantity: Math.max(1, Number(item.quantity || 1) + amount) } : item);
+      sessionStorage.setItem("nova-shop-cart", JSON.stringify(next));
+      return next;
+    });
   };
 
   const handleCheckout = async (event) => {
@@ -158,6 +172,7 @@ export default function Checkout() {
 
           <aside className="checkout-summary-wrap">
             <section className="checkout-summary">
+              <CheckoutQuantityEditor cart={cart} onChange={changeQuantity} />
               <div className="checkout-summary-head"><div><p>Đơn hàng của bạn</p><h2>{cart.length} sản phẩm</h2></div><Link to="/shop">Chỉnh sửa</Link></div>
               <div className="checkout-items">
                 {cart.map((item) => <div className="checkout-item" key={item.id}><div className="checkout-item-image"><img src={item.imageUrl || "https://placehold.co/120x120/e7f2f8/3b82c4?text=Nova"} alt={item.name} /><b>×{item.quantity}</b></div><div><h3>{item.name}</h3><p>{item.categoryName || "NovaShop selection"}</p><strong>{money((item.price || 0) * (item.quantity || 1))}</strong></div></div>)}
