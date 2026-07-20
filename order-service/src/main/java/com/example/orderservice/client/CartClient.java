@@ -18,12 +18,16 @@ public class CartClient {
         return response == null || response.data() == null ? List.of() : response.data();
     }
     public void mark(String userId, String orderId, List<String> itemIds) { post(userId, "/checkout", new CheckoutRequest(orderId, itemIds)); }
-    public void finalize(String userId, String orderId) { post(userId, "/checkout/" + orderId + "/finalize", null); }
-    public void release(String userId, String orderId) { post(userId, "/checkout/" + orderId + "/release", null); }
+    public void finalize(String orderId) { postOrder(orderId, "/finalize"); }
+    public void release(String orderId) { postOrder(orderId, "/release"); }
     private void post(String userId, String suffix, Object body) {
         WebClient.RequestBodySpec request = webClientBuilder.build().post().uri(BASE + suffix, userId);
         if (body != null) request.bodyValue(body);
         request.retrieve().toBodilessEntity().block();
+    }
+    private void postOrder(String orderId, String suffix) {
+        webClientBuilder.build().post().uri("http://CART-SERVICE/internal/cart/" + orderId + suffix)
+                .retrieve().toBodilessEntity().block();
     }
     private record ApiResponse<T>(T data) {}
     public record CartItem(String id, String productId, String variantId, Integer quantity) {}

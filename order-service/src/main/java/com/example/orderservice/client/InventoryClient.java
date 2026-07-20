@@ -33,4 +33,22 @@ public class InventoryClient {
                 .toBodilessEntity()
                 .block();
     }
+
+    public void confirmInventory(InventoryOrderRequest request) {
+        postInternal("/confirm", request);
+    }
+
+    public void releaseInventory(InventoryOrderRequest request) {
+        postInternal("/release", request);
+    }
+
+    private void postInternal(String path, InventoryOrderRequest request) {
+        webClientBuilder.build()
+                .post()
+                .uri("http://INVENTORY-SERVICE/internal/inventory" + path)
+                .bodyValue(request)
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+    }
 }

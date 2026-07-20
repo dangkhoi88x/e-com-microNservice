@@ -11,6 +11,7 @@ import Payments from "../pages/Payments";
 import Categories from "../pages/Categories";
 import Profile from "../pages/Profile";
 import Notifications from "../pages/Notifications";
+import Promotions from "../pages/Promotions";
 import Shop from "../pages/Shop";
 import ShopProductDetail from "../pages/ShopProductDetail";
 import Checkout from "../pages/Checkout";
@@ -136,6 +137,15 @@ export default function AppRoutes() {
           element={
             <PrivateRoute>
               <Payments />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/promotions"
+          element={
+            <PrivateRoute>
+              <Promotions />
             </PrivateRoute>
           }
         />

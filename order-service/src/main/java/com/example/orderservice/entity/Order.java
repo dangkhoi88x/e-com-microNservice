@@ -43,6 +43,17 @@ public class Order extends BaseEntity {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal totalAmount;
 
+    @Builder.Default
+    @Column(nullable = false, precision = 19, scale = 2, columnDefinition = "numeric(19,2) default 0")
+    private BigDecimal subtotalAmount = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(nullable = false, precision = 19, scale = 2, columnDefinition = "numeric(19,2) default 0")
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    @Column(length = 60)
+    private String promotionCode;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;

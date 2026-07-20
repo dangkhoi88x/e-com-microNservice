@@ -18,6 +18,7 @@
         <option value="$PROJECT_DIR$/cart-service/pom.xml" />
         <option value="$PROJECT_DIR$/wishlist-service/pom.xml" />
         <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/promotion-service/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">

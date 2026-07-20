@@ -1,0 +1,23 @@
+package com.example.promotionservice.exception;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+
+@Getter
+@RequiredArgsConstructor
+public enum ErrorCode {
+    PROMOTION_NOT_FOUND(404, "Promotion campaign not found", HttpStatus.NOT_FOUND),
+    PROMOTION_CODE_EXISTS(409, "Promotion code already exists", HttpStatus.CONFLICT),
+    PROMOTION_NOT_ACTIVE(400, "Promotion campaign is not active", HttpStatus.BAD_REQUEST),
+    PROMOTION_EXPIRED(400, "Promotion campaign has expired", HttpStatus.BAD_REQUEST),
+    PROMOTION_MIN_ORDER_NOT_MET(400, "Order subtotal does not meet the promotion minimum", HttpStatus.BAD_REQUEST),
+    INVALID_PROMOTION_PERIOD(400, "endAt must be after startAt", HttpStatus.BAD_REQUEST),
+    PROMOTION_USAGE_LIMIT_REACHED(400, "Promotion usage limit has been reached", HttpStatus.BAD_REQUEST),
+    INVALID_REQUEST(400, "Request validation failed", HttpStatus.BAD_REQUEST),
+    INTERNAL_ERROR(500, "Unexpected error occurred while processing promotion", HttpStatus.INTERNAL_SERVER_ERROR);
+
+    private final int code;
+    private final String message;
+    private final HttpStatus httpStatus;
+}

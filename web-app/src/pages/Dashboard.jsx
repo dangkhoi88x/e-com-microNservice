@@ -25,6 +25,7 @@ import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
+import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
@@ -143,6 +144,14 @@ const templateCards = [
     className: "template-orange",
     icon: <PaymentsOutlinedIcon />,
     label: "Finance",
+  },
+  {
+    title: "Promotion engine",
+    description: "Create vouchers and manage campaign availability",
+    path: "/promotions",
+    className: "template-blue",
+    icon: <LocalOfferOutlinedIcon />,
+    label: "Promotions",
   },
 ];
 

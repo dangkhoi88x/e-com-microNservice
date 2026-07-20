@@ -17,4 +17,6 @@ public interface CartService {
     void markCheckout(String userId, CartCheckoutRequest request);
     void finalizeCheckout(String userId, String orderId);
     void releaseCheckout(String userId, String orderId);
+    void finalizeCheckout(String orderId);
+    void releaseCheckout(String orderId);
 }

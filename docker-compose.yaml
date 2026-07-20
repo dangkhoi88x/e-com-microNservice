@@ -23,6 +23,42 @@ services:
       - "5435:5432"
     volumes:
       - inventory_postgres_data:/var/lib/postgresql/data
+
+  promotion-postgres:
+    image: postgres:17
+    container_name: promotion-postgres
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_DB: promotion_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - promotion-postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservice_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d promotion_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  promotion-service:
+    build:
+      context: ./promotion-service
+    container_name: promotion-service
+    ports:
+      - "8094:8095"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://promotion-postgres:5432/promotion_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
+    depends_on:
+      promotion-postgres:
+        condition: service_healthy
+    networks:
+      - microservice_network
   identity-postgres:
     image: postgres:17
     container_name: identity-postgres
@@ -42,7 +78,7 @@ services:
       context: ./wishlist-service
     container_name: wishlist-service
     ports:
-      - "8091:8091"
+      - "8092:8092"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://product-postgres:5432/postgres
       SPRING_DATASOURCE_USERNAME: root
@@ -164,5 +200,6 @@ volumes:
   kafka-data:
   elasticsearch_data:
   inventory_postgres_data:
+  promotion-postgres-data:
 networks:
   microservice_network:

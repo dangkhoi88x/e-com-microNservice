@@ -139,6 +139,30 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
     }
 
+    /**
+     * Payment events carry an order id, not a cart owner. An empty result is
+     * deliberately successful so duplicate events cannot delete items twice.
+     */
+    @Override
+    public void finalizeCheckout(String orderId) {
+        List<CartItem> items = cartItemRepository.findByCheckoutOrderId(orderId);
+        if (items.isEmpty()) {
+            return;
+        }
+        cartItemRepository.deleteAll(items);
+    }
+
+    /** Idempotently unlocks only the cart items associated with this order. */
+    @Override
+    public void releaseCheckout(String orderId) {
+        List<CartItem> items = cartItemRepository.findByCheckoutOrderId(orderId);
+        if (items.isEmpty()) {
+            return;
+        }
+        items.forEach(item -> item.setCheckoutOrderId(null));
+        cartItemRepository.saveAll(items);
+    }
+
     private Cart findActiveCartOrCreate(String userId) {
         return cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
                 .orElseGet(() -> cartRepository.save(Cart.builder()

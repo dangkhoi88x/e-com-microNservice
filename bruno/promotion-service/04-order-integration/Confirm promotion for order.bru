@@ -1,0 +1,20 @@
+meta {
+  name: Confirm promotion for order
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{promotionUrl}}/internal/promotions/confirm
+  body: json
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "orderId": "{{orderId}}"
+  }
+}

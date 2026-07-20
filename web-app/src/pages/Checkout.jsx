@@ -58,8 +58,7 @@ export default function Checkout() {
 
   const subtotal = useMemo(() => cart.reduce((total, item) => total + (item.price || 0) * (item.quantity || 1), 0), [cart]);
   const shipping = subtotal > 0 ? 30000 : 0;
-  const discount = couponApplied ? Math.min(Math.round(subtotal * 0.05), 100000) : 0;
-  const total = Math.max(0, subtotal + shipping - discount);
+  const total = Math.max(0, subtotal + shipping);
   const selectedPayment = paymentMethods.find((item) => item.value === method);
 
   const update = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -98,7 +97,10 @@ export default function Checkout() {
 
     setSubmitting(true);
     try {
-      const order = await checkoutOrder({ shippingAddress });
+      const order = await checkoutOrder({
+        shippingAddress,
+        campaignCode: couponApplied ? coupon : null,
+      });
       if (order?.status !== "PENDING_PAYMENT") {
         throw new Error(order?.status === "INVENTORY_FAILED"
           ? "Một số sản phẩm không còn đủ tồn kho. Vui lòng điều chỉnh giỏ hàng rồi thử lại."
@@ -183,8 +185,8 @@ export default function Checkout() {
                 {cart.map((item) => <div className="checkout-item" key={item.id}><div className="checkout-item-image"><img src={item.imageUrl || "https://placehold.co/120x120/e7f2f8/3b82c4?text=Nova"} alt={item.productName} /><b>×{item.quantity}</b></div><div><h3>{item.productName}</h3><p>{item.variantName || "NovaShop selection"}</p><strong>{money((item.price || 0) * (item.quantity || 1))}</strong></div></div>)}
               </div>
               <div className="checkout-coupon"><TicketPercent size={18} /><input value={coupon} onChange={(event) => { setCoupon(event.target.value); setCouponApplied(false); }} placeholder="Mã ưu đãi" /><button type="button" onClick={applyCoupon}>Áp dụng</button></div>
-              {couponApplied && <p className="checkout-coupon-success"><Check size={14} /> Đã áp dụng ưu đãi 5% (tối đa 100.000 ₫).</p>}
-              <div className="checkout-cost"><div><span>Tạm tính</span><b>{money(subtotal)}</b></div><div><span>Phí vận chuyển</span><b>{money(shipping)}</b></div>{discount > 0 && <div className="discount"><span>Ưu đãi</span><b>−{money(discount)}</b></div>}<div className="checkout-total"><span>Tổng thanh toán</span><b>{money(total)}</b></div></div>
+              {couponApplied && <p className="checkout-coupon-success"><Check size={14} /> Mã ưu đãi sẽ được xác thực khi tạo đơn hàng.</p>}
+              <div className="checkout-cost"><div><span>Tạm tính</span><b>{money(subtotal)}</b></div><div><span>Phí vận chuyển</span><b>{money(shipping)}</b></div><div className="checkout-total"><span>Tổng tạm tính</span><b>{money(total)}</b></div></div>
               {notice && <div className="checkout-notice"><CircleAlert size={18} /> {notice}</div>}
               <button className="checkout-pay" type="submit" disabled={submitting}><LockKeyhole size={18} /> {submitting ? "Đang khởi tạo đơn hàng..." : `Xác nhận & thanh toán · ${money(total)}`}</button>
               <div className="checkout-protection"><ShieldCheck size={19} /><p><b>Mua sắm an tâm</b><br />Đơn hàng được bảo vệ và thông tin thanh toán được mã hoá.</p></div>
