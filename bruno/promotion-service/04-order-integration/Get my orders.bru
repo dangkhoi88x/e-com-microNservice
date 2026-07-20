@@ -1,0 +1,13 @@
+meta {
+  name: Get my orders
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{gatewayUrl}}/order/api/v1/orders/my-orders?page=1&size=20
+}
+
+headers {
+  authorization: Bearer {{accessToken}}
+}

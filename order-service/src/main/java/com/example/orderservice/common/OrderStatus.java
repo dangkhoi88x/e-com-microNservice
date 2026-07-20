@@ -4,6 +4,7 @@ public enum OrderStatus {
     PENDING,
     PENDING_PAYMENT,
     INVENTORY_FAILED,
+    PROMOTION_FAILED,
     CONFIRMED,
     SHIPPING,
     COMPLETED,

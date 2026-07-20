@@ -42,9 +42,10 @@ export const updateOrderStatus = async (id, status) => {
   return response.data?.data;
 };
 
-export const checkoutOrder = async ({ shippingAddress }) => {
+export const checkoutOrder = async ({ shippingAddress, campaignCode }) => {
   const response = await httpClient.post(`${API.ORDERS}/checkout`, {
     shippingAddress,
+    campaignCode: campaignCode?.trim() || null,
   });
 
   return response.data?.data;

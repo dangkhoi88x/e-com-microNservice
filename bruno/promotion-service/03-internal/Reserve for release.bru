@@ -1,0 +1,23 @@
+meta {
+  name: Reserve for release
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{promotionUrl}}/internal/promotions/reserve
+  body: json
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "campaignCode": "{{campaignCode}}",
+    "userId": "{{userId}}",
+    "orderId": "{{releaseOrderId}}",
+    "subtotalAmount": 1000000
+  }
+}

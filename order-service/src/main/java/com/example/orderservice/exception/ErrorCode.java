@@ -15,7 +15,10 @@ public enum ErrorCode {
     ORDER_ACCESS_DENIED(403, "Order Access Denied", HttpStatus.FORBIDDEN),
     INVENTORY_RESERVATION_FAILED(409, "Inventory reservation failed", HttpStatus.CONFLICT),
     ORDER_CANNOT_BE_CANCELLED(400, "Order cannot be cancelled", HttpStatus.BAD_REQUEST),
-    CART_CHECKOUT_EMPTY(400, "No selected cart items available for checkout", HttpStatus.BAD_REQUEST);
+    CART_CHECKOUT_EMPTY(400, "No selected cart items available for checkout", HttpStatus.BAD_REQUEST),
+    PROMOTION_NOT_APPLICABLE(400, "Promotion is invalid or not applicable", HttpStatus.BAD_REQUEST),
+    PROMOTION_SERVICE_UNAVAILABLE(503, "Promotion Service Unavailable", HttpStatus.SERVICE_UNAVAILABLE),
+    PROMOTION_RESERVATION_FAILED(409, "Promotion reservation failed", HttpStatus.CONFLICT);
 
     private final int code;
     private final String message;

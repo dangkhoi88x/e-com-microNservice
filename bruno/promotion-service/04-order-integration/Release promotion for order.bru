@@ -1,0 +1,20 @@
+meta {
+  name: Release promotion for order
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{promotionUrl}}/internal/promotions/release
+  body: json
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "orderId": "{{orderId}}"
+  }
+}

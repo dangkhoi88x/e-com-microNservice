@@ -1,0 +1,13 @@
+meta {
+  name: List campaigns
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{gatewayUrl}}/api/v1/promotions/campaigns?page=1&size=20
+}
+
+headers {
+  authorization: Bearer {{accessToken}}
+}

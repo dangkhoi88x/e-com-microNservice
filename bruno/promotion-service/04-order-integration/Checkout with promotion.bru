@@ -1,0 +1,29 @@
+meta {
+  name: Checkout with promotion
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{gatewayUrl}}/order/api/v1/orders/checkout
+  body: json
+}
+
+headers {
+  authorization: Bearer {{accessToken}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "shippingAddress": "123 Nguyen Trai, Quan 1, TP.HCM",
+    "campaignCode": "{{campaignCode}}"
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body?.data?.id) {
+    bru.setVar("orderId", body.data.id);
+  }
+}

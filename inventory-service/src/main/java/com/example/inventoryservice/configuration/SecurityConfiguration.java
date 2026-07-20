@@ -37,6 +37,7 @@ public class SecurityConfiguration {
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/internal/inventory/**").permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET_MATCHERS).permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_POST_MATCHERS).permitAll()
                         .anyRequest().authenticated())

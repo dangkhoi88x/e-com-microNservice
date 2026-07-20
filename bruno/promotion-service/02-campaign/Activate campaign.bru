@@ -1,0 +1,34 @@
+meta {
+  name: Activate campaign
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{gatewayUrl}}/api/v1/promotions/campaigns/{{campaignId}}
+  body: json
+}
+
+headers {
+  authorization: Bearer {{accessToken}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "name": "NovaShop Summer 20",
+    "description": "Promotion test for checkout integration",
+    "type": "PERCENTAGE",
+    "discountValue": 20,
+    "maxDiscountAmount": 100000,
+    "minOrderAmount": 500000,
+    "startAt": "2026-07-01T00:00:00Z",
+    "endAt": "2026-12-31T23:59:59Z",
+    "usageLimit": 100,
+    "applicableCategoryIds": [],
+    "applicableProductIds": [],
+    "priority": 1,
+    "stackable": false,
+    "status": "ACTIVE"
+  }
+}

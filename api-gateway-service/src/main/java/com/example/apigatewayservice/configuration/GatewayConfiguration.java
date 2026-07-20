@@ -40,6 +40,8 @@ public class GatewayConfiguration {
                 .route("payment-service", r -> r.path("/payment/**")
                         .filters(f -> f.stripPrefix(1))
                         .uri("lb://PAYMENT-SERVICE"))
+                .route("promotion-service", r -> r.path("/api/v1/promotions/**")
+                        .uri("lb://PROMOTION-SERVICE"))
                 .build();
     }
 

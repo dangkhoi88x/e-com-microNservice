@@ -1,0 +1,23 @@
+meta {
+  name: Reserve
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{promotionUrl}}/internal/promotions/reserve
+  body: json
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "campaignCode": "{{campaignCode}}",
+    "userId": "{{userId}}",
+    "orderId": "{{confirmOrderId}}",
+    "subtotalAmount": 1000000
+  }
+}

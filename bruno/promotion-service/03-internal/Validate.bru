@@ -1,0 +1,21 @@
+meta {
+  name: Validate
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{promotionUrl}}/internal/promotions/validate
+  body: json
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "campaignCode": "{{campaignCode}}",
+    "subtotalAmount": 1000000
+  }
+}

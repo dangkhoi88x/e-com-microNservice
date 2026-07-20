@@ -12,6 +12,7 @@ import com.example.event.PaymentSuccessEvent;
 import com.example.orderservice.client.InventoryClient;
 import com.example.orderservice.client.CartClient;
 import com.example.orderservice.client.ProductClient;
+import com.example.orderservice.client.PromotionClient;
 import com.example.orderservice.common.OrderStatus;
 import com.example.orderservice.dto.request.CreateOrderRequest;
 import com.example.orderservice.dto.request.CheckoutOrderRequest;
@@ -23,6 +24,7 @@ import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.PageResponse;
 import com.example.orderservice.dto.response.ProductDetailResponse;
 import com.example.orderservice.dto.response.ProductVariantResponse;
+import com.example.orderservice.dto.response.PromotionCalculationResponse;
 import com.example.orderservice.entity.Order;
 import com.example.orderservice.entity.OrderItem;
 import com.example.orderservice.exception.ErrorCode;
@@ -69,16 +71,23 @@ public class OrderServiceImpl implements OrderService {
     private final ProductClient productClient;
     private final InventoryClient inventoryClient;
     private final CartClient cartClient;
+    private final PromotionClient promotionClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
     @Transactional
     public OrderResponse createOrder(String userId, CreateOrderRequest request, String token) {
+        return createOrder(userId, request, token, null);
+    }
+
+    private OrderResponse createOrder(String userId, CreateOrderRequest request, String token, String campaignCode) {
         Order order = Order.builder()
                 .orderCode(generateOrderCode())
                 .userId(userId)
                 .shippingAddress(request.shippingAddress())
                 .status(OrderStatus.PENDING)
+                .subtotalAmount(BigDecimal.ZERO)
+                .discountAmount(BigDecimal.ZERO)
                 .totalAmount(BigDecimal.ZERO)
                 .build();
 
@@ -117,22 +126,41 @@ public class OrderServiceImpl implements OrderService {
             totalAmount = totalAmount.add(subtotal);
         }
 
+        order.setSubtotalAmount(totalAmount);
+        order.setDiscountAmount(BigDecimal.ZERO);
         order.setTotalAmount(totalAmount);
+
+        if (hasPromotion(campaignCode)) {
+            PromotionCalculationResponse promotion = promotionClient.validate(campaignCode, totalAmount);
+            order.setPromotionCode(promotion.campaignCode());
+            order.setDiscountAmount(promotion.discountAmount());
+            order.setTotalAmount(promotion.finalAmount());
+        }
 
         Order savedOrder = orderRepository.saveAndFlush(order);
         OrderStatus oldStatus = savedOrder.getStatus();
+        boolean inventoryReserved = false;
 
         try {
             reserveInventory(savedOrder, token);
+            inventoryReserved = true;
+            if (hasPromotion(savedOrder.getPromotionCode())) {
+                promotionClient.reserve(savedOrder.getPromotionCode(), userId, savedOrder.getId(), savedOrder.getSubtotalAmount());
+            }
             savedOrder.setStatus(OrderStatus.PENDING_PAYMENT);
             Order reservedOrder = orderRepository.save(savedOrder);
             publishOrderStatusUpdatedEvent(reservedOrder, oldStatus);
             publishOrderCreatedEvent(reservedOrder);
             return toOrderResponse(reservedOrder);
         } catch (RuntimeException exception) {
-            log.error("Failed to reserve inventory for order: orderId={}", savedOrder.getId(), exception);
-
-            savedOrder.setStatus(OrderStatus.INVENTORY_FAILED);
+            log.error("Failed to prepare checkout resources: orderId={}", savedOrder.getId(), exception);
+            if (inventoryReserved) {
+                safeReleaseInventory(savedOrder, token);
+                safeReleasePromotion(savedOrder);
+            }
+            savedOrder.setStatus(inventoryReserved && hasPromotion(savedOrder.getPromotionCode())
+                    ? OrderStatus.PROMOTION_FAILED
+                    : OrderStatus.INVENTORY_FAILED);
             Order failedOrder = orderRepository.save(savedOrder);
             publishOrderStatusUpdatedEvent(failedOrder, oldStatus);
 
@@ -213,6 +241,8 @@ public class OrderServiceImpl implements OrderService {
 
         if (order.getStatus() == OrderStatus.PENDING_PAYMENT) {
             releaseInventory(order, token);
+            safeReleasePromotion(order);
+            cartClient.release(order.getId());
         }
 
         order.setStatus(OrderStatus.CANCELLED);
@@ -259,6 +289,7 @@ public class OrderServiceImpl implements OrderService {
                 : OrderStatus.CONFIRMED;
 
         if (order.getStatus() == targetStatus) {
+            finalizePaymentSuccess(order);
             log.info("Skip payment success because order is already {}: orderId={}, paymentId={}",
                     targetStatus,
                     event.getOrderId(),
@@ -282,7 +313,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(targetStatus);
         Order savedOrder = orderRepository.save(order);
         publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
-        cartClient.finalize(savedOrder.getUserId(), savedOrder.getId());
+        finalizePaymentSuccess(savedOrder);
 
         log.info("Order {} from payment success: orderId={}, paymentId={}", targetStatus,
                 event.getOrderId(),
@@ -306,6 +337,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
 
         if (order.getStatus() == OrderStatus.CANCELLED) {
+            releasePaymentReservations(order);
             log.info("Skip payment {} because order is already cancelled: orderId={}, paymentId={}",
                     paymentStatus,
                     orderId,
@@ -327,7 +359,7 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
         publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
         publishOrderCancelledEvent(savedOrder);
-        cartClient.release(savedOrder.getUserId(), savedOrder.getId());
+        releasePaymentReservations(savedOrder);
 
         log.info("Order cancelled from payment {}: orderId={}, paymentId={}",
                 paymentStatus,
@@ -352,6 +384,9 @@ public class OrderServiceImpl implements OrderService {
                 order.getId(),
                 order.getOrderCode(),
                 order.getUserId(),
+                order.getSubtotalAmount(),
+                order.getDiscountAmount(),
+                order.getPromotionCode(),
                 order.getTotalAmount(),
                 order.getStatus().name(),
                 order.getShippingAddress(),
@@ -425,12 +460,57 @@ public class OrderServiceImpl implements OrderService {
         inventoryClient.releaseInventory(new InventoryOrderRequest(order.getId()), token);
     }
 
+    private boolean hasPromotion(String promotionCode) {
+        return promotionCode != null && !promotionCode.isBlank();
+    }
+
+    private void safeReleaseInventory(Order order, String token) {
+        try {
+            releaseInventory(order, token);
+        } catch (RuntimeException releaseException) {
+            log.error("Failed to compensate inventory reservation: orderId={}", order.getId(), releaseException);
+        }
+    }
+
+    private void safeReleasePromotion(Order order) {
+        if (!hasPromotion(order.getPromotionCode())) return;
+        try {
+            promotionClient.release(order.getId());
+        } catch (RuntimeException releaseException) {
+            log.error("Failed to release promotion reservation: orderId={}", order.getId(), releaseException);
+        }
+    }
+
+    /**
+     * All downstream operations are idempotent by orderId. Re-running a Kafka
+     * payment-success record therefore completes any previously interrupted step.
+     */
+    private void finalizePaymentSuccess(Order order) {
+        if (hasPromotion(order.getPromotionCode())) {
+            promotionClient.confirm(order.getId());
+        }
+        inventoryClient.confirmInventory(new InventoryOrderRequest(order.getId()));
+        cartClient.finalize(order.getId());
+    }
+
+    /**
+     * Failed/cancelled payment returns every reservation and unlocks only the
+     * cart items that belong to this order's checkout session.
+     */
+    private void releasePaymentReservations(Order order) {
+        if (hasPromotion(order.getPromotionCode())) {
+            promotionClient.release(order.getId());
+        }
+        inventoryClient.releaseInventory(new InventoryOrderRequest(order.getId()));
+        cartClient.release(order.getId());
+    }
+
     @Override
     public OrderResponse checkout(String userId, CheckoutOrderRequest request, String token) {
         List<CartClient.CartItem> items = cartClient.checkoutItems(userId);
         if (items.isEmpty()) throw new OrderServiceException(ErrorCode.CART_CHECKOUT_EMPTY);
         OrderResponse order = createOrder(userId, new CreateOrderRequest(request.shippingAddress(), items.stream()
-                .map(item -> new com.example.orderservice.dto.request.OrderItemRequest(item.productId(), item.variantId(), item.quantity())).toList()), token);
+                .map(item -> new com.example.orderservice.dto.request.OrderItemRequest(item.productId(), item.variantId(), item.quantity())).toList()), token, request.campaignCode());
         if (OrderStatus.PENDING_PAYMENT.name().equals(order.status())) {
             cartClient.mark(userId, order.id(), items.stream().map(CartClient.CartItem::id).toList());
         }

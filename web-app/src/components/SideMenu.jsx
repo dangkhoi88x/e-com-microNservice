@@ -20,6 +20,7 @@ import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import LocalFireDepartmentOutlinedIcon from "@mui/icons-material/LocalFireDepartmentOutlined";
+import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
@@ -34,7 +35,7 @@ import { logout } from "../services/authenticationService";
 
 const menuGroups = [
   { label: "Workspace", items: [{ label: "Dashboard", path: "/dashboard", icon: <DashboardOutlinedIcon /> }, { label: "Analytics", path: "/orders", icon: <AnalyticsOutlinedIcon />, badge: "Live" }] },
-  { label: "Store service", items: [{ label: "Products", path: "/products", icon: <Inventory2OutlinedIcon /> }, { label: "Categories", path: "/categories", icon: <CategoryOutlinedIcon />, badge: "" }, { label: "Search", path: "/search", icon: <SearchOutlinedIcon /> }, { label: "Orders", path: "/orders", icon: <ShoppingBagOutlinedIcon /> }, { label: "Payments", path: "/payments", icon: <PaymentsOutlinedIcon /> }] },
+  { label: "Store service", items: [{ label: "Products", path: "/products", icon: <Inventory2OutlinedIcon /> }, { label: "Categories", path: "/categories", icon: <CategoryOutlinedIcon />, badge: "" }, { label: "Promotions", path: "/promotions", icon: <LocalOfferOutlinedIcon /> }, { label: "Search", path: "/search", icon: <SearchOutlinedIcon /> }, { label: "Orders", path: "/orders", icon: <ShoppingBagOutlinedIcon /> }, { label: "Payments", path: "/payments", icon: <PaymentsOutlinedIcon /> }] },
   { label: "Account", items: [{ label: "Notifications", path: "/notifications", icon: <NotificationsNoneOutlinedIcon /> }, { label: "Profile", path: "/profile", icon: <PersonOutlineOutlinedIcon /> }, { label: "Settings", path: "/profile", icon: <SettingsOutlinedIcon /> }] },
 ];
 

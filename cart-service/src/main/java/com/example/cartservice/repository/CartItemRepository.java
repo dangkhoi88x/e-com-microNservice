@@ -4,6 +4,7 @@ import com.example.cartservice.entity.CartItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 public interface CartItemRepository extends JpaRepository<CartItem, UUID> {
@@ -13,4 +14,6 @@ public interface CartItemRepository extends JpaRepository<CartItem, UUID> {
             String productId,
             String variantId
     );
+
+    List<CartItem> findByCheckoutOrderId(String checkoutOrderId);
 }
