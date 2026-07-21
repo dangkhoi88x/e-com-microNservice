@@ -18,6 +18,8 @@ public interface OrderService {
 
     PageResponse<OrderResponse> getAllOrders(int page, int size);
 
+    PageResponse<OrderResponse> getOrdersByPromotionCode(String promotionCode, int page, int size);
+
     OrderResponse getOrderDetail(String userId, String orderId);
 
     OrderResponse getOrderDetailForAdmin(String orderId);

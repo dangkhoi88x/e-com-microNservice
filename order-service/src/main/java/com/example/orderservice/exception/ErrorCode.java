@@ -18,7 +18,8 @@ public enum ErrorCode {
     CART_CHECKOUT_EMPTY(400, "No selected cart items available for checkout", HttpStatus.BAD_REQUEST),
     PROMOTION_NOT_APPLICABLE(400, "Promotion is invalid or not applicable", HttpStatus.BAD_REQUEST),
     PROMOTION_SERVICE_UNAVAILABLE(503, "Promotion Service Unavailable", HttpStatus.SERVICE_UNAVAILABLE),
-    PROMOTION_RESERVATION_FAILED(409, "Promotion reservation failed", HttpStatus.CONFLICT);
+    PROMOTION_RESERVATION_FAILED(409, "Promotion reservation failed", HttpStatus.CONFLICT),
+    FLASH_SALE_RESERVATION_FAILED(409, "Flash Sale is no longer available", HttpStatus.CONFLICT);
 
     private final int code;
     private final String message;

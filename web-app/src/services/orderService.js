@@ -25,6 +25,13 @@ export const getAllOrders = async (params = {}) => {
   return response.data?.data || defaultPage(params);
 };
 
+export const getOrdersByPromotionCode = async (promotionCode, params = {}) => {
+  const response = await httpClient.get(`${API.ORDERS}/by-promotion`, {
+    params: { ...params, promotionCode },
+  });
+  return response.data?.data || defaultPage(params);
+};
+
 export const getOrderDetail = async (id) => {
   const response = await httpClient.get(`${API.ORDERS}/${id}`);
   return response.data?.data;

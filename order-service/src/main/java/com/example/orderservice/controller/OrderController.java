@@ -71,6 +71,21 @@ public class OrderController {
                 .build();
     }
 
+    @GetMapping("/by-promotion")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    public ApiResponse<PageResponse<OrderResponse>> getOrdersByPromotion(
+            @RequestParam String promotionCode,
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "10") int size
+    ) {
+        PageResponse<OrderResponse> data = orderService.getOrdersByPromotionCode(promotionCode, page, size);
+        return ApiResponse.<PageResponse<OrderResponse>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Orders using promotion retrieved successfully")
+                .data(data)
+                .build();
+    }
+
     @GetMapping("/my-orders")
     public ApiResponse<PageResponse<OrderResponse>> getMyOrders(
             @AuthenticationPrincipal Jwt jwt,

@@ -45,6 +45,9 @@ public class OrderItem extends BaseEntity {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal price;
 
+    @Column(precision = 19, scale = 2)
+    private BigDecimal originalPrice;
+
     @Column(nullable = false)
     private Integer quantity;
 

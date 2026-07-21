@@ -118,6 +118,7 @@ public class OrderServiceImpl implements OrderService {
                     .variantId(variant != null ? variant.id() : null)
                     .productName(itemName)
                     .price(itemPrice)
+                    .originalPrice(itemPrice)
                     .quantity(itemRequest.quantity())
                     .subtotal(subtotal)
                     .build();
@@ -130,20 +131,25 @@ public class OrderServiceImpl implements OrderService {
         order.setDiscountAmount(BigDecimal.ZERO);
         order.setTotalAmount(totalAmount);
 
-        if (hasPromotion(campaignCode)) {
-            PromotionCalculationResponse promotion = promotionClient.validate(campaignCode, totalAmount);
-            order.setPromotionCode(promotion.campaignCode());
-            order.setDiscountAmount(promotion.discountAmount());
-            order.setTotalAmount(promotion.finalAmount());
-        }
-
         Order savedOrder = orderRepository.saveAndFlush(order);
         OrderStatus oldStatus = savedOrder.getStatus();
         boolean inventoryReserved = false;
+        boolean flashDealsReserved = false;
 
         try {
             reserveInventory(savedOrder, token);
             inventoryReserved = true;
+            List<PromotionClient.FlashDealItemRequest> flashItems = savedOrder.getItems().stream()
+                    .map(item -> new PromotionClient.FlashDealItemRequest(item.getProductId(), item.getVariantId(), item.getQuantity())).toList();
+            List<com.example.orderservice.dto.response.FlashDealPriceResponse> flashPrices = promotionClient.reserveFlashDeals(savedOrder.getId(), flashItems);
+            flashDealsReserved = !flashPrices.isEmpty();
+            applyFlashDealPrices(savedOrder, flashPrices);
+            if (hasPromotion(campaignCode)) {
+                PromotionCalculationResponse promotion = promotionClient.validate(campaignCode, savedOrder.getSubtotalAmount());
+                savedOrder.setPromotionCode(promotion.campaignCode());
+                savedOrder.setDiscountAmount(promotion.discountAmount());
+                savedOrder.setTotalAmount(promotion.finalAmount());
+            }
             if (hasPromotion(savedOrder.getPromotionCode())) {
                 promotionClient.reserve(savedOrder.getPromotionCode(), userId, savedOrder.getId(), savedOrder.getSubtotalAmount());
             }
@@ -158,6 +164,7 @@ public class OrderServiceImpl implements OrderService {
                 safeReleaseInventory(savedOrder, token);
                 safeReleasePromotion(savedOrder);
             }
+            if (flashDealsReserved) safeReleaseFlashDeals(savedOrder);
             savedOrder.setStatus(inventoryReserved && hasPromotion(savedOrder.getPromotionCode())
                     ? OrderStatus.PROMOTION_FAILED
                     : OrderStatus.INVENTORY_FAILED);
@@ -194,6 +201,22 @@ public class OrderServiceImpl implements OrderService {
                 .map(this::toOrderResponse)
                 .toList();
 
+        return toPageResponse(orderPage, content);
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @Transactional(readOnly = true)
+    public PageResponse<OrderResponse> getOrdersByPromotionCode(String promotionCode, int page, int size) {
+        if (promotionCode == null || promotionCode.isBlank()) {
+            throw new OrderServiceException(ErrorCode.PROMOTION_NOT_APPLICABLE);
+        }
+        Pageable pageable = createOrderPageable(page, size);
+        Page<Order> orderPage = orderRepository.findByPromotionCodeIgnoreCase(promotionCode.trim(), pageable);
+        List<OrderResponse> content = orderPage.getContent()
+                .stream()
+                .map(this::toOrderResponse)
+                .toList();
         return toPageResponse(orderPage, content);
     }
 
@@ -242,6 +265,7 @@ public class OrderServiceImpl implements OrderService {
         if (order.getStatus() == OrderStatus.PENDING_PAYMENT) {
             releaseInventory(order, token);
             safeReleasePromotion(order);
+            safeReleaseFlashDeals(order);
             cartClient.release(order.getId());
         }
 
@@ -486,6 +510,7 @@ public class OrderServiceImpl implements OrderService {
      * payment-success record therefore completes any previously interrupted step.
      */
     private void finalizePaymentSuccess(Order order) {
+        if (hasFlashDeal(order)) promotionClient.confirmFlashDeals(order.getId());
         if (hasPromotion(order.getPromotionCode())) {
             promotionClient.confirm(order.getId());
         }
@@ -498,11 +523,32 @@ public class OrderServiceImpl implements OrderService {
      * cart items that belong to this order's checkout session.
      */
     private void releasePaymentReservations(Order order) {
+        if (hasFlashDeal(order)) promotionClient.releaseFlashDeals(order.getId());
         if (hasPromotion(order.getPromotionCode())) {
             promotionClient.release(order.getId());
         }
         inventoryClient.releaseInventory(new InventoryOrderRequest(order.getId()));
         cartClient.release(order.getId());
+    }
+
+    private boolean hasFlashDeal(Order order) { return order.getItems().stream().anyMatch(item -> item.getPrice() != null && item.getOriginalPrice() != null && item.getPrice().compareTo(item.getOriginalPrice()) < 0); }
+
+    private void applyFlashDealPrices(Order order, List<com.example.orderservice.dto.response.FlashDealPriceResponse> prices) {
+        for (OrderItem item : order.getItems()) {
+            prices.stream().filter(price -> price.productId().equals(item.getProductId()) && java.util.Objects.equals(price.variantId(), item.getVariantId())).findFirst().ifPresent(price -> {
+                item.setOriginalPrice(item.getPrice());
+                item.setPrice(price.salePrice());
+                item.setSubtotal(price.salePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+            });
+        }
+        BigDecimal subtotal = order.getItems().stream().map(OrderItem::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        order.setSubtotalAmount(subtotal);
+        order.setTotalAmount(subtotal.subtract(order.getDiscountAmount() == null ? BigDecimal.ZERO : order.getDiscountAmount()).max(BigDecimal.ZERO));
+    }
+
+    private void safeReleaseFlashDeals(Order order) {
+        try { promotionClient.releaseFlashDeals(order.getId()); }
+        catch (RuntimeException exception) { log.error("Failed to release flash deal reservation: orderId={}", order.getId(), exception); }
     }
 
     @Override

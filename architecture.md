@@ -1,6 +1,6 @@
-# Khoi Microservice Architecture
+# E-commerce Microservices Architecture
 
-Tài liệu này mô tả kiến trúc hiện tại của project microservice e-commerce trong repo `Khoi-Micro`.
+Tài liệu này mô tả kiến trúc hiện tại của project microservice e-commerce trong repo `e-com-microNservice`.
 
 Mục tiêu chính của hệ thống:
 
@@ -22,8 +22,11 @@ Mục tiêu chính của hệ thống:
 | Product Service | Quản lý catalog sản phẩm, giá, category, status | REST, Kafka product/inventory event |
 | Search Service | Index và search product bằng Elasticsearch | Kafka product event, REST search |
 | Inventory Service | Quản lý tồn kho thật: available, reserved, sold | REST, Kafka payment/inventory event |
+| Cart Service | Giỏ hàng và khoá item trong lúc checkout | REST từ Order Service |
+| Wishlist Service | Wishlist theo user/product/variant | REST qua Gateway |
 | Order Service | Tạo order, giữ trạng thái order | REST tới product/inventory, Kafka payment event |
 | Payment Service | Tạo payment và đổi trạng thái payment | REST tới order, Kafka payment event |
+| Promotion Service | Campaign và reservation khuyến mãi | REST từ Order Service |
 
 ## 2. Nguyên Tắc Ownership Dữ Liệu
 
@@ -64,6 +67,9 @@ flowchart LR
     Client["Client / Frontend"] --> Gateway["API Gateway"]
     Gateway --> Identity["Identity Service"]
     Gateway --> Product["Product Service"]
+    Gateway --> Cart["Cart Service"]
+    Gateway --> Wishlist["Wishlist Service"]
+    Gateway --> Promotion["Promotion Service"]
     Gateway --> Search["Search Service"]
     Gateway --> Order["Order Service"]
     Gateway --> Payment["Payment Service"]
@@ -71,6 +77,8 @@ flowchart LR
 
     Order --> Product
     Order --> Inventory
+    Order --> Cart
+    Order --> Promotion
     Payment --> Order
     Product --> Inventory
 
@@ -94,18 +102,12 @@ Các route chính hiện tại:
 
 | Public path | Target service |
 | --- | --- |
-| `/identity/**` | `IDENTITY-SERVICE` |
-| `/profile/**` | `PROFILE-SERVICE` |
-| `/notification/**` | `NOTIFICATION-SERVICE` |
-| `/product/**` | `PRODUCT-SERVICE` |
-| `/search/**` | `SEARCH-SERVICE` |
 | `/api/v1/search/**` | `SEARCH-SERVICE` |
-| `/inventory/**` | `INVENTORY-SERVICE` |
-| `/api/v1/inventory/**` | `INVENTORY-SERVICE` |
-| `/order/**` | `ORDER-SERVICE` |
-| `/payment/**` | `PAYMENT-SERVICE` |
+| `/api/v1/cart/**` | `CART-SERVICE` |
+| `/api/v1/wishlist/**` | `WISHLIST-SERVICE` |
+| `/api/v1/promotions/**` | `PROMOTION-SERVICE` |
 
-Gateway cũng xử lý JWT security trước khi request đi vào service cần bảo vệ.
+Gateway cũng xử lý JWT security trước khi request đi vào service cần bảo vệ. Hiện các API Identity, Profile, Product, Inventory, Order, Payment và Notification **chưa có route trong Gateway YAML**, nên client local gọi trực tiếp vào port service hoặc phải bổ sung route trước.
 
 ## 5. Flow Product Và Inventory
 
@@ -477,14 +479,17 @@ Các service chính hiện đã được cấu hình port không trùng nhau:
 
 | Service | Port hiện tại |
 | --- | --- |
-| Identity Service | `8080` |
+| Identity Service | `8090` HTTP, `9090` gRPC |
 | Profile Service | `8081` |
 | Notification Service | `8083` |
 | Product Service | `8084` |
 | Order Service | `8086` |
 | Inventory Service | `8087` |
 | Payment Service | `8088` |
-| Search Service | `8089` |
+| Cart Service | `8089` |
+| Wishlist Service | `8092` |
+| Search Service | `8093` |
+| Promotion Service | `8095` |
 | Discovery Server | `8761` |
 | API Gateway | `9191` |
 

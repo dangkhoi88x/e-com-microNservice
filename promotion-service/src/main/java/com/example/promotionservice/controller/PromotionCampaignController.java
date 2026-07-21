@@ -1,10 +1,13 @@
 package com.example.promotionservice.controller;
 
 import com.example.promotionservice.dto.request.CreatePromotionCampaignRequest;
+import com.example.promotionservice.dto.request.ValidatePromotionRequest;
 import com.example.promotionservice.dto.request.UpdatePromotionCampaignRequest;
 import com.example.promotionservice.dto.response.ApiResponse;
+import com.example.promotionservice.dto.response.PromotionCalculationResponse;
 import com.example.promotionservice.dto.response.PromotionCampaignResponse;
 import com.example.promotionservice.service.PromotionCampaignService;
+import com.example.promotionservice.service.PromotionUsageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +28,7 @@ import java.util.List;
 @RequestMapping("/api/v1/promotions/campaigns")
 public class PromotionCampaignController {
     private final PromotionCampaignService service;
+    private final PromotionUsageService usageService;
 
     @PostMapping
     public ApiResponse<PromotionCampaignResponse> create(@Valid @RequestBody CreatePromotionCampaignRequest request) {
@@ -36,9 +40,20 @@ public class PromotionCampaignController {
         return body(HttpStatus.OK, "Promotion campaigns retrieved successfully", service.getAll(status));
     }
 
+    @GetMapping("/active")
+    public ApiResponse<List<PromotionCampaignResponse>> getActive() {
+        return body(HttpStatus.OK, "Active promotions retrieved successfully", service.getAll("ACTIVE"));
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<PromotionCampaignResponse> getById(@PathVariable String id) {
         return body(HttpStatus.OK, "Promotion campaign retrieved successfully", service.getById(id));
+    }
+
+    @PostMapping("/preview")
+    public ApiResponse<PromotionCalculationResponse> preview(
+            @Valid @RequestBody ValidatePromotionRequest request) {
+        return body(HttpStatus.OK, "Promotion preview calculated successfully", usageService.validate(request));
     }
 
     @PutMapping("/{id}")

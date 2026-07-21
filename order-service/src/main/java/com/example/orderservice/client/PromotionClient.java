@@ -11,11 +11,15 @@ import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+import com.example.orderservice.dto.response.FlashDealPriceResponse;
 
 @Component
 @RequiredArgsConstructor
 public class PromotionClient {
     private static final String BASE_URL = "http://PROMOTION-SERVICE/internal/promotions";
+    private static final String FLASH_BASE_URL = "http://PROMOTION-SERVICE/internal/flash-deals";
     private final WebClient.Builder webClientBuilder;
 
     public PromotionCalculationResponse validate(String campaignCode, BigDecimal subtotalAmount) {
@@ -33,6 +37,20 @@ public class PromotionClient {
     public void release(String orderId) {
         postWithoutResponse("/release", new OrderRequest(orderId));
     }
+
+    public List<FlashDealPriceResponse> reserveFlashDeals(String orderId, List<FlashDealItemRequest> items) {
+        try {
+            ApiResponse<List<FlashDealPriceResponse>> response = webClientBuilder.build().post().uri(FLASH_BASE_URL + "/reserve")
+                    .bodyValue(new FlashDealReserveRequest(orderId, items)).retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<List<FlashDealPriceResponse>>>() {}).block();
+            return response == null || response.data() == null ? List.of() : response.data();
+        } catch (WebClientResponseException exception) {
+            if (exception.getStatusCode().is4xxClientError()) throw new OrderServiceException(ErrorCode.FLASH_SALE_RESERVATION_FAILED);
+            throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE);
+        } catch (WebClientException exception) { throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE); }
+    }
+    public void confirmFlashDeals(String orderId) { postFlashWithoutResponse("/confirm", new OrderRequest(orderId)); }
+    public void releaseFlashDeals(String orderId) { postFlashWithoutResponse("/release", new OrderRequest(orderId)); }
 
     private PromotionCalculationResponse postForCalculation(String path, Object body, ErrorCode clientError) {
         try {
@@ -61,9 +79,16 @@ public class PromotionClient {
             throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE);
         }
     }
+    private void postFlashWithoutResponse(String path, Object body) {
+        try { webClientBuilder.build().post().uri(FLASH_BASE_URL + path).bodyValue(body).retrieve().toBodilessEntity().block(); }
+        catch (WebClientResponseException exception) { throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE); }
+        catch (WebClientException exception) { throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE); }
+    }
 
     private record ApiResponse<T>(T data) {}
     private record ValidateRequest(String campaignCode, BigDecimal subtotalAmount) {}
     private record ReserveRequest(String campaignCode, String userId, String orderId, BigDecimal subtotalAmount) {}
     private record OrderRequest(String orderId) {}
+    public record FlashDealItemRequest(String productId, String variantId, Integer quantity) {}
+    private record FlashDealReserveRequest(String orderId, List<FlashDealItemRequest> items) {}
 }

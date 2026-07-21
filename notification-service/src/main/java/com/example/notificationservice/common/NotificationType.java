@@ -5,5 +5,6 @@ public enum NotificationType {
     ORDER_CREATED,
     ORDER_CANCELLED,
     ORDER_STATUS_UPDATED,
-    SYSTEM
+    SYSTEM,
+    FLASH_SALE_UPCOMING
 }

@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, String> {
     Page<Order> findByUserId(String userId, Pageable pageable);
 
+    Page<Order> findByPromotionCodeIgnoreCase(String promotionCode, Pageable pageable);
+
     Optional<Order> findByIdAndUserId(String id, String userId);
 
     boolean existsByOrderCode(String orderCode);

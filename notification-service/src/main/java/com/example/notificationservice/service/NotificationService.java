@@ -77,6 +77,17 @@ public class NotificationService {
                 event.getNewStatus());
     }
 
+    public void createNotificationFlashSaleUpcoming(String userId, String flashDealName, String startAt) {
+        Notification notification = Notification.builder()
+                .userId(userId)
+                .title("Flash Sale sắp bắt đầu")
+                .message("Flash Sale '" + flashDealName + "' sắp diễn ra lúc " + startAt + ". Vào NovaShop để săn deal nhé!")
+                .type(NotificationType.FLASH_SALE_UPCOMING)
+                .build();
+        notificationRepository.save(notification);
+        log.info("Created Flash Sale notification for userId={}", userId);
+    }
+
     public List<NotificationResponse> myNotifications(String userId){
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId)
                 .stream()

@@ -17,6 +17,7 @@ import {
   Truck,
   WalletCards,
 } from "lucide-react";
+import { getActiveProductSales, getClaimedPromotions, previewPromotion } from "../services/promotionService";
 import { checkoutOrder } from "../services/orderService";
 import { createPayment } from "../services/paymentService";
 import { isAuthenticated } from "../services/authenticationService";
@@ -34,8 +35,8 @@ const paymentMethods = [
   { value: "COD", title: "Thanh toán khi nhận hàng", description: "Thanh toán bằng tiền mặt khi giao", icon: Truck, mark: "COD" },
 ];
 
-function CheckoutQuantityEditor({ cart, onChange }) {
-  return <div className="checkout-edit-items">{cart.map((item) => <div className="checkout-edit-item" key={item.id}><img src={item.imageUrl || "https://placehold.co/120x120/e7f2f8/3b82c4?text=Nova"} alt={item.productName} /><div><h3>{item.productName}</h3><strong>{money((item.price || 0) * (item.quantity || 1))}</strong></div><div className="checkout-quantity" aria-label={`Quantity ${item.productName}`}><button type="button" onClick={() => onChange(item.id, -1)} aria-label={`Giảm số lượng hoặc xóa ${item.productName}`}><Minus size={13} /></button><b>{item.quantity || 1}</b><button type="button" onClick={() => onChange(item.id, 1)}><Plus size={13} /></button></div></div>)}</div>;
+function CheckoutQuantityEditor({ cart, onChange, priceOf }) {
+  return <div className="checkout-edit-items">{cart.map((item) => <div className="checkout-edit-item" key={item.id}><img src={item.imageUrl || "https://placehold.co/120x120/e7f2f8/3b82c4?text=Nova"} alt={item.productName} /><div><h3>{item.productName}</h3><strong>{money(priceOf(item) * (item.quantity || 1))}</strong></div><div className="checkout-quantity" aria-label={`Quantity ${item.productName}`}><button type="button" onClick={() => onChange(item.id, -1)} aria-label={`Giảm số lượng hoặc xóa ${item.productName}`}><Minus size={13} /></button><b>{item.quantity || 1}</b><button type="button" onClick={() => onChange(item.id, 1)}><Plus size={13} /></button></div></div>)}</div>;
 }
 
 export default function Checkout() {
@@ -44,6 +45,10 @@ export default function Checkout() {
   const [method, setMethod] = useState("VNPAY");
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
+  const [promotionCalculation, setPromotionCalculation] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [claimedPromotions, setClaimedPromotions] = useState([]);
+  const [flashDeals, setFlashDeals] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState("");
   const [form, setForm] = useState({
@@ -56,20 +61,38 @@ export default function Checkout() {
     phone: "",
   });
 
-  const subtotal = useMemo(() => cart.reduce((total, item) => total + (item.price || 0) * (item.quantity || 1), 0), [cart]);
+  const flashPrice = (item) => flashDeals.flatMap((deal) => deal.items || []).filter((dealItem) => dealItem.productId === item.productId && (dealItem.variantId || null) === (item.variantId || null)).sort((a, b) => Number(a.salePrice) - Number(b.salePrice))[0]?.salePrice;
+  const itemPrice = (item) => Number(flashPrice(item) ?? item.price ?? 0);
+  const subtotal = useMemo(() => cart.reduce((total, item) => total + itemPrice(item) * (item.quantity || 1), 0), [cart, flashDeals]);
   const shipping = subtotal > 0 ? 30000 : 0;
-  const total = Math.max(0, subtotal + shipping);
+  const discount = promotionCalculation?.discountAmount || 0;
+  const total = Math.max(0, subtotal - discount + shipping);
   const selectedPayment = paymentMethods.find((item) => item.value === method);
 
   const update = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
 
   useEffect(() => {
     getMyCart().then((data) => setCart(data.items || [])).catch(() => setNotice("Không thể tải giỏ hàng. Vui lòng đăng nhập lại."));
+    getClaimedPromotions().then(setClaimedPromotions).catch(() => setClaimedPromotions([]));
+    getActiveProductSales().then(setFlashDeals).catch(() => setFlashDeals([]));
   }, []);
 
-  const applyCoupon = () => {
-    if (!coupon.trim()) return;
-    setCouponApplied(true);
+  const applyCoupon = async () => {
+    const code = coupon.trim();
+    if (!code) return setNotice("Hãy nhập mã ưu đãi trước khi áp dụng.");
+    setCouponLoading(true);
+    setNotice("");
+    try {
+      const calculation = await previewPromotion(code, subtotal);
+      setPromotionCalculation(calculation);
+      setCouponApplied(true);
+    } catch (error) {
+      setPromotionCalculation(null);
+      setCouponApplied(false);
+      setNotice(error.response?.data?.message || "Mã ưu đãi không hợp lệ hoặc chưa đủ điều kiện.");
+    } finally {
+      setCouponLoading(false);
+    }
   };
   const changeQuantity = async (itemId, amount) => {
     const item = cart.find((entry) => entry.id === itemId);
@@ -79,6 +102,8 @@ export default function Checkout() {
         ? await removeCartItem(itemId)
         : await updateCartItem(itemId, { quantity: Number(item.quantity || 1) + amount, selected: item.selected });
       setCart(updated.items || []);
+      setCouponApplied(false);
+      setPromotionCalculation(null);
     } catch (error) {
       setNotice(error.response?.data?.message || "Không thể cập nhật giỏ hàng.");
     }
@@ -179,14 +204,14 @@ export default function Checkout() {
 
           <aside className="checkout-summary-wrap">
             <section className="checkout-summary">
-              <CheckoutQuantityEditor cart={cart} onChange={changeQuantity} />
+              <CheckoutQuantityEditor cart={cart} onChange={changeQuantity} priceOf={itemPrice} />
               <div className="checkout-summary-head"><div><p>Đơn hàng của bạn</p><h2>{cart.length} sản phẩm</h2></div><Link to="/shop">Chỉnh sửa</Link></div>
               <div className="checkout-items">
-                {cart.map((item) => <div className="checkout-item" key={item.id}><div className="checkout-item-image"><img src={item.imageUrl || "https://placehold.co/120x120/e7f2f8/3b82c4?text=Nova"} alt={item.productName} /><b>×{item.quantity}</b></div><div><h3>{item.productName}</h3><p>{item.variantName || "NovaShop selection"}</p><strong>{money((item.price || 0) * (item.quantity || 1))}</strong></div></div>)}
+                {cart.map((item) => <div className="checkout-item" key={item.id}><div className="checkout-item-image"><img src={item.imageUrl || "https://placehold.co/120x120/e7f2f8/3b82c4?text=Nova"} alt={item.productName} /><b>×{item.quantity}</b></div><div><h3>{item.productName}</h3><p>{item.variantName || "NovaShop selection"}</p><strong>{money(itemPrice(item) * (item.quantity || 1))}</strong></div></div>)}
               </div>
-              <div className="checkout-coupon"><TicketPercent size={18} /><input value={coupon} onChange={(event) => { setCoupon(event.target.value); setCouponApplied(false); }} placeholder="Mã ưu đãi" /><button type="button" onClick={applyCoupon}>Áp dụng</button></div>
-              {couponApplied && <p className="checkout-coupon-success"><Check size={14} /> Mã ưu đãi sẽ được xác thực khi tạo đơn hàng.</p>}
-              <div className="checkout-cost"><div><span>Tạm tính</span><b>{money(subtotal)}</b></div><div><span>Phí vận chuyển</span><b>{money(shipping)}</b></div><div className="checkout-total"><span>Tổng tạm tính</span><b>{money(total)}</b></div></div>
+              <div className="checkout-coupon"><TicketPercent size={18} />{claimedPromotions.length ? <select className="checkout-coupon-select" value={coupon} onChange={(event) => { setCoupon(event.target.value); setCouponApplied(false); setPromotionCalculation(null); setNotice(""); }}><option value="">Chọn mã đã claim</option>{claimedPromotions.map((promotion) => <option key={promotion.id} value={promotion.code}>{promotion.code} · {promotion.type === "PERCENTAGE" ? `${promotion.discountValue}%` : money(promotion.discountValue)}</option>)}</select> : <input value={coupon} onChange={(event) => { setCoupon(event.target.value); setCouponApplied(false); setPromotionCalculation(null); setNotice(""); }} placeholder="Bạn chưa claim mã nào" />}<button type="button" onClick={applyCoupon} disabled={couponLoading || !coupon.trim()}>{couponLoading ? "Đang kiểm tra..." : "Áp dụng"}</button></div>
+              {couponApplied && <p className="checkout-coupon-success"><Check size={14} /> Đã áp dụng mã {promotionCalculation?.campaignCode || coupon.toUpperCase()}.</p>}
+              <div className="checkout-cost"><div><span>Tạm tính</span><b>{money(subtotal)}</b></div>{discount > 0 && <div className="discount"><span>Giảm giá ({promotionCalculation?.campaignCode || coupon.toUpperCase()})</span><b>-{money(discount)}</b></div>}<div><span>Phí vận chuyển</span><b>{money(shipping)}</b></div><div className="checkout-total"><span>Tổng thanh toán</span><b>{money(total)}</b></div></div>
               {notice && <div className="checkout-notice"><CircleAlert size={18} /> {notice}</div>}
               <button className="checkout-pay" type="submit" disabled={submitting}><LockKeyhole size={18} /> {submitting ? "Đang khởi tạo đơn hàng..." : `Xác nhận & thanh toán · ${money(total)}`}</button>
               <div className="checkout-protection"><ShieldCheck size={19} /><p><b>Mua sắm an tâm</b><br />Đơn hàng được bảo vệ và thông tin thanh toán được mã hoá.</p></div>

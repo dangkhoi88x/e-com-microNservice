@@ -39,7 +39,11 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
             new PublicEndpoint("/inventory/api/v1/inventory/products/**", HttpMethod.GET),
             new PublicEndpoint("/product/api/v1/categories", HttpMethod.GET),
             new PublicEndpoint("/product/api/v1/products", HttpMethod.GET),
-            new PublicEndpoint("/product/api/v1/products/**", HttpMethod.GET)
+            new PublicEndpoint("/product/api/v1/products/**", HttpMethod.GET),
+            new PublicEndpoint("/api/v1/flash-deals/live", HttpMethod.GET),
+            new PublicEndpoint("/api/v1/flash-deals/active", HttpMethod.GET),
+            new PublicEndpoint("/api/v1/flash-deals/long-term/live", HttpMethod.GET),
+            new PublicEndpoint("/api/v1/flash-deals/upcoming", HttpMethod.GET)
     );
 
     @Override

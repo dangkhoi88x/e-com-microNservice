@@ -1,748 +1,330 @@
-# Khoi Microservice E-commerce
+# E-commerce Microservices
 
-Đây là project backend e-commerce được xây dựng theo kiến trúc microservices.
+Hệ thống e-commerce được xây dựng bằng Java/Spring Boot theo kiến trúc microservices, kèm một ứng dụng web React/Vite. Mỗi service sở hữu nghiệp vụ và dữ liệu của mình; REST được dùng cho các bước cần phản hồi ngay, Kafka cho các sự kiện bất đồng bộ.
 
-Nói đơn giản, project này mô phỏng một hệ thống bán hàng online gồm nhiều phần nhỏ như:
+Tài liệu này bám theo mã nguồn và cấu hình hiện có trong repo. Đặc biệt, bảng Gateway bên dưới phản ánh đúng `api-gateway-service/src/main/resources/application.yaml`, không phải giả định rằng mọi service đều đã được Gateway expose.
 
-- Đăng ký, đăng nhập user.
-- Quản lý thông tin cá nhân.
-- Quản lý sản phẩm.
-- Tìm kiếm sản phẩm.
-- Quản lý tồn kho.
-- Tạo đơn hàng.
-- Thanh toán.
-- Gửi thông báo.
+## Mục lục
 
-Thay vì viết tất cả vào một ứng dụng lớn, project chia thành nhiều service nhỏ. Mỗi service chịu trách nhiệm một phần nghiệp vụ riêng.
+- [Kiến trúc](#kiến-trúc)
+- [Thành phần và port](#thành-phần-và-port)
+- [Quyền sở hữu dữ liệu](#quyền-sở-hữu-dữ-liệu)
+- [Luồng nghiệp vụ](#luồng-nghiệp-vụ)
+- [API chính](#api-chính)
+- [Chạy local](#chạy-local)
+- [Cấu trúc thư mục](#cấu-trúc-thư-mục)
+- [Kiểm tra và các giới hạn hiện tại](#kiểm-tra-và-các-giới-hạn-hiện-tại)
 
-Ví dụ:
+## Kiến trúc
 
-```text
-Product Service chỉ lo thông tin sản phẩm.
-Inventory Service chỉ lo tồn kho.
-Order Service chỉ lo đơn hàng.
-Payment Service chỉ lo thanh toán.
-Search Service chỉ lo tìm kiếm.
+```mermaid
+flowchart LR
+    UI[React / Vite] --> GW[API Gateway :9191]
+    GW --> Cart[Cart]
+    GW --> Wish[Wishlist]
+    GW --> Promo[Promotion]
+    GW --> Search[Search]
+
+    UI --> Identity[Identity]
+    UI --> Product[Product]
+    UI --> Order[Order]
+    UI --> Payment[Payment]
+
+    Order --> Product
+    Order --> Cart
+    Order --> Inventory
+    Order --> Promo
+    Payment --> Order
+
+    Product --> Kafka[(Kafka)]
+    Inventory --> Kafka
+    Payment --> Kafka
+    Order --> Kafka
+    Kafka --> Search
+    Kafka --> Product
+    Kafka --> Order
+    Kafka --> Inventory
+    Kafka --> Notification[Notification]
+
+    Services[Business services] --> Eureka[Eureka :8761]
 ```
 
-Lợi ích của cách chia này là hệ thống dễ mở rộng, dễ sửa từng phần, và giống cách nhiều hệ thống thật ngoài công ty đang làm.
+> Gateway hiện chỉ route Cart, Wishlist, Promotion và Search. Các API Identity, Product, Inventory, Order, Payment, Profile và Notification cần gọi trực tiếp vào port service tương ứng, hoặc bổ sung route trong Gateway trước khi dùng qua `:9191`.
 
-## Dành Cho Người Chưa Biết Code
+### Cách các service giao tiếp
 
-Hãy tưởng tượng hệ thống này giống một cửa hàng online lớn.
-
-Trong cửa hàng đó có nhiều bộ phận:
-
-| Bộ phận ngoài đời | Service trong project | Công việc |
+| Kiểu | Khi dùng | Ví dụ trong code |
 | --- | --- | --- |
-| Quầy đăng ký thành viên | Identity Service | Đăng ký, đăng nhập, cấp token |
-| Hồ sơ khách hàng | Profile Service | Lưu tên, email, thông tin cá nhân |
-| Quầy trưng bày sản phẩm | Product Service | Lưu tên sản phẩm, giá, hình ảnh, trạng thái |
-| Kho hàng | Inventory Service | Biết chính xác còn bao nhiêu hàng |
-| Nhân viên nhận đơn | Order Service | Tạo đơn hàng và giữ trạng thái đơn |
-| Quầy thu ngân | Payment Service | Xử lý thanh toán |
-| Công cụ tìm kiếm | Search Service | Tìm sản phẩm nhanh |
-| Nhân viên gửi email | Notification Service | Gửi thông báo/email |
-| Cổng ra vào | API Gateway | Nhận request từ client rồi chuyển đúng service |
-| Bảng danh bạ nội bộ | Discovery Server | Giúp các service tìm thấy nhau |
+| REST/WebClient | Cần kết quả ngay | Order lấy sản phẩm, reserve inventory, lấy cart và reserve promotion |
+| Kafka | Không cần response đồng bộ | Payment phát event thành công/thất bại; Inventory, Product và Search đồng bộ read model |
+| Eureka | Tìm service theo tên | `ORDER-SERVICE`, `INVENTORY-SERVICE`, `PROMOTION-SERVICE` |
+| gRPC | Gateway kiểm tra token với Identity | Gateway gọi Identity tại `localhost:9090` |
 
-Khi khách mua hàng, các bộ phận này phối hợp với nhau.
+## Thành phần và port
 
-Ví dụ:
+| Thành phần | Module | Port | Trách nhiệm |
+| --- | --- | ---: | --- |
+| Identity Service | `Microservice-ecom` | 8090 HTTP, 9090 gRPC | Đăng ký, đăng nhập, refresh token, introspect JWT |
+| Profile Service | `profile-service` | 8081 | Hồ sơ người dùng |
+| Notification Service | `notification-service` | 8083 | Nhận event và cung cấp thông báo |
+| Product Service | `product-service` | 8084 | Category, product, variant và catalog |
+| Order Service | `order-service` | 8086 | Tạo order, checkout và vòng đời order |
+| Inventory Service | `inventory-service` | 8087 | Tồn kho thực: available, reserved, sold |
+| Payment Service | `payment-service` | 8088 | Tạo và cập nhật payment |
+| Cart Service | `cart-service` | 8089 | Giỏ hàng và khoá item khi checkout |
+| Wishlist Service | `wishlist-service` | 8092 | Wishlist của user |
+| Search Service | `search-service` | 8093 | Tìm kiếm Elasticsearch |
+| Promotion Service | `promotion-service` | 8095 | Campaign, validate/reserve/confirm/release khuyến mãi |
+| Discovery Server | `discovery-server` | 8761 | Eureka service registry |
+| API Gateway | `api-gateway-service` | 9191 | Entry point cho các route đã khai báo |
+| Web app | `web-app` | Vite mặc định 5173 | React 19 frontend |
 
-```text
-Khách chọn sản phẩm
--> hệ thống kiểm tra sản phẩm còn bán không
--> hệ thống hỏi kho còn hàng không
--> nếu còn hàng thì giữ hàng lại
--> khách thanh toán
--> nếu thanh toán thành công thì đơn được xác nhận
--> kho chuyển hàng từ "đang giữ" sang "đã bán"
-```
+### Gateway routes đang hoạt động
 
-## Project Này Giải Quyết Bài Toán Gì?
-
-Project mô phỏng flow e-commerce thực tế:
-
-1. Seller tạo sản phẩm.
-2. Admin/Seller tạo tồn kho cho sản phẩm.
-3. User xem danh sách sản phẩm.
-4. User tìm kiếm sản phẩm.
-5. User tạo đơn hàng.
-6. Hệ thống giữ hàng trong kho.
-7. User thanh toán.
-8. Nếu thanh toán thành công, đơn hàng được xác nhận.
-9. Nếu thanh toán thất bại hoặc bị hủy, hàng được trả lại kho.
-10. Search/catalog được cập nhật lại tình trạng còn hàng/hết hàng.
-
-Điểm quan trọng nhất của project hiện tại là phần tồn kho:
-
-```text
-Inventory Service là nơi quyết định số lượng hàng thật.
-Product Service chỉ giữ bản sao quantity để hiển thị nhanh.
-Search Service chỉ giữ inStock để tìm kiếm nhanh.
-```
-
-Điều này giúp tránh lỗi phổ biến trong microservices: mỗi service tự giữ một số lượng hàng khác nhau rồi dữ liệu bị lệch.
-
-## Tech Stack
-
-| Thành phần | Công nghệ | Giải thích dễ hiểu |
-| --- | --- | --- |
-| Backend | Java, Spring Boot | Nền tảng chính để viết API |
-| Service Discovery | Eureka | Danh bạ để các service tìm nhau |
-| API Gateway | Spring Cloud Gateway | Cổng chính nhận request từ client |
-| Database | PostgreSQL, MongoDB | Nơi lưu dữ liệu |
-| Cache | Redis | Bộ nhớ nhanh |
-| Message Broker | Kafka | Hàng đợi sự kiện giữa các service |
-| Search Engine | Elasticsearch | Tìm kiếm sản phẩm nhanh |
-| Security | JWT, Spring Security | Xác thực và phân quyền |
-| Build Tool | Maven Wrapper | Công cụ build/chạy project |
-| Local Runtime | Docker Compose | Chạy database, Kafka, Elasticsearch local |
-
-## Services
-
-### Discovery Server
-
-Đây là service registry.
-
-Nó giống một danh bạ nội bộ. Khi service khởi động, nó đăng ký tên của mình vào Eureka. Service khác có thể gọi nhau thông qua tên service thay vì hard-code địa chỉ.
-
-Ví dụ:
-
-```text
-ORDER-SERVICE muốn gọi INVENTORY-SERVICE
--> Eureka giúp tìm địa chỉ hiện tại của INVENTORY-SERVICE
-```
-
-### API Gateway
-
-Gateway là cửa chính của hệ thống.
-
-Client không cần gọi trực tiếp từng service. Client chỉ gọi Gateway, Gateway sẽ chuyển request đến đúng service.
-
-Ví dụ:
-
-```text
-Client gọi /product/**
--> Gateway chuyển sang Product Service
-
-Client gọi /order/**
--> Gateway chuyển sang Order Service
-```
-
-Gateway cũng là nơi xử lý JWT security trước khi request đi vào service.
-
-### Identity Service
-
-Identity Service xử lý:
-
-- Đăng ký user.
-- Đăng nhập.
-- Cấp JWT token.
-- Xác thực user.
-
-JWT token giống như vé vào hệ thống. Sau khi đăng nhập, client dùng token này để gọi các API cần bảo vệ.
-
-### Profile Service
-
-Profile Service lưu thông tin cá nhân của user.
-
-Ví dụ:
-
-- Tên.
-- Email.
-- Số điện thoại.
-- Địa chỉ.
-
-### Product Service
-
-Product Service quản lý thông tin sản phẩm:
-
-- Tên sản phẩm.
-- Mô tả.
-- Giá.
-- Hình ảnh.
-- Category.
-- Trạng thái `ACTIVE` hoặc không.
-- Seller.
-
-Product Service hiện có field `quantity`, nhưng field này không phải nguồn tồn kho thật. Nó là bản sao được sync từ Inventory Service để list sản phẩm nhanh hơn.
-
-### Inventory Service
-
-Inventory Service là kho hàng thật.
-
-Nó quản lý 3 số lượng quan trọng:
-
-| Field | Ý nghĩa |
+| Path trên Gateway | Service đích |
 | --- | --- |
-| `availableQuantity` | Số lượng còn có thể bán |
-| `reservedQuantity` | Số lượng đang giữ cho order chưa thanh toán |
+| `/api/v1/cart/**` | `lb://cart-service` |
+| `/api/v1/wishlist/**` | `lb://wishlist-service` |
+| `/api/v1/promotions/**` | `lb://promotion-service` |
+| `/api/v1/search/**` | `lb://search-service` |
+
+## Quyền sở hữu dữ liệu
+
+### Catalog và tồn kho
+
+`Inventory Service` là **source of truth** cho số lượng hàng.
+
+| Field ở Inventory | Ý nghĩa |
+| --- | --- |
+| `availableQuantity` | Số lượng có thể bán ngay |
+| `reservedQuantity` | Số lượng đã giữ cho order đang chờ thanh toán |
 | `soldQuantity` | Số lượng đã bán |
 
-Ví dụ:
+`Product.quantity` và `Search.inStock` là dữ liệu denormalized để đọc/list/filter nhanh. Không dùng chúng để quyết định có thể mua hay không; checkout luôn reserve tại Inventory.
 
-```text
-availableQuantity = 100
-reservedQuantity = 0
-soldQuantity = 0
-```
+### Các service sở hữu dữ liệu
 
-Khi user tạo order 2 sản phẩm:
-
-```text
-availableQuantity = 98
-reservedQuantity = 2
-soldQuantity = 0
-```
-
-Khi payment thành công:
-
-```text
-availableQuantity = 98
-reservedQuantity = 0
-soldQuantity = 2
-```
-
-Khi payment thất bại:
-
-```text
-availableQuantity = 100
-reservedQuantity = 0
-soldQuantity = 0
-```
-
-### Order Service
-
-Order Service quản lý đơn hàng.
-
-Nó không tự quyết định còn hàng hay không. Khi tạo order, nó gọi Inventory Service để reserve hàng.
-
-Các trạng thái chính:
-
-| Status | Ý nghĩa |
+| Service | Dữ liệu/nghiệp vụ sở hữu |
 | --- | --- |
-| `PENDING` | Order vừa tạo, chưa reserve xong |
-| `PENDING_PAYMENT` | Đã giữ hàng, đang chờ thanh toán |
-| `CONFIRMED` | Thanh toán thành công, order xác nhận |
-| `CANCELLED` | Order bị hủy |
-| `INVENTORY_FAILED` | Không reserve được hàng |
+| Product | Product, category, variant, giá và trạng thái catalog |
+| Inventory | Stock và reservation theo order |
+| Cart | Cart item; `checkoutOrderId` khoá item khi đang checkout |
+| Order | Snapshot item, subtotal, discount, total, trạng thái order |
+| Payment | Payment và trạng thái thanh toán |
+| Promotion | Campaign và lượt sử dụng/reservation khuyến mãi |
+| Wishlist | Wishlist theo user/product/variant |
+| Search | Elasticsearch document phục vụ search |
 
-### Payment Service
+## Luồng nghiệp vụ
 
-Payment Service quản lý thanh toán.
-
-Payment chỉ được tạo khi order đang ở trạng thái:
+### 1. Tạo product và đồng bộ search
 
 ```text
-PENDING_PAYMENT
+Seller/Admin tạo hoặc sửa Product
+-> Product Service lưu catalog
+-> publish product-created / product-updated / product-deleted
+-> Search Service cập nhật Elasticsearch document
 ```
 
-Điều này nghĩa là hàng đã được giữ trong kho, giờ user mới được thanh toán.
+Khi inventory thay đổi, Inventory phát `inventory-updated`; Product cập nhật bản sao số lượng và phát event product update để Search cập nhật `inStock`.
 
-Payment có các trạng thái chính:
-
-| Status | Ý nghĩa |
-| --- | --- |
-| `PENDING` | Payment mới tạo |
-| `SUCCESS` | Thanh toán thành công |
-| `FAILED` | Thanh toán thất bại |
-| `CANCELLED` | Thanh toán bị hủy |
-
-Service đã chặn các chuyển trạng thái sai, ví dụ:
+### 2. Checkout từ cart
 
 ```text
-FAILED -> SUCCESS: không cho
-CANCELLED -> SUCCESS: không cho
-SUCCESS -> FAILED: không cho
+POST /api/v1/orders/checkout
+-> Order lấy các cart item chưa bị khoá
+-> lấy product/variant và snapshot giá hiện tại
+-> nếu có campaignCode: validate promotion theo subtotal
+-> lưu Order PENDING
+-> reserve Inventory
+-> reserve Promotion (nếu có)
+-> Order PENDING_PAYMENT
+-> đánh dấu các cart item bằng checkoutOrderId
 ```
 
-### Search Service
+Nếu reserve inventory hoặc promotion lỗi, Order lưu trạng thái lỗi (`INVENTORY_FAILED` hoặc `PROMOTION_FAILED`) và thực hiện bù trừ phần đã reserve. Khi order bị huỷ hoặc payment thất bại, reservation được release và cart item được mở khoá.
 
-Search Service dùng Elasticsearch để tìm sản phẩm nhanh.
-
-Product Service publish event khi product được tạo/sửa/xóa. Search Service nghe các event này để cập nhật Elasticsearch.
-
-Search Service phục vụ các use case:
-
-- Tìm theo tên sản phẩm.
-- Lọc theo category.
-- Lọc theo giá.
-- Lọc còn hàng/hết hàng.
-- Sort theo giá hoặc ngày tạo.
-
-### Notification Service
-
-Notification Service nhận event từ Kafka và gửi thông báo/email.
-
-Ví dụ:
-
-- User mới được tạo.
-- Order được tạo.
-- Order bị hủy.
-- Trạng thái order thay đổi.
-
-## REST Và Kafka Là Gì?
-
-Project dùng cả REST và Kafka.
-
-### REST
-
-REST giống như gọi điện trực tiếp và chờ câu trả lời ngay.
-
-Ví dụ:
+### 3. Thanh toán
 
 ```text
-Order Service hỏi Inventory Service:
-"Sản phẩm này còn hàng không? Giữ giúp tôi 2 cái."
+POST /api/v1/payments
+-> Payment Service hỏi Order
+-> chỉ tạo payment khi Order đang PENDING_PAYMENT
+-> Payment PENDING
 
-Inventory Service trả lời ngay:
-"OK, đã giữ hàng."
-```
-
-REST phù hợp cho việc cần kết quả ngay lập tức.
-
-Trong project này, REST dùng cho:
-
-- Order gọi Product để lấy thông tin sản phẩm.
-- Order gọi Inventory để reserve/release hàng.
-- Payment gọi Order để kiểm tra order có được thanh toán không.
-- Product detail gọi Inventory để lấy số lượng mới nhất.
-
-### Kafka
-
-Kafka giống như bảng thông báo nội bộ.
-
-Một service đăng tin:
-
-```text
-"Payment đã thành công."
-```
-
-Các service quan tâm sẽ tự đọc tin đó và xử lý.
-
-Kafka phù hợp cho các việc không cần trả lời ngay cho người gọi.
-
-Trong project này, Kafka dùng cho:
-
-- Payment báo thanh toán thành công/thất bại.
-- Inventory báo tồn kho thay đổi.
-- Product báo sản phẩm được tạo/sửa/xóa.
-- Order báo trạng thái order thay đổi.
-
-## Core Architecture
-
-Mô hình tồn kho hiện tại:
-
-```text
-Inventory Service = source of truth
-Product Service = giữ quantity denormalized để list nhanh
-Search Service = giữ inStock để search/filter nhanh
-Product detail / checkout = lấy stock chính xác từ Inventory Service
-```
-
-Giải thích:
-
-- Inventory Service là nơi duy nhất quyết định hàng thật còn bao nhiêu.
-- Product Service giữ bản sao `quantity` để hiển thị nhanh khi list sản phẩm.
-- Search Service giữ `inStock` để filter nhanh khi search.
-- Khi vào chi tiết sản phẩm hoặc checkout, hệ thống hỏi trực tiếp Inventory Service để chắc chắn số lượng mới nhất.
-
-Xem flow kỹ hơn tại:
-
-[architecture.md](./architecture.md)
-
-## Main Flows
-
-### 1. Tạo Product Và Inventory
-
-Flow:
-
-```text
-Seller tạo product
--> Product Service lưu product
--> Product Service publish product-created
--> Search Service index product
-
-Seller/Admin tạo inventory
--> Inventory Service lưu stock thật
--> Inventory Service publish inventory-updated
--> Product Service sync product.quantity
--> Product Service publish product-updated
--> Search Service update inStock
-```
-
-Giải thích:
-
-Khi tạo product, hệ thống chỉ tạo thông tin sản phẩm như tên, giá, mô tả. Sau đó cần tạo inventory riêng để hệ thống biết sản phẩm đó có bao nhiêu hàng.
-
-Khi inventory thay đổi, Inventory Service gửi event `inventory-updated`. Product Service nghe event này để cập nhật lại `quantity`. Sau đó Product Service gửi tiếp `product-updated` để Search Service cập nhật dữ liệu tìm kiếm.
-
-### 2. User Xem Product List
-
-Flow:
-
-```text
-Client
--> Gateway
--> Product Service hoặc Search Service
--> Trả danh sách sản phẩm
-```
-
-Product list dùng dữ liệu denormalized:
-
-```text
-product.quantity
-search.inStock
-```
-
-Dữ liệu này nhanh để đọc, phù hợp cho trang danh sách. Product Service cũng có batch call tới Inventory Service để lấy `availableQuantity` mới nhất cho nhiều product trong cùng một page, tránh gọi từng product một.
-
-### 3. User Vào Product Detail
-
-Flow:
-
-```text
-Client
--> Gateway
--> Product Service
--> Product Service gọi Inventory Service
--> Trả product detail với quantity mới nhất
-```
-
-Lý do:
-
-Trang chi tiết cần số lượng chính xác hơn list. Vì vậy Product Service gọi Inventory Service để lấy `availableQuantity` mới nhất.
-
-### 4. User Tạo Order
-
-Flow:
-
-```text
-Client tạo order
--> Order Service lấy product name/price/status từ Product Service
--> Order Service save order PENDING
--> Order Service gọi Inventory Service reserve
--> Nếu reserve OK: order -> PENDING_PAYMENT
--> Nếu reserve fail: order -> INVENTORY_FAILED
-```
-
-Giải thích:
-
-Order Service chỉ lấy thông tin sản phẩm như tên, giá, trạng thái. Nó không dùng `product.quantity` để quyết định còn hàng.
-
-Inventory Service mới kiểm tra còn hàng thật hay không.
-
-Nếu còn hàng, Inventory Service giữ hàng lại bằng cách:
-
-```text
-availableQuantity giảm
-reservedQuantity tăng
-```
-
-### 5. User Thanh Toán Thành Công
-
-Flow:
-
-```text
-Payment Service mark payment SUCCESS
+Payment SUCCESS
 -> publish payment-success
--> Order Service consume event: order -> CONFIRMED
--> Inventory Service consume event: reservation -> CONFIRMED
--> reservedQuantity giảm
--> soldQuantity tăng
--> Inventory Service publish inventory-updated
--> Product/Search sync quantity/inStock
+-> Order CONFIRMED
+-> confirm Promotion, Inventory và finalize cart item
+
+Payment FAILED/CANCELLED
+-> publish event tương ứng
+-> release Promotion, Inventory và cart item
 ```
 
-Giải thích:
+Payment chỉ cho phép một payment pending cho mỗi order ở mức database (`uk_payments_one_pending_per_order`). Các chuyển trạng thái sai như `CANCELLED -> SUCCESS` bị chặn. Endpoint mô phỏng success/failed/cancel là luồng demo; thanh toán online thực tế vẫn cần webhook đã xác thực từ cổng thanh toán.
 
-Khi thanh toán thành công, order được xác nhận. Hàng đang giữ trong kho được chuyển thành hàng đã bán.
+### 4. Wishlist
 
-### 6. Payment Thất Bại Hoặc Bị Hủy
+Wishlist yêu cầu JWT. Client cần lấy lại `GET /api/v1/wishlist` sau thao tác thêm/xoá để hiển thị trạng thái từ server. Backend dùng ràng buộc duy nhất theo user/product/variant và thêm item theo hướng idempotent, nên retry không sinh dòng trùng.
 
-Flow:
+## API chính
 
-```text
-Payment Service mark FAILED/CANCELLED
--> publish payment-failed/payment-cancelled
--> Inventory Service release reservation
--> reservedQuantity giảm
--> availableQuantity tăng lại
--> Inventory Service publish inventory-updated
--> Product/Search sync quantity/inStock
+Tất cả API dưới đây trả về wrapper `ApiResponse` (gồm `status`, `message`, `data`) và các API cần user dùng header:
+
+```http
+Authorization: Bearer <access-token>
 ```
 
-Giải thích:
+Các path Gateway có thể gọi bằng `http://localhost:9191`; các path không nằm trong bảng Gateway phải gọi trực tiếp qua port service.
 
-Nếu user không thanh toán thành công, hàng đang giữ phải được trả lại kho để người khác có thể mua.
+| Nhóm | Method / path | Ghi chú |
+| --- | --- | --- |
+| Auth | `POST :8090/users`, `POST :8090/auth/login` | Đăng ký và đăng nhập |
+| Auth | `POST :8090/auth/refresh-token`, `POST :8090/auth/logout`, `POST :8090/auth/token/introspect` | Quản lý JWT |
+| Profile | `GET`, `PUT :8081/api/v1/user-profile/me` | Hồ sơ user hiện tại |
+| Category | `POST/GET :8084/api/v1/categories`, `GET/PUT/DELETE .../{id}` | Category |
+| Product | `POST/GET :8084/api/v1/products`, `GET .../slug/{slug}`, `GET/PUT/DELETE .../{id}` | Catalog và variant |
+| Inventory | `POST :8087/api/v1/inventory`, `GET .../products/{productId}` | Tạo và xem stock |
+| Inventory | `POST .../reserve`, `.../confirm`, `.../release` | API nội bộ cho order/payment flow |
+| Cart | `GET /api/v1/cart`, `POST /api/v1/cart/items` | Xem và thêm item qua Gateway hoặc `:8089` |
+| Cart | `PUT/DELETE /api/v1/cart/items/{itemId}`, `DELETE /api/v1/cart/items` | Sửa, xoá hoặc clear cart |
+| Wishlist | `GET /api/v1/wishlist`, `POST /api/v1/wishlist/items` | Xem/thêm wishlist |
+| Wishlist | `DELETE /api/v1/wishlist/items/{productId}?variantId=...`, `DELETE /api/v1/wishlist` | Xoá một item hoặc clear |
+| Order | `POST :8086/api/v1/orders`, `POST .../checkout` | Tạo order trực tiếp hoặc từ selected cart item |
+| Order | `GET .../my-orders`, `GET .../{id}`, `PUT .../{id}/cancel` | Order của user |
+| Payment | `POST :8088/api/v1/payments`, `GET .../my-payments` | Tạo/xem payment của user |
+| Payment | `PUT .../{id}/success`, `.../failed`, `.../cancel` | Cập nhật payment cho demo; kiểm tra quyền trong service |
+| Search | `GET /api/v1/search/products` | Search product qua Gateway hoặc `:8093` |
+| Search | `GET .../products/suggestions`, `.../products/aggregations` | Gợi ý và aggregation |
+| Promotion | `POST/GET /api/v1/promotions/campaigns` | Tạo/lấy campaign qua Gateway hoặc `:8095` |
+| Promotion | `GET/PUT/DELETE .../campaigns/{id}` | Chi tiết và quản trị campaign |
 
-### 7. User Hủy Order
+Xem request mẫu cho Promotion tại [bruno/promotion-service](bruno/promotion-service/README.md). Chi tiết kiểu request/response nên lấy trực tiếp từ các DTO `dto/request` và `dto/response` của từng module để luôn khớp version code hiện tại.
 
-Flow:
+## Chạy local
 
-```text
-Client gọi cancel order
--> Nếu order đang PENDING_PAYMENT, Order Service gọi Inventory Service release
--> Order status -> CANCELLED
--> Order Service publish order-cancelled
-```
+### Điều kiện
 
-Giải thích:
+- JDK phù hợp với từng Maven module
+- Docker Desktop đang chạy
+- Node.js và npm cho `web-app`
 
-Nếu order đã giữ hàng, khi hủy phải release hàng.
-
-## API Gateway Routes
-
-Gateway chạy ở:
-
-```text
-http://localhost:9191
-```
-
-Các route chính:
-
-| Gateway path | Target service |
-| --- | --- |
-| `/identity/**` | Identity Service |
-| `/profile/**` | Profile Service |
-| `/product/**` | Product Service |
-| `/search/**` | Search Service |
-| `/api/v1/search/**` | Search Service |
-| `/inventory/**` | Inventory Service |
-| `/api/v1/inventory/**` | Inventory Service |
-| `/order/**` | Order Service |
-| `/payment/**` | Payment Service |
-| `/notification/**` | Notification Service |
-
-## Local Setup
-
-### 1. Start Infrastructure
-
-Chạy các dependency bằng Docker Compose:
+### 1. Khởi động hạ tầng
 
 ```bash
 docker compose up -d
 ```
 
-Docker Compose hiện gồm:
+Compose chạy PostgreSQL cho product/identity/inventory/promotion, Redis, MongoDB, Kafka, Kafka UI, Elasticsearch, Kibana và container Promotion Service.
 
-- PostgreSQL
-- MongoDB
-- Redis
-- Kafka
-- Kafka UI
-- Elasticsearch
-- Kibana
+Các URL hữu ích:
 
-Useful URLs:
+| Công cụ | URL |
+| --- | --- |
+| Eureka | http://localhost:8761 |
+| Gateway | http://localhost:9191 |
+| Kafka UI | http://localhost:8085 |
+| Elasticsearch | http://localhost:9200 |
+| Kibana | http://localhost:5601 |
 
-```text
-Kafka UI: http://localhost:8085
-Elasticsearch: http://localhost:9200
-Kibana: http://localhost:5601
-Eureka: http://localhost:8761
-API Gateway: http://localhost:9191
-```
+### 2. Seed catalog demo (tuỳ chọn)
 
-### Seed demo catalog and inventory
-
-The catalog and inventory are separate databases. Run the product seed first,
-then run the inventory seed so every seeded product has stock available for
-checkout, including the product variants.
+Chạy product trước rồi mới seed inventory để product và variant đã có stock:
 
 ```bash
 docker compose exec -T product-postgres psql -U root -d postgres < database/seed-products.sql
 docker compose exec -T inventory-postgres psql -U postgres -d inventory_db < database/seed-inventory.sql
 ```
 
-`seed-inventory.sql` is idempotent: it inserts only missing inventory rows and
-does not overwrite quantities that have already changed through an order flow.
-For an existing database created by an older version of the product seed, use a
-fresh demo database before reseeding because the older sample-product IDs were
-random rather than deterministic.
+`seed-inventory.sql` chỉ tạo inventory còn thiếu, không ghi đè số lượng đã thay đổi bởi checkout.
 
-### 2. Start Services
+### 3. Khởi động service
 
-Nên chạy theo thứ tự:
+Khởi động Discovery trước, sau đó Identity và các business service cần dùng. Mỗi service có Maven Wrapper riêng:
 
 ```bash
-cd discovery-server
-./mvnw spring-boot:run
+cd discovery-server && ./mvnw spring-boot:run
 ```
+
+Mở terminal riêng cho từng service cần demo, ví dụ:
 
 ```bash
-cd api-gateway-service
-./mvnw spring-boot:run
+cd Microservice-ecom && mvn spring-boot:run
+cd product-service && ./mvnw spring-boot:run
+cd inventory-service && ./mvnw spring-boot:run
+cd cart-service && ./mvnw spring-boot:run
+cd promotion-service && ./mvnw spring-boot:run
+cd order-service && ./mvnw spring-boot:run
+cd payment-service && ./mvnw spring-boot:run
+cd search-service && ./mvnw spring-boot:run
+cd api-gateway-service && ./mvnw spring-boot:run
 ```
 
-Sau đó chạy các business service:
+Compose map Promotion Service ra host port `8094` (container port `8095`). Khi cần debug local ở `8095`, nên chọn một cách chạy để tránh có hai instance `promotion-service` cùng đăng ký Eureka và cùng dùng dữ liệu demo.
+
+### 4. Khởi động frontend
 
 ```bash
-cd product-service
-./mvnw spring-boot:run
+cd web-app
+npm install
+npm run dev
 ```
+
+Build production:
 
 ```bash
-cd inventory-service
-./mvnw spring-boot:run
+npm run build
 ```
 
-```bash
-cd order-service
-./mvnw spring-boot:run
-```
-
-```bash
-cd payment-service
-./mvnw spring-boot:run
-```
-
-```bash
-cd search-service
-./mvnw spring-boot:run
-```
-
-```bash
-cd notification-service
-./mvnw spring-boot:run
-```
-
-## Service Ports
-
-Các service chính hiện đã được cấu hình port không trùng nhau:
+## Cấu trúc thư mục
 
 ```text
-identity-service: 8080
-profile-service: 8081
-notification-service: 8083
-product-service: 8084
-order-service: 8086
-inventory-service: 8087
-payment-service: 8088
-search-service: 8089
-discovery-server: 8761
-api-gateway-service: 9191
+.
+├── Microservice-ecom/        # Identity Service
+├── api-gateway-service/      # Spring Cloud Gateway + gRPC token introspection
+├── cart-service/             # Cart và checkout lock
+├── discovery-server/         # Eureka
+├── inventory-service/        # Stock source of truth
+├── notification-service/     # Notification consumer/API
+├── order-service/            # Order + checkout orchestration
+├── payment-service/          # Payment lifecycle + Kafka events
+├── product-service/          # Catalog/category/variant
+├── profile-service/          # User profile
+├── promotion-service/        # Campaign và promotion reservation
+├── search-service/           # Elasticsearch search
+├── wishlist-service/         # Wishlist
+├── web-app/                  # React 19 + Vite frontend
+├── database/                 # SQL seed data
+├── bruno/                    # API collections/examples
+├── docker-compose.yaml       # Local infrastructure
+├── architecture.md           # Phân tích flow chi tiết (cần đồng bộ khi đổi config)
+└── improvement-plan.md       # Roadmap kỹ thuật
 ```
 
-## Build Check
+## Kiểm tra và các giới hạn hiện tại
 
-Compile từng service:
+### Build
+
+Root `pom.xml` là aggregator cho các module Spring Boot chính; `promotion-service` hiện có `pom.xml` riêng nhưng chưa nằm trong danh sách module root. Build từng service bằng wrapper của chính module, ví dụ:
 
 ```bash
-cd product-service
-./mvnw -DskipTests compile
+cd payment-service && ./mvnw -DskipTests compile
+cd order-service && ./mvnw -DskipTests compile
+cd web-app && npm run build
 ```
 
-```bash
-cd inventory-service
-./mvnw -DskipTests compile
-```
+### Lưu ý trước khi triển khai production
 
-```bash
-cd order-service
-./mvnw -DskipTests compile
-```
+- Các datasource/JWT secret trong YAML là cấu hình local demo; chuyển sang biến môi trường hoặc secret manager trước khi deploy.
+- Một số internal endpoint hiện được permit để các service gọi lẫn nhau. Cần bảo vệ bằng service-to-service auth/mTLS hoặc network policy ở môi trường production.
+- `ddl-auto: update` tiện cho local, nhưng migration versioned (Flyway/Liquibase) an toàn hơn cho production.
+- Kafka event hiện cần bổ sung outbox, retry/DLT, tracing và reconciliation để chịu được lỗi mạng/consumer.
+- Online payment cần webhook đã ký, kiểm tra amount/order, idempotency và cơ chế đối soát; không dùng endpoint demo `success` làm bằng chứng thanh toán thực.
+- Khi thêm Gateway route hoặc đổi port, cập nhật đồng thời README này và [architecture.md](architecture.md).
 
-```bash
-cd payment-service
-./mvnw -DskipTests compile
-```
+## Tài liệu liên quan
 
-```bash
-cd search-service
-./mvnw -DskipTests compile
-```
-
-## Suggested Demo Flow
-
-Đây là flow nên demo khi giới thiệu project:
-
-1. Start infrastructure bằng Docker Compose.
-2. Start Eureka, Gateway và các service chính.
-3. Register/login để lấy JWT.
-4. Tạo category.
-5. Tạo product.
-6. Tạo inventory cho product.
-7. Search/list product.
-8. Vào product detail để thấy quantity mới nhất.
-9. Tạo order.
-10. Kiểm tra order status `PENDING_PAYMENT`.
-11. Tạo payment.
-12. Mark payment success.
-13. Kiểm tra order chuyển `CONFIRMED`.
-14. Kiểm tra inventory `reservedQuantity` giảm và `soldQuantity` tăng.
-15. Kiểm tra product/search sync lại stock.
-
-## Những Câu Hỏi Phỏng Vấn Dễ Gặp
-
-### Vì sao tách Inventory Service riêng?
-
-Vì tồn kho là nghiệp vụ quan trọng và dễ bị sai nếu nhiều service cùng tự trừ số lượng.
-
-Project chọn:
-
-```text
-Inventory Service = source of truth
-```
-
-Nhờ vậy, mọi quyết định còn hàng/hết hàng đều tập trung ở một nơi.
-
-### Vì sao Product Service vẫn có quantity?
-
-Vì Product Service cần list sản phẩm nhanh. Nếu mỗi lần list 100 sản phẩm đều gọi Inventory Service 100 lần thì chậm.
-
-Vì vậy `product.quantity` là bản sao denormalized:
-
-```text
-Nhanh để đọc
-Không phải nguồn quyết định stock thật
-Được sync từ Inventory Service qua Kafka
-```
-
-### Vì sao dùng Kafka?
-
-Kafka giúp service giao tiếp bất đồng bộ.
-
-Ví dụ khi payment thành công:
-
-```text
-Payment Service chỉ cần publish payment-success
-Order Service tự nghe để confirm order
-Inventory Service tự nghe để confirm inventory
-```
-
-Payment Service không cần gọi trực tiếp từng service một.
-
-### Vì sao vẫn dùng REST?
-
-REST dùng khi cần câu trả lời ngay.
-
-Ví dụ tạo order cần biết reserve inventory có thành công không. Vì vậy Order Service gọi Inventory Service trực tiếp bằng REST.
-
-### Project có bị loop service không?
-
-Không có loop nguy hiểm.
-
-Flow chính hiện tại là:
-
-```text
-Order -> Product
-Order -> Inventory
-Payment -> Kafka
-Kafka -> Order/Inventory
-Inventory -> Kafka
-Kafka -> Product/Search
-```
-
-Product Service không còn nghe `order-created` để trừ stock nữa, nên không có chuyện Product và Inventory cùng trừ hàng.
-
-## Future Improvements
-
-- Tách event DTO ra module chung như `common-event`.
-- Thêm Outbox Pattern cho event quan trọng.
-- Thêm retry + Dead Letter Topic cho Kafka consumers.
-- Đổi tên `product.quantity` thành `cachedAvailableQuantity`.
-- Thêm Flyway/Liquibase thay cho `ddl-auto: update`.
-- Thêm tracing/log correlation cho flow order-payment-inventory.
+- [Architecture chi tiết](architecture.md)
+- [Technical improvement plan](improvement-plan.md)
+- [Promotion Bruno collection](bruno/promotion-service/README.md)

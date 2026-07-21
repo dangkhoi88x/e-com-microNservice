@@ -35,7 +35,7 @@ import { logout } from "../services/authenticationService";
 
 const menuGroups = [
   { label: "Workspace", items: [{ label: "Dashboard", path: "/dashboard", icon: <DashboardOutlinedIcon /> }, { label: "Analytics", path: "/orders", icon: <AnalyticsOutlinedIcon />, badge: "Live" }] },
-  { label: "Store service", items: [{ label: "Products", path: "/products", icon: <Inventory2OutlinedIcon /> }, { label: "Categories", path: "/categories", icon: <CategoryOutlinedIcon />, badge: "" }, { label: "Promotions", path: "/promotions", icon: <LocalOfferOutlinedIcon /> }, { label: "Search", path: "/search", icon: <SearchOutlinedIcon /> }, { label: "Orders", path: "/orders", icon: <ShoppingBagOutlinedIcon /> }, { label: "Payments", path: "/payments", icon: <PaymentsOutlinedIcon /> }] },
+  { label: "Store service", items: [{ label: "Products", path: "/products", icon: <Inventory2OutlinedIcon /> }, { label: "Categories", path: "/categories", icon: <CategoryOutlinedIcon />, badge: "" }, { label: "Promotions", path: "/promotions", icon: <LocalOfferOutlinedIcon /> }, { label: "Flash Sale", path: "/flash-deals", icon: <LocalFireDepartmentOutlinedIcon /> }, { label: "Search", path: "/search", icon: <SearchOutlinedIcon /> }, { label: "Orders", path: "/orders", icon: <ShoppingBagOutlinedIcon /> }, { label: "Payments", path: "/payments", icon: <PaymentsOutlinedIcon /> }] },
   { label: "Account", items: [{ label: "Notifications", path: "/notifications", icon: <NotificationsNoneOutlinedIcon /> }, { label: "Profile", path: "/profile", icon: <PersonOutlineOutlinedIcon /> }, { label: "Settings", path: "/profile", icon: <SettingsOutlinedIcon /> }] },
 ];
 

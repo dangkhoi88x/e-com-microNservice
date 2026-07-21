@@ -42,6 +42,8 @@ public class GatewayConfiguration {
                         .uri("lb://PAYMENT-SERVICE"))
                 .route("promotion-service", r -> r.path("/api/v1/promotions/**")
                         .uri("lb://PROMOTION-SERVICE"))
+                .route("flash-deal-service", r -> r.path("/api/v1/flash-deals/**")
+                        .uri("lb://PROMOTION-SERVICE"))
                 .build();
     }
 

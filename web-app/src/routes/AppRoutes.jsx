@@ -12,6 +12,7 @@ import Categories from "../pages/Categories";
 import Profile from "../pages/Profile";
 import Notifications from "../pages/Notifications";
 import Promotions from "../pages/Promotions";
+import FlashDeals from "../pages/FlashDeals";
 import Shop from "../pages/Shop";
 import ShopProductDetail from "../pages/ShopProductDetail";
 import Checkout from "../pages/Checkout";
@@ -23,6 +24,7 @@ import CustomerProfile from "../pages/CustomerProfile";
 import CustomerAuth from "../pages/CustomerAuth";
 import ShopWishlist from "../pages/ShopWishlist";
 import ShopHotDeals from "../pages/ShopHotDeals";
+import ShopBestDeals from "../pages/ShopBestDeals";
 import ShopSearch from "../pages/ShopSearch";
 import ShopStoreHeader from "../components/ShopStoreHeader";
 import "../components/StorefrontLayout.css";
@@ -51,6 +53,7 @@ export default function AppRoutes() {
         <Route path="/shop/register" element={<CustomerAuth mode="register" />} />
         <Route path="/shop/wishlist" element={<StorefrontLayout><ShopWishlist /></StorefrontLayout>} />
         <Route path="/shop/hot-deals" element={<StorefrontLayout><ShopHotDeals /></StorefrontLayout>} />
+        <Route path="/shop/best-deals" element={<ShopBestDeals />} />
         <Route path="/shop/search" element={<ShopSearch />} />
         <Route path="/shop/products/:slug" element={<StorefrontLayout showBack><ShopProductDetail /></StorefrontLayout>} />
         <Route path="/shop/categories/:slug" element={<ShopCategory />} />
@@ -149,6 +152,7 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+        <Route path="/flash-deals" element={<PrivateRoute><FlashDeals /></PrivateRoute>} />
 
         <Route
           path="/profile"

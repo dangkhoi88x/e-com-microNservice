@@ -29,6 +29,7 @@ import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import BoltOutlinedIcon from "@mui/icons-material/BoltOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import ToggleOffOutlinedIcon from "@mui/icons-material/ToggleOffOutlined";
@@ -42,6 +43,7 @@ import {
   getPromotions,
   updatePromotion,
 } from "../services/promotionService";
+import { getOrdersByPromotionCode } from "../services/orderService";
 
 const statusOptions = ["ALL", "DRAFT", "ACTIVE", "INACTIVE", "EXPIRED"];
 const statusTone = {
@@ -89,7 +91,7 @@ function formatDate(value) {
 function promotionPayload(form, includeStatus) {
   const payload = {
     name: form.name.trim(),
-    description: form.description.trim() || null,
+    description: form.description?.trim() || null,
     type: form.type,
     discountValue: Number(form.discountValue),
     maxDiscountAmount: form.maxDiscountAmount === "" ? null : Number(form.maxDiscountAmount),
@@ -114,6 +116,11 @@ export default function Promotions() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(blankForm);
   const [errorMessage, setErrorMessage] = useState("");
+  const [ordersDialogOpen, setOrdersDialogOpen] = useState(false);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [selectedPromotion, setSelectedPromotion] = useState(null);
+  const [promotionOrders, setPromotionOrders] = useState([]);
+  const [promotionOrderCount, setPromotionOrderCount] = useState(0);
 
   const editing = Boolean(form.id);
 
@@ -170,6 +177,24 @@ export default function Promotions() {
       status: campaign.status || "DRAFT",
     });
     setDialogOpen(true);
+  };
+
+  const openPromotionOrders = async (campaign) => {
+    setSelectedPromotion(campaign);
+    setPromotionOrders([]);
+    setPromotionOrderCount(0);
+    setOrdersDialogOpen(true);
+    setOrdersLoading(true);
+    try {
+      const data = await getOrdersByPromotionCode(campaign.code, { page: 1, size: 50 });
+      setPromotionOrders(data.content || []);
+      setPromotionOrderCount(data.totalElements || 0);
+    } catch (error) {
+      setOrdersDialogOpen(false);
+      setErrorMessage(error.response?.data?.message || "Could not load orders using this promotion.");
+    } finally {
+      setOrdersLoading(false);
+    }
   };
 
   const submit = async (event) => {
@@ -247,8 +272,21 @@ export default function Promotions() {
           </TextField>
         </Stack>
         <Divider />
-        {loading ? <Stack alignItems="center" justifyContent="center" sx={{ py: 9 }}><CircularProgress /></Stack> : campaigns.length === 0 ? <Box sx={{ p: 5, textAlign: "center" }}><LocalOfferOutlinedIcon color="disabled" sx={{ fontSize: 42 }} /><Typography fontWeight={800} sx={{ mt: 1 }}>No campaigns found</Typography><Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>Create a campaign, then activate it when it is ready for checkout.</Typography></Box> : <TableContainer><Table><TableHead><TableRow><TableCell>Campaign</TableCell><TableCell>Discount</TableCell><TableCell>Schedule</TableCell><TableCell>Usage</TableCell><TableCell>Status</TableCell><TableCell align="right">Actions</TableCell></TableRow></TableHead><TableBody>{campaigns.map((campaign) => <TableRow hover key={campaign.id}><TableCell><Stack spacing={0.35}><Stack direction="row" spacing={1} alignItems="center"><Typography className="table-primary">{campaign.name}</Typography><Chip size="small" label={campaign.code} className="soft-chip" /></Stack><Typography className="table-secondary" noWrap>{campaign.description || "No description"}</Typography></Stack></TableCell><TableCell><Typography fontWeight={800}>{campaign.type === "PERCENTAGE" ? `${campaign.discountValue}%` : formatMoney(campaign.discountValue)}</Typography><Typography variant="caption" color="text.secondary">Min. {formatMoney(campaign.minOrderAmount)}{campaign.maxDiscountAmount != null ? ` · Max ${formatMoney(campaign.maxDiscountAmount)}` : ""}</Typography></TableCell><TableCell><Typography variant="body2">{formatDate(campaign.startAt)}</Typography><Typography variant="caption" color="text.secondary">to {formatDate(campaign.endAt)}</Typography></TableCell><TableCell><Typography fontWeight={800}>{campaign.usedCount || 0} / {campaign.usageLimit || "∞"}</Typography><Typography variant="caption" color="text.secondary">Priority {campaign.priority || 0}</Typography></TableCell><TableCell><Chip size="small" color={statusTone[campaign.status] || "default"} label={campaign.status} /></TableCell><TableCell align="right"><Stack direction="row" justifyContent="flex-end"><Tooltip title={campaign.status === "ACTIVE" ? "Deactivate" : "Activate"}><IconButton color={campaign.status === "ACTIVE" ? "success" : "default"} onClick={() => changeStatus(campaign)}>{campaign.status === "ACTIVE" ? <ToggleOnOutlinedIcon /> : <ToggleOffOutlinedIcon />}</IconButton></Tooltip><Tooltip title="Edit"><IconButton onClick={() => openEdit(campaign)}><EditOutlinedIcon /></IconButton></Tooltip><Tooltip title="Delete"><IconButton color="error" onClick={() => remove(campaign)}><DeleteOutlineOutlinedIcon /></IconButton></Tooltip></Stack></TableCell></TableRow>)}</TableBody></Table></TableContainer>}
+        {loading ? <Stack alignItems="center" justifyContent="center" sx={{ py: 9 }}><CircularProgress /></Stack> : campaigns.length === 0 ? <Box sx={{ p: 5, textAlign: "center" }}><LocalOfferOutlinedIcon color="disabled" sx={{ fontSize: 42 }} /><Typography fontWeight={800} sx={{ mt: 1 }}>No campaigns found</Typography><Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>Create a campaign, then activate it when it is ready for checkout.</Typography></Box> : <TableContainer><Table><TableHead><TableRow><TableCell>Campaign</TableCell><TableCell>Discount</TableCell><TableCell>Schedule</TableCell><TableCell>Usage</TableCell><TableCell>Status</TableCell><TableCell align="right">Actions</TableCell></TableRow></TableHead><TableBody>{campaigns.map((campaign) => <TableRow hover key={campaign.id}><TableCell><Stack spacing={0.35}><Stack direction="row" spacing={1} alignItems="center"><Typography className="table-primary">{campaign.name}</Typography><Chip size="small" label={campaign.code} className="soft-chip" /></Stack><Typography className="table-secondary" noWrap>{campaign.description || "No description"}</Typography></Stack></TableCell><TableCell><Typography fontWeight={800}>{campaign.type === "PERCENTAGE" ? `${campaign.discountValue}%` : formatMoney(campaign.discountValue)}</Typography><Typography variant="caption" color="text.secondary">Min. {formatMoney(campaign.minOrderAmount)}{campaign.maxDiscountAmount != null ? ` · Max ${formatMoney(campaign.maxDiscountAmount)}` : ""}</Typography></TableCell><TableCell><Typography variant="body2">{formatDate(campaign.startAt)}</Typography><Typography variant="caption" color="text.secondary">to {formatDate(campaign.endAt)}</Typography></TableCell><TableCell><Typography fontWeight={800}>{campaign.usedCount || 0} / {campaign.usageLimit || "∞"}</Typography><Typography variant="caption" color="text.secondary">Priority {campaign.priority || 0}</Typography></TableCell><TableCell><Chip size="small" color={statusTone[campaign.status] || "default"} label={campaign.status} /></TableCell><TableCell align="right"><Stack direction="row" justifyContent="flex-end"><Tooltip title={campaign.status === "ACTIVE" ? "Deactivate" : "Activate"}><IconButton color={campaign.status === "ACTIVE" ? "success" : "default"} onClick={() => changeStatus(campaign)}>{campaign.status === "ACTIVE" ? <ToggleOnOutlinedIcon /> : <ToggleOffOutlinedIcon />}</IconButton></Tooltip><Tooltip title="View used orders"><IconButton onClick={() => openPromotionOrders(campaign)}><VisibilityOutlinedIcon /></IconButton></Tooltip><Tooltip title="Edit"><IconButton onClick={() => openEdit(campaign)}><EditOutlinedIcon /></IconButton></Tooltip><Tooltip title="Delete"><IconButton color="error" onClick={() => remove(campaign)}><DeleteOutlineOutlinedIcon /></IconButton></Tooltip></Stack></TableCell></TableRow>)}</TableBody></Table></TableContainer>}
       </Paper>
+
+      <Dialog open={ordersDialogOpen} onClose={() => setOrdersDialogOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle>
+          Orders using {selectedPromotion?.code || "promotion"}
+        </DialogTitle>
+        <DialogContent dividers>
+          {ordersLoading ? <Stack alignItems="center" sx={{ py: 6 }}><CircularProgress /></Stack> : promotionOrders.length === 0 ? <Typography color="text.secondary" sx={{ py: 4, textAlign: "center" }}>No orders have used this promotion yet.</Typography> : <>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{promotionOrderCount} order(s) found</Typography>
+            <TableContainer component={Paper} variant="outlined" elevation={0}><Table size="small"><TableHead><TableRow><TableCell>Order</TableCell><TableCell>User</TableCell><TableCell>Status</TableCell><TableCell align="right">Discount</TableCell><TableCell align="right">Total</TableCell><TableCell>Created</TableCell></TableRow></TableHead><TableBody>{promotionOrders.map((order) => <TableRow key={order.id}><TableCell><Typography fontWeight={800}>{order.orderCode || order.id}</Typography></TableCell><TableCell>{order.userId || "-"}</TableCell><TableCell><Chip size="small" label={order.status || "UNKNOWN"} /></TableCell><TableCell align="right" sx={{ color: "success.main", fontWeight: 800 }}>-{formatMoney(order.discountAmount)}</TableCell><TableCell align="right">{formatMoney(order.totalAmount)}</TableCell><TableCell>{formatDate(order.createdAt)}</TableCell></TableRow>)}</TableBody></Table></TableContainer>
+          </>}
+        </DialogContent>
+        <DialogActions><Button onClick={() => setOrdersDialogOpen(false)}>Close</Button></DialogActions>
+      </Dialog>
 
       <Dialog open={dialogOpen} onClose={() => !submitting && setDialogOpen(false)} fullWidth maxWidth="md">
         <Box component="form" onSubmit={submit}>

@@ -16,10 +16,18 @@ spring:
               uri: lb://wishlist-service
               predicates:
                 - Path=/api/v1/wishlist/**
+            - id: order-service
+              uri: lb://order-service
+              predicates:
+                - Path=/order/**
             - id: promotion-service
               uri: lb://promotion-service
               predicates:
                 - Path=/api/v1/promotions/**
+            - id: flash-deal-service
+              uri: lb://promotion-service
+              predicates:
+                - Path=/api/v1/flash-deals/**
             - id: search-service
               uri: lb://search-service
               predicates:

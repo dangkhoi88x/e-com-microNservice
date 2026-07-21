@@ -543,6 +543,41 @@ export default function Orders() {
                 </Typography>
               </Box>
 
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  backgroundColor: selectedOrder.promotionCode ? "success.50" : "background.paper",
+                  borderColor: selectedOrder.promotionCode ? "success.200" : "divider",
+                }}
+              >
+                <Typography variant="subtitle2" fontWeight={900} gutterBottom>
+                  Promotion and price breakdown
+                </Typography>
+                <Stack spacing={0.75}>
+                  <Stack direction="row" justifyContent="space-between" spacing={2}>
+                    <Typography variant="body2" color="text.secondary">Promotion code</Typography>
+                    <Typography variant="body2" fontWeight={800}>
+                      {selectedOrder.promotionCode || "Not applied"}
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between" spacing={2}>
+                    <Typography variant="body2" color="text.secondary">Subtotal</Typography>
+                    <Typography variant="body2" fontWeight={800}>{formatPrice(selectedOrder.subtotalAmount)}</Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between" spacing={2}>
+                    <Typography variant="body2" color="text.secondary">Promotion discount</Typography>
+                    <Typography variant="body2" fontWeight={900} color={Number(selectedOrder.discountAmount || 0) > 0 ? "success.main" : "text.primary"}>
+                      {Number(selectedOrder.discountAmount || 0) > 0 ? `-${formatPrice(selectedOrder.discountAmount)}` : formatPrice(0)}
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between" spacing={2} sx={{ pt: 0.75, borderTop: "1px solid", borderColor: "divider" }}>
+                    <Typography variant="body2" fontWeight={900}>Total paid</Typography>
+                    <Typography variant="body2" fontWeight={900}>{formatPrice(selectedOrder.totalAmount)}</Typography>
+                  </Stack>
+                </Stack>
+              </Paper>
+
               <TableContainer component={Paper} elevation={0} variant="outlined">
                 <Table size="small">
                   <TableHead>

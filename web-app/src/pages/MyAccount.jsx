@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Bell, Check, LogOut, Pencil, Save, Settings, Star, UserRound } from "lucide-react";
 import { logout } from "../services/authenticationService";
 import { getMyProfile, updateMyProfile } from "../services/profileService";
+import { getMyNotifications } from "../services/notificationService";
 import "./MyAccount.css";
+import "./MyAccountNotifications.css";
 
 const emptyProfile = { firstName: "", lastName: "", avatarUrl: "", bio: "", birthDate: "", phoneNumber: "", address: "", city: "", postalCode: "" };
 
 export default function MyAccount() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [form, setForm] = useState(emptyProfile);
+  const [notifications, setNotifications] = useState([]);
   const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState(false);
+  const activeTab = searchParams.get("tab") === "notifications" ? "notifications" : "profile";
 
   useEffect(() => {
     getMyProfile()
@@ -27,6 +32,7 @@ export default function MyAccount() {
       }))
       .catch(() => setNotice("Không thể tải hồ sơ. Bạn vẫn có thể nhập và lưu lại thông tin."));
   }, []);
+  useEffect(() => { if (activeTab === "notifications") getMyNotifications().then(setNotifications).catch(() => setNotice("Không thể tải thông báo.")); }, [activeTab]);
 
   const name = `${form.firstName || "Khách"} ${form.lastName || "hàng"}`;
   const initial = (form.firstName || "N").charAt(0).toUpperCase();
@@ -55,9 +61,9 @@ export default function MyAccount() {
           <p className="account-sidebar-kicker">TÀI KHOẢN</p>
           <h1>Hồ sơ người dùng</h1>
           <nav className="account-menu" aria-label="Tài khoản">
-            <button className="active" type="button"><UserRound size={20} />Thông tin cá nhân</button>
+            <button className={activeTab === "profile" ? "active" : ""} type="button" onClick={() => setSearchParams({})}><UserRound size={20} />Thông tin cá nhân</button>
             <button type="button" onClick={() => setNotice("Cài đặt thông báo sẽ sớm được cập nhật.")}><Settings size={20} />Cài đặt</button>
-            <button type="button" onClick={() => setNotice("Bạn đang nhận thông báo đơn hàng từ NovaShop.")}><Bell size={20} />Thông báo</button>
+            <button className={activeTab === "notifications" ? "active" : ""} type="button" onClick={() => setSearchParams({ tab: "notifications" })}><Bell size={20} />Thông báo</button>
           </nav>
           <button className="account-logout" onClick={leave}><LogOut size={19} />Đăng xuất</button>
         </aside>
@@ -76,7 +82,7 @@ export default function MyAccount() {
             <div className="account-member"><Star size={15} /> Thành viên NovaShop</div>
           </div>
 
-          <form className="account-form" onSubmit={submit}>
+          {activeTab === "notifications" ? <section className="account-form account-notifications"><div className="account-form-heading"><div><p>THÔNG BÁO</p><h2>Cập nhật mới nhất</h2></div><span>{notifications.length} thông báo</span></div>{notifications.length ? <div className="account-notification-list">{notifications.map((item) => <article key={item.id}><Bell size={18} /><div><b>{item.title}</b><p>{item.message}</p><small>{item.createdAt ? new Date(item.createdAt).toLocaleString("vi-VN") : ""}</small></div></article>)}</div> : <p className="account-notification-empty">Bạn chưa có thông báo nào.</p>}</section> : <form className="account-form" onSubmit={submit}>
             <div className="account-form-heading">
               <div><p>THÔNG TIN CÁ NHÂN</p><h2>Chỉnh sửa hồ sơ</h2></div>
               <span>Những thay đổi sẽ được lưu vào tài khoản của bạn.</span>
@@ -94,7 +100,7 @@ export default function MyAccount() {
             </div>
             {notice && <p className="account-notice"><Check size={16} />{notice}</p>}
             <button className="account-save" type="submit" disabled={saving}><Save size={17} />{saving ? "Đang lưu..." : "Lưu thay đổi"}</button>
-          </form>
+          </form>}
         </section>
       </section>
     </main>

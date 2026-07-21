@@ -4,13 +4,16 @@ import com.example.promotionservice.dto.request.PromotionOrderRequest;
 import com.example.promotionservice.dto.request.ReservePromotionRequest;
 import com.example.promotionservice.dto.request.ValidatePromotionRequest;
 import com.example.promotionservice.dto.response.PromotionCalculationResponse;
+import com.example.promotionservice.dto.response.PromotionCampaignResponse;
 import com.example.promotionservice.entity.PromotionCampaign;
+import com.example.promotionservice.entity.PromotionClaim;
 import com.example.promotionservice.entity.PromotionStatus;
 import com.example.promotionservice.entity.PromotionUsage;
 import com.example.promotionservice.entity.PromotionUsageStatus;
 import com.example.promotionservice.exception.ErrorCode;
 import com.example.promotionservice.exception.PromotionServiceException;
 import com.example.promotionservice.repository.PromotionCampaignRepository;
+import com.example.promotionservice.repository.PromotionClaimRepository;
 import com.example.promotionservice.repository.PromotionUsageRepository;
 import com.example.promotionservice.service.PromotionUsageService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,8 @@ import java.time.Instant;
 public class PromotionUsageServiceImpl implements PromotionUsageService {
     private final PromotionCampaignRepository campaignRepository;
     private final PromotionUsageRepository usageRepository;
+    private final PromotionClaimRepository claimRepository;
+    private final com.example.promotionservice.mapper.PromotionCampaignMapper campaignMapper;
 
     @Override
     public PromotionCalculationResponse validate(ValidatePromotionRequest request) {
@@ -43,6 +48,9 @@ public class PromotionUsageServiceImpl implements PromotionUsageService {
         }
 
         PromotionCampaign campaign = activeCampaign(request.campaignCode());
+        if (!claimRepository.existsByCampaignIdAndUserId(campaign.getId(), request.userId())) {
+            throw new PromotionServiceException(ErrorCode.PROMOTION_NOT_CLAIMED);
+        }
         BigDecimal discount = calculateDiscount(campaign, request.subtotalAmount());
         PromotionUsage usage = PromotionUsage.builder()
                 .userId(request.userId())
@@ -76,6 +84,27 @@ public class PromotionUsageServiceImpl implements PromotionUsageService {
                 usageRepository.save(usage);
             }
         });
+    }
+
+    @Override
+    public PromotionCampaignResponse claim(String campaignId, String userId) {
+        PromotionCampaign campaign = campaignRepository.findById(java.util.UUID.fromString(campaignId))
+                .orElseThrow(() -> new PromotionServiceException(ErrorCode.PROMOTION_NOT_FOUND));
+        activeCampaign(campaign.getCode());
+        if (!claimRepository.existsByCampaignIdAndUserId(campaign.getId(), userId)) {
+            claimRepository.save(PromotionClaim.builder().userId(userId).campaign(campaign).build());
+        }
+        return campaignMapper.toResponse(campaign);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<PromotionCampaignResponse> getClaimed(String userId) {
+        return claimRepository.findAllByUserId(userId).stream()
+                .map(PromotionClaim::getCampaign)
+                .filter(campaign -> campaign.getStatus() == PromotionStatus.ACTIVE)
+                .map(campaignMapper::toResponse)
+                .toList();
     }
 
     private PromotionCampaign activeCampaign(String code) {
