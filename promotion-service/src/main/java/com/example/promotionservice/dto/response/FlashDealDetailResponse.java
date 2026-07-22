@@ -1,0 +1,13 @@
+package com.example.promotionservice.dto.response;
+
+import com.example.promotionservice.entity.FlashDealStatus;
+import com.example.promotionservice.entity.SaleType;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+public record FlashDealDetailResponse(UUID id, String name, String description, FlashDealStatus status, SaleType saleType,
+                                      Instant startAt, Instant endAt, Instant countdownTarget, long remainingSeconds,
+                                      long orderCount, long soldQuantity, BigDecimal revenue,
+                                      List<FlashDealItemDetailResponse> items) {}

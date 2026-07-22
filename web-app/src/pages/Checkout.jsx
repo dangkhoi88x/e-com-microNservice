@@ -61,7 +61,7 @@ export default function Checkout() {
     phone: "",
   });
 
-  const flashPrice = (item) => flashDeals.flatMap((deal) => deal.items || []).filter((dealItem) => dealItem.productId === item.productId && (dealItem.variantId || null) === (item.variantId || null)).sort((a, b) => Number(a.salePrice) - Number(b.salePrice))[0]?.salePrice;
+  const flashPrice = (item) => flashDeals.flatMap((deal) => (deal.items || []).map((dealItem) => ({ ...dealItem, saleType: deal.saleType || "FLASH" }))).filter((dealItem) => dealItem.productId === item.productId && (dealItem.variantId || null) === (item.variantId || null)).sort((a, b) => Number(a.salePrice) - Number(b.salePrice) || (a.saleType === "FLASH" ? -1 : 1) - (b.saleType === "FLASH" ? -1 : 1))[0]?.salePrice;
   const itemPrice = (item) => Number(flashPrice(item) ?? item.price ?? 0);
   const subtotal = useMemo(() => cart.reduce((total, item) => total + itemPrice(item) * (item.quantity || 1), 0), [cart, flashDeals]);
   const shipping = subtotal > 0 ? 30000 : 0;

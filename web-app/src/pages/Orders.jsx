@@ -289,14 +289,17 @@ export default function Orders() {
           spacing={2}
           className="panel-summary"
         >
-          <Box>
-            <Typography fontWeight={900}>
+          <Stack direction="row" spacing={1.25} alignItems="center" className="section-library-heading">
+            <Box className="section-heading-icon section-heading-icon-violet"><ReceiptLongOutlinedIcon /></Box>
+            <Box>
+            <Typography className="section-heading-title">
               {viewMode === "all" ? "All order activity" : "My order activity"}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography className="section-heading-description">
               {pageInfo.totalElements} orders tracked across fulfillment states
             </Typography>
-          </Box>
+            </Box>
+          </Stack>
           <Chip
             label={`${visibleOrders.length} visible`}
             color="primary"

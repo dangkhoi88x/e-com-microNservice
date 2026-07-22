@@ -189,12 +189,15 @@ export default function Categories() {
               spacing={2}
               className="panel-summary"
             >
-              <Box>
-                <Typography fontWeight={900}>Catalog taxonomy</Typography>
-                <Typography variant="body2" color="text.secondary">
+              <Stack direction="row" spacing={1.25} alignItems="center" className="section-library-heading">
+                <Box className="section-heading-icon section-heading-icon-blue"><CategoryOutlinedIcon /></Box>
+                <Box>
+                <Typography className="section-heading-title">Catalog taxonomy</Typography>
+                <Typography className="section-heading-description">
                   {categories.length} active category records
                 </Typography>
-              </Box>
+                </Box>
+              </Stack>
               <Chip
                 label={`${categories.length} categories`}
                 color="primary"

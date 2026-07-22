@@ -60,6 +60,7 @@ export const claimPromotion = async (campaignId) => {
 };
 
 export const getFlashDeals = async (status) => (await httpClient.get(API.FLASH_DEALS, { params: status ? { status } : {} })).data?.data || [];
+export const getFlashDealDetail = async (id) => (await httpClient.get(`${API.FLASH_DEALS}/${id}/detail`)).data?.data;
 export const getLiveFlashDeals = async () => (await httpClient.get(API.FLASH_DEALS_LIVE)).data?.data || [];
 export const getActiveProductSales = async () => (await httpClient.get(API.FLASH_DEALS_ACTIVE)).data?.data || [];
 export const getLiveLongTermSales = async () => (await httpClient.get(API.LONG_TERM_SALES_LIVE)).data?.data || [];

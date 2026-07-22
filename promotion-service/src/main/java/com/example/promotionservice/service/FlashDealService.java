@@ -2,6 +2,7 @@ package com.example.promotionservice.service;
 
 import com.example.promotionservice.dto.request.CreateFlashDealRequest;
 import com.example.promotionservice.dto.response.FlashDealResponse;
+import com.example.promotionservice.dto.response.FlashDealDetailResponse;
 import com.example.promotionservice.dto.request.ReserveFlashDealRequest;
 import com.example.promotionservice.dto.response.FlashDealPriceResponse;
 import com.example.promotionservice.entity.FlashDealStatus;
@@ -13,6 +14,7 @@ public interface FlashDealService {
     List<FlashDealResponse> getAll(String status);
     List<FlashDealResponse> getByStatusAndType(FlashDealStatus status, SaleType saleType);
     FlashDealResponse getById(String id);
+    FlashDealDetailResponse getDetail(String id);
     FlashDealResponse update(String id, CreateFlashDealRequest request);
     void delete(String id);
     List<FlashDealPriceResponse> reserve(ReserveFlashDealRequest request);

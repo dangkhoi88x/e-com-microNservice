@@ -87,7 +87,7 @@ export default function ShopProductDetail() {
 
   const images = [...(product.images || []), ...(variant?.imageUrl ? [{ url: variant.imageUrl }] : [])].filter((image, index, list) => image?.url && list.findIndex((item) => item.url === image.url) === index);
   const originalPrice = variant?.price ?? product.price;
-  const activeSale = activeSales.flatMap((deal) => (deal.items || []).map((item) => ({ ...item, saleType: deal.saleType || "FLASH" }))).filter((item) => item.productId === product.id && (item.variantId || null) === (variant?.id || null) && (item.quotaLimited === false || Number(item.quota || 0) > 0)).sort((a, b) => Number(a.salePrice) - Number(b.salePrice))[0];
+  const activeSale = activeSales.flatMap((deal) => (deal.items || []).map((item) => ({ ...item, saleType: deal.saleType || "FLASH" }))).filter((item) => item.productId === product.id && (item.variantId || null) === (variant?.id || null) && (item.quotaLimited === false || Number(item.quota || 0) > 0)).sort((a, b) => Number(a.salePrice) - Number(b.salePrice) || (a.saleType === "FLASH" ? -1 : 1) - (b.saleType === "FLASH" ? -1 : 1))[0];
   const price = activeSale?.salePrice ?? originalPrice;
   const stock = variant?.quantity ?? product.quantity ?? 0;
   const add = async (goToCheckout = false) => {

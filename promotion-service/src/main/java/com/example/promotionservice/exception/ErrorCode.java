@@ -16,6 +16,7 @@ public enum ErrorCode {
     PROMOTION_USAGE_LIMIT_REACHED(400, "Promotion usage limit has been reached", HttpStatus.BAD_REQUEST),
     PROMOTION_NOT_CLAIMED(400, "Please claim this promotion before checkout", HttpStatus.BAD_REQUEST),
     FLASH_SALE_SOLD_OUT(409, "Flash Sale quota is no longer available", HttpStatus.CONFLICT),
+    SALE_CAMPAIGN_OVERLAP(409, "This product or variant already has an overlapping campaign of the same sale type", HttpStatus.CONFLICT),
     FLASH_SALE_NOTIFICATION_UNAVAILABLE(400, "Flash Sale is not available for notification", HttpStatus.BAD_REQUEST),
     INVALID_REQUEST(400, "Request validation failed", HttpStatus.BAD_REQUEST),
     INTERNAL_ERROR(500, "Unexpected error occurred while processing promotion", HttpStatus.INTERNAL_SERVER_ERROR);

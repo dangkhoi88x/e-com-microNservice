@@ -31,6 +31,7 @@ import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
+import FolderSpecialOutlinedIcon from "@mui/icons-material/FolderSpecialOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import ToggleOffOutlinedIcon from "@mui/icons-material/ToggleOffOutlined";
 import ToggleOnOutlinedIcon from "@mui/icons-material/ToggleOnOutlined";
@@ -77,11 +78,7 @@ function toLocalInput(value) {
 }
 
 function formatMoney(value) {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(Number(value || 0));
+  return `${new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 }).format(Number(value || 0))} ₫`;
 }
 
 function formatDate(value) {
@@ -258,21 +255,30 @@ export default function Promotions() {
 
       {errorMessage && <Alert severity="error" sx={{ mt: 2 }}>{errorMessage}</Alert>}
 
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" }, gap: 2, mt: 3 }}>
+      <Box className="promotions-metrics-grid" sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" }, gap: 2, mt: 3 }}>
         <StatCard label="Active campaigns" value={metrics.active} helper="Available at checkout" tone="green" icon={<BoltOutlinedIcon />} />
-        <StatCard label="Draft campaigns" value={metrics.draft} helper="Ready for review and activation" tone="orange" icon={<LocalOfferOutlinedIcon />} />
-        <StatCard label="Voucher redemptions" value={metrics.redemptions} helper="Confirmed promotion usages" tone="blue" icon={<LocalOfferOutlinedIcon />} />
+        <StatCard label="Draft campaigns" value={metrics.draft} helper="Ready for review and activation" tone="zinc" icon={<LocalOfferOutlinedIcon />} />
+        <StatCard label="Voucher redemptions" value={metrics.redemptions} helper="Confirmed promotion usages" tone="zinc" icon={<LocalOfferOutlinedIcon />} />
       </Box>
 
-      <Paper className="admin-data-panel" elevation={0} sx={{ mt: 3, border: "1px solid", borderColor: "divider", overflow: "hidden" }}>
+      <Paper className="admin-data-panel promotion-library-panel" elevation={0} sx={{ mt: 3, border: "1px solid", borderColor: "divider", overflow: "hidden" }}>
         <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ sm: "center" }} justifyContent="space-between" spacing={2} className="panel-summary">
-          <Box><Typography fontWeight={900}>Campaign library</Typography><Typography variant="body2" color="text.secondary">Campaign status is enforced by Promotion Service during checkout.</Typography></Box>
+          <Stack direction="row" spacing={1.25} alignItems="center" className="promotion-library-heading">
+            <Box className="promotion-library-icon"><FolderSpecialOutlinedIcon /></Box>
+            <Box>
+              <Typography className="promotion-library-title">Campaign library</Typography>
+              <Typography className="promotion-library-description">Campaign status is enforced by Promotion Service during checkout.</Typography>
+            </Box>
+          </Stack>
           <TextField select label="Status" size="small" value={filter} onChange={(event) => handleFilter(event.target.value)} sx={{ minWidth: 150 }}>
             {statusOptions.map((status) => <MenuItem key={status} value={status}>{status === "ALL" ? "All campaigns" : status}</MenuItem>)}
           </TextField>
         </Stack>
         <Divider />
-        {loading ? <Stack alignItems="center" justifyContent="center" sx={{ py: 9 }}><CircularProgress /></Stack> : campaigns.length === 0 ? <Box sx={{ p: 5, textAlign: "center" }}><LocalOfferOutlinedIcon color="disabled" sx={{ fontSize: 42 }} /><Typography fontWeight={800} sx={{ mt: 1 }}>No campaigns found</Typography><Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>Create a campaign, then activate it when it is ready for checkout.</Typography></Box> : <TableContainer><Table><TableHead><TableRow><TableCell>Campaign</TableCell><TableCell>Discount</TableCell><TableCell>Schedule</TableCell><TableCell>Usage</TableCell><TableCell>Status</TableCell><TableCell align="right">Actions</TableCell></TableRow></TableHead><TableBody>{campaigns.map((campaign) => <TableRow hover key={campaign.id}><TableCell><Stack spacing={0.35}><Stack direction="row" spacing={1} alignItems="center"><Typography className="table-primary">{campaign.name}</Typography><Chip size="small" label={campaign.code} className="soft-chip" /></Stack><Typography className="table-secondary" noWrap>{campaign.description || "No description"}</Typography></Stack></TableCell><TableCell><Typography fontWeight={800}>{campaign.type === "PERCENTAGE" ? `${campaign.discountValue}%` : formatMoney(campaign.discountValue)}</Typography><Typography variant="caption" color="text.secondary">Min. {formatMoney(campaign.minOrderAmount)}{campaign.maxDiscountAmount != null ? ` · Max ${formatMoney(campaign.maxDiscountAmount)}` : ""}</Typography></TableCell><TableCell><Typography variant="body2">{formatDate(campaign.startAt)}</Typography><Typography variant="caption" color="text.secondary">to {formatDate(campaign.endAt)}</Typography></TableCell><TableCell><Typography fontWeight={800}>{campaign.usedCount || 0} / {campaign.usageLimit || "∞"}</Typography><Typography variant="caption" color="text.secondary">Priority {campaign.priority || 0}</Typography></TableCell><TableCell><Chip size="small" color={statusTone[campaign.status] || "default"} label={campaign.status} /></TableCell><TableCell align="right"><Stack direction="row" justifyContent="flex-end"><Tooltip title={campaign.status === "ACTIVE" ? "Deactivate" : "Activate"}><IconButton color={campaign.status === "ACTIVE" ? "success" : "default"} onClick={() => changeStatus(campaign)}>{campaign.status === "ACTIVE" ? <ToggleOnOutlinedIcon /> : <ToggleOffOutlinedIcon />}</IconButton></Tooltip><Tooltip title="View used orders"><IconButton onClick={() => openPromotionOrders(campaign)}><VisibilityOutlinedIcon /></IconButton></Tooltip><Tooltip title="Edit"><IconButton onClick={() => openEdit(campaign)}><EditOutlinedIcon /></IconButton></Tooltip><Tooltip title="Delete"><IconButton color="error" onClick={() => remove(campaign)}><DeleteOutlineOutlinedIcon /></IconButton></Tooltip></Stack></TableCell></TableRow>)}</TableBody></Table></TableContainer>}
+        {loading ? <Stack alignItems="center" justifyContent="center" sx={{ py: 9 }}><CircularProgress /></Stack> : campaigns.length === 0 ? <Box sx={{ p: 5, textAlign: "center" }}><LocalOfferOutlinedIcon color="disabled" sx={{ fontSize: 42 }} /><Typography fontWeight={800} sx={{ mt: 1 }}>No campaigns found</Typography><Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>Create a campaign, then activate it when it is ready for checkout.</Typography></Box> : <>
+          <TableContainer><Table><TableHead><TableRow><TableCell>Campaign</TableCell><TableCell>Discount</TableCell><TableCell>Schedule</TableCell><TableCell>Usage</TableCell><TableCell>Status</TableCell><TableCell align="right">Actions</TableCell></TableRow></TableHead><TableBody>{campaigns.map((campaign) => <TableRow hover key={campaign.id}><TableCell><Stack spacing={0.35}><Typography className="table-primary">{campaign.name}</Typography><Typography className="promotion-code">{campaign.code}</Typography><Typography className="table-secondary" noWrap>{campaign.description || "No description"}</Typography></Stack></TableCell><TableCell><Typography fontWeight={800}>{campaign.type === "PERCENTAGE" ? `${campaign.discountValue}%` : formatMoney(campaign.discountValue)}</Typography><Typography variant="caption" color="text.secondary">Min. {formatMoney(campaign.minOrderAmount)}{campaign.maxDiscountAmount != null ? ` · Max ${formatMoney(campaign.maxDiscountAmount)}` : ""}</Typography></TableCell><TableCell><Typography variant="body2">{formatDate(campaign.startAt)}</Typography><Typography variant="caption" color="text.secondary">to {formatDate(campaign.endAt)}</Typography></TableCell><TableCell><Typography fontWeight={800}>{campaign.usedCount || 0} / {campaign.usageLimit || "∞"}</Typography><Typography variant="caption" color="text.secondary">Priority {campaign.priority || 0}</Typography></TableCell><TableCell><Chip size="small" color={statusTone[campaign.status] || "default"} label={campaign.status} /></TableCell><TableCell align="right"><Stack direction="row" justifyContent="flex-end" className="promotion-row-actions"><Tooltip title={campaign.status === "ACTIVE" ? "Deactivate" : "Activate"}><IconButton className="promotion-action-button" onClick={() => changeStatus(campaign)}>{campaign.status === "ACTIVE" ? <ToggleOnOutlinedIcon /> : <ToggleOffOutlinedIcon />}</IconButton></Tooltip><Tooltip title="View used orders"><IconButton className="promotion-action-button" onClick={() => openPromotionOrders(campaign)}><VisibilityOutlinedIcon /></IconButton></Tooltip><Tooltip title="Edit"><IconButton className="promotion-action-button" onClick={() => openEdit(campaign)}><EditOutlinedIcon /></IconButton></Tooltip><Tooltip title="Delete"><IconButton className="promotion-action-button promotion-delete-action" onClick={() => remove(campaign)}><DeleteOutlineOutlinedIcon /></IconButton></Tooltip></Stack></TableCell></TableRow>)}</TableBody></Table></TableContainer>
+          {campaigns.length <= 1 && <Box className="promotion-library-helper"><Box><Typography className="promotion-library-helper-title">Thư viện chiến dịch đang gọn gàng</Typography><Typography className="promotion-library-helper-text">Tạo thêm chiến dịch để chuẩn bị cho các đợt ưu đãi sắp tới.</Typography></Box><Button variant="outlined" size="small" startIcon={<AddOutlinedIcon />} onClick={openCreate}>Tạo chiến dịch</Button></Box>}
+        </>}
       </Paper>
 
       <Dialog open={ordersDialogOpen} onClose={() => setOrdersDialogOpen(false)} fullWidth maxWidth="md">

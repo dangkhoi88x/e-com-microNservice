@@ -17,6 +17,8 @@ public class FlashDealItem extends AbstractEntity {
     @Column(nullable = false, precision = 19, scale = 2) private BigDecimal salePrice;
     @Column(precision = 5, scale = 2) private BigDecimal discountPercent;
     @Column(nullable = false) private Integer quota;
+    @Column(name = "initial_quota") private Integer initialQuota;
     @Column(name = "quota_limited") private Boolean quotaLimited;
     public boolean isQuotaLimited() { return quotaLimited == null || quotaLimited; }
+    public Integer effectiveInitialQuota() { return initialQuota == null ? quota : initialQuota; }
 }

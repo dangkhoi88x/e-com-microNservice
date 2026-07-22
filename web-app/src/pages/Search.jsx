@@ -24,6 +24,9 @@ import {
 } from "@mui/material";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import InsightsOutlinedIcon from "@mui/icons-material/InsightsOutlined";
+import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
+import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import { useEffect, useState } from "react";
 import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
@@ -147,6 +150,10 @@ export default function Search() {
   };
 
   const priceStats = aggregations.priceStats || {};
+  const categories = aggregations.categories || [];
+  const priceRanges = aggregations.priceRanges || [];
+  const largestCategoryCount = Math.max(...categories.map((item) => item.count || 0), 1);
+  const largestRangeCount = Math.max(...priceRanges.map((item) => item.count || 0), 1);
 
   return (
     <MainLayout>
@@ -241,57 +248,103 @@ export default function Search() {
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography fontWeight={900}>Aggregations</Typography>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              alignItems={{ xs: "flex-start", sm: "center" }}
+              justifyContent="space-between"
+              spacing={1}
+              className="aggregation-heading"
+            >
+              <Stack direction="row" spacing={1.25} alignItems="center" className="section-library-heading">
+                <Box className="section-heading-icon section-heading-icon-green"><InsightsOutlinedIcon /></Box>
+                <Box>
+                <Typography className="section-heading-title">Tổng quan dữ liệu</Typography>
+                <Typography className="section-heading-description">
+                  Phân bổ sản phẩm theo giá và danh mục của kết quả hiện tại.
+                </Typography>
+                </Box>
+              </Stack>
+              <Chip
+                icon={<InsightsOutlinedIcon />}
+                label={`${priceStats.count || 0} sản phẩm`}
+                className="aggregation-total-chip"
+              />
+            </Stack>
             {loading ? (
               <LinearProgress sx={{ mt: 2 }} />
             ) : (
               <Box className="search-aggregation-grid">
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Price stats
-                  </Typography>
-                  <Typography fontWeight={800}>
+                <Box className="aggregation-card aggregation-price-card">
+                  <Box className="aggregation-card-heading">
+                    <Box className="aggregation-icon aggregation-icon-price">
+                      <PaymentsOutlinedIcon />
+                    </Box>
+                    <Box>
+                      <Typography className="aggregation-label">Khoảng giá</Typography>
+                      <Typography className="aggregation-caption">Toàn bộ kết quả</Typography>
+                    </Box>
+                  </Box>
+                  <Typography className="aggregation-price-range">
                     {formatPrice(priceStats.min)} - {formatPrice(priceStats.max)}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Avg {formatPrice(priceStats.avg)} · {priceStats.count || 0} items
+                  <Typography className="aggregation-stat-line">
+                    Trung bình <strong>{formatPrice(priceStats.avg)}</strong>
                   </Typography>
                 </Box>
 
-                <Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    Categories
-                  </Typography>
-                  <Stack spacing={1}>
-                    {(aggregations.categories || []).map((category) => (
-                      <Stack
+                <Box className="aggregation-card">
+                  <Box className="aggregation-card-heading">
+                    <Box className="aggregation-icon aggregation-icon-category">
+                      <CategoryOutlinedIcon />
+                    </Box>
+                    <Box>
+                      <Typography className="aggregation-label">Danh mục</Typography>
+                      <Typography className="aggregation-caption">Nhóm sản phẩm nổi bật</Typography>
+                    </Box>
+                  </Box>
+                  <Stack spacing={1.25} className="aggregation-list">
+                    {categories.length ? categories.map((category) => (
+                      <Box
                         key={category.name}
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
+                        className="aggregation-list-item"
                       >
-                        <Typography variant="body2">{category.name}</Typography>
-                        <Chip size="small" label={category.count} />
-                      </Stack>
-                    ))}
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                          <Typography className="aggregation-item-name">{category.name}</Typography>
+                          <Chip size="small" label={category.count} className="aggregation-count-chip" />
+                        </Stack>
+                        <Box className="aggregation-meter">
+                          <Box sx={{ width: `${((category.count || 0) / largestCategoryCount) * 100}%` }} />
+                        </Box>
+                      </Box>
+                    )) : <Typography className="aggregation-empty">Chưa có dữ liệu danh mục.</Typography>}
                   </Stack>
                 </Box>
 
-                <Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    Price ranges
-                  </Typography>
-                  <Stack spacing={1}>
-                    {(aggregations.priceRanges || []).map((range) => (
-                      <Stack
+                <Box className="aggregation-card">
+                  <Box className="aggregation-card-heading">
+                    <Box className="aggregation-icon aggregation-icon-range">
+                      <LocalOfferOutlinedIcon />
+                    </Box>
+                    <Box>
+                      <Typography className="aggregation-label">Phân khúc giá</Typography>
+                      <Typography className="aggregation-caption">Mật độ theo khoảng giá</Typography>
+                    </Box>
+                  </Box>
+                  <Stack spacing={1.25} className="aggregation-list">
+                    {priceRanges.length ? priceRanges.map((range) => (
+                      <Box
                         key={range.range}
-                        direction="row"
-                        justifyContent="space-between"
+                        className="aggregation-list-item"
                       >
-                        <Typography variant="body2">{range.range}</Typography>
-                        <Chip size="small" label={range.count} />
-                      </Stack>
-                    ))}
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                          <Typography className="aggregation-item-name">{range.range}</Typography>
+                          <Chip size="small" label={range.count} className="aggregation-count-chip" />
+                        </Stack>
+                        <Box className="aggregation-meter aggregation-range-meter">
+                          <Box sx={{ width: `${((range.count || 0) / largestRangeCount) * 100}%` }} />
+                        </Box>
+                      </Box>
+                    )) : <Typography className="aggregation-empty">Chưa có dữ liệu phân khúc.</Typography>}
                   </Stack>
                 </Box>
               </Box>

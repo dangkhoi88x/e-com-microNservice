@@ -132,12 +132,15 @@ export default function Notifications() {
           spacing={2}
           sx={{ p: 2.5 }}
         >
-          <Box>
-            <Typography fontWeight={900}>Inbox</Typography>
-            <Typography variant="body2" color="text.secondary">
+          <Stack direction="row" spacing={1.25} alignItems="center" className="section-library-heading">
+            <Box className="section-heading-icon section-heading-icon-orange"><NotificationsOutlinedIcon /></Box>
+            <Box>
+            <Typography className="section-heading-title">Inbox</Typography>
+            <Typography className="section-heading-description">
               {isAdmin ? "Admin inbox" : "My inbox"} · {notifications.length} notifications
             </Typography>
-          </Box>
+            </Box>
+          </Stack>
           <Chip
             label={`${unreadCount} unread`}
             color={unreadCount > 0 ? "primary" : "default"}

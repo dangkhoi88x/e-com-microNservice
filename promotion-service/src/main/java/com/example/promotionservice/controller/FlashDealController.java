@@ -20,6 +20,7 @@ public class FlashDealController {
     @GetMapping("/upcoming") public ApiResponse<List<FlashDealResponse>> getUpcoming() { return body(HttpStatus.OK, service.getByStatusAndType(FlashDealStatus.SCHEDULED, SaleType.FLASH)); }
     @GetMapping("/long-term/live") public ApiResponse<List<FlashDealResponse>> getLongTermLive() { return body(HttpStatus.OK, service.getByStatusAndType(FlashDealStatus.LIVE, SaleType.LONG_TERM)); }
     @GetMapping("/active") public ApiResponse<List<FlashDealResponse>> getAllActiveSales() { return body(HttpStatus.OK, service.getByStatusAndType(FlashDealStatus.LIVE, null)); }
+    @GetMapping("/{id}/detail") public ApiResponse<FlashDealDetailResponse> getDetail(@PathVariable String id) { return body(HttpStatus.OK, service.getDetail(id)); }
     @GetMapping("/{id}") public ApiResponse<FlashDealResponse> getById(@PathVariable String id) { return body(HttpStatus.OK, service.getById(id)); }
     @PutMapping("/{id}") public ApiResponse<FlashDealResponse> update(@PathVariable String id, @Valid @RequestBody CreateFlashDealRequest request) { return body(HttpStatus.OK, service.update(id, request)); }
     @DeleteMapping("/{id}") public ApiResponse<Void> delete(@PathVariable String id) { service.delete(id); return body(HttpStatus.OK, null); }
