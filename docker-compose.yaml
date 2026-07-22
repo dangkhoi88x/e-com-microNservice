@@ -43,6 +43,62 @@ services:
       timeout: 5s
       retries: 10
 
+  shipping-postgres:
+    image: postgres:17
+    container_name: shipping-postgres
+    ports:
+      - "5438:5432"
+    environment:
+      POSTGRES_DB: shipping_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - shipping-postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservice_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d shipping_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  review-postgres:
+    image: postgres:17
+    container_name: review-postgres
+    ports:
+      - "5439:5432"
+    environment:
+      POSTGRES_DB: review_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - review-postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservice_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d review_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  review-service:
+    build:
+      context: ./review-service
+    container_name: review-service
+    ports:
+      - "8097:8097"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://review-postgres:5432/review_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      review-postgres:
+        condition: service_healthy
+    networks:
+      - microservice_network
+
   promotion-service:
     build:
       context: ./promotion-service
@@ -201,5 +257,7 @@ volumes:
   elasticsearch_data:
   inventory_postgres_data:
   promotion-postgres-data:
+  shipping-postgres-data:
+  review-postgres-data:
 networks:
   microservice_network:

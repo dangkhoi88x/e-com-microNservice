@@ -3,6 +3,7 @@ package com.example.notificationservice.service;
 import com.example.event.OrderCancelledEvent;
 import com.example.event.OrderCreatedEvent;
 import com.example.event.OrderStatusUpdatedEvent;
+import com.example.event.ShipmentStatusUpdatedEvent;
 import com.example.event.UserProfileCreatedEvent;
 import com.example.notificationservice.common.NotificationType;
 import com.example.notificationservice.dto.res.NotificationResponse;
@@ -75,6 +76,38 @@ public class NotificationService {
                 event.getUserId(),
                 event.getOrderId(),
                 event.getNewStatus());
+    }
+
+    public void createNotificationShipmentStatusUpdated(ShipmentStatusUpdatedEvent event) {
+        String tracking = event.getTrackingNumber() == null || event.getTrackingNumber().isBlank()
+                ? ""
+                : " Mã vận đơn: " + event.getTrackingNumber() + ".";
+        String location = event.getLocation() == null || event.getLocation().isBlank()
+                ? ""
+                : " Vị trí: " + event.getLocation() + ".";
+
+        String title = switch (event.getNewStatus()) {
+            case "PACKING" -> "Đơn hàng đang được đóng gói";
+            case "READY_TO_SHIP" -> "Đơn hàng sẵn sàng bàn giao";
+            case "IN_TRANSIT" -> "Đơn hàng đang được giao";
+            case "DELIVERED" -> "Giao hàng thành công";
+            case "DELIVERY_FAILED" -> "Giao hàng chưa thành công";
+            case "RETURNING" -> "Đơn hàng đang được hoàn về";
+            case "RETURNED" -> "Đơn hàng đã được hoàn về";
+            case "CANCELLED" -> "Vận chuyển đã bị huỷ";
+            default -> "Trạng thái vận chuyển đã cập nhật";
+        };
+
+        Notification notification = Notification.builder()
+                .userId(event.getUserId())
+                .title(title)
+                .message("Đơn hàng " + event.getOrderId() + " đã chuyển sang "
+                        + event.getNewStatus() + "." + tracking + location)
+                .type(NotificationType.SHIPMENT_STATUS_UPDATED)
+                .build();
+        notificationRepository.save(notification);
+        log.info("Created shipment notification for userId={}, orderId={}, status={}",
+                event.getUserId(), event.getOrderId(), event.getNewStatus());
     }
 
     public void createNotificationFlashSaleUpcoming(String userId, String flashDealName, String startAt) {

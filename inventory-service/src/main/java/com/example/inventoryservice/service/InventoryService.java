@@ -21,5 +21,7 @@ public interface InventoryService {
 
     void releaseInventory(InventoryOrderRequest request);
 
+    void confirmReturnedInventory(String orderId);
+
     List<ReservationResponse> getReservationsByOrderId(String orderId);
 }

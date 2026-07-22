@@ -53,6 +53,9 @@ const orderStatuses = [
   "INVENTORY_FAILED",
   "CONFIRMED",
   "SHIPPING",
+  "DELIVERY_FAILED",
+  "RETURNING",
+  "RETURNED",
   "COMPLETED",
   "CANCELLED",
 ];
@@ -71,6 +74,11 @@ const statusColor = (status) => {
       return "info";
     case "SHIPPING":
       return "primary";
+    case "DELIVERY_FAILED":
+      return "error";
+    case "RETURNING":
+    case "RETURNED":
+      return "warning";
     case "COMPLETED":
       return "success";
     case "CANCELLED":

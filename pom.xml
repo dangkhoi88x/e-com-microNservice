@@ -22,6 +22,8 @@
         <module>product-service</module>
         <module>profile-service</module>
         <module>search-service</module>
+        <module>shipping-service</module>
         <module>wishlist-service</module>
+        <module>review-service</module>
     </modules>
 </project>

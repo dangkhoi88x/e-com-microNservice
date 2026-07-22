@@ -16,4 +16,6 @@ public interface ProductDocumentService {
     AggregationResponse getAggregations(SearchRequest request);
 
     List<ProductDocument> getSuggestions(String query, int size);
+
+    void updateReviewSummary(String productId, double averageRating, long reviewCount);
 }

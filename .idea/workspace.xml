@@ -4,42 +4,159 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="promotion service, flash sale , sale long term , fe">
-      <change afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/dto/response/FlashDealDetailResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/dto/response/FlashDealItemDetailResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/repository/FlashDealCampaignMetricProjection.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/repository/FlashDealItemMetricProjection.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web-app/src/pages/FlashDeals.css" afterDir="false" />
+    <list default="true" id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="backend - promotion service 9/10">
+      <change afterPath="$PROJECT_DIR$/.ai/mcp/mcp.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_7_22_2026_12_56_PM_[Changes]/shelved.patch" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_7_22_2026_12_56_PM__Changes_.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/agent_context.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/diary.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notification-service/src/main/java/com/example/event/ShipmentStatusUpdatedEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notification-service/src/main/java/com/example/notificationservice/messaging/consumer/ShipmentEventConsumer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/event/ShipmentRequestedEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/event/ShipmentStatusUpdatedEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/controller/InternalOrderController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/dto/response/ReviewEligibilityResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/messaging/consumer/ShipmentEventConsumer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/.gitattributes" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/docker-compose.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/mvnw" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/mvnw.cmd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/ReviewServiceApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/client/OrderClient.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/client/ProfileClient.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/configuration/CustomJwtDecoder.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/configuration/KafkaProducerConfiguration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/configuration/WebClientConfiguration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/controller/ReviewController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/dto/request/CreateReviewRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/dto/request/ModerateReviewRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/dto/request/SellerReplyRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/dto/request/UpdateReviewRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/dto/response/ApiResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/dto/response/PageResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/dto/response/ProductReviewResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/dto/response/ProfileSnapshotResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/dto/response/ReviewEligibilityResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/dto/response/ReviewSummaryResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/entity/AbstractEntity.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/entity/ProductReview.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/entity/ReviewStatus.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/exception/ErrorCode.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/exception/ErrorResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/exception/ReviewServiceException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/mapper/ProductReviewMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/messaging/ReviewSummaryEventPublisher.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/repository/ProductReviewRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/repository/RatingCountProjection.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/repository/ReviewSummaryProjection.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/service/ReviewService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/service/implement/ReviewServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/java/event/ReviewSummaryChangedEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/main/resources/application.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/review-service/src/test/java/com/example/reviewservice/ReviewServiceApplicationTests.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/messaging/ReviewSummaryEventConsumer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/search-service/src/main/java/event/ReviewSummaryChangedEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/.gitattributes" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/docker-compose.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/mvnw" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/mvnw.cmd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/event/OrderCancelledEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/event/ShipmentRequestedEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/event/ShipmentStatusUpdatedEvent.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/ShippingServiceApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/configuration/CustomJwtDecoder.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/configuration/KafkaConsumerConfiguration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/configuration/KafkaProducerConfiguration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/controller/InternalShipmentController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/controller/ShipmentController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/dto/request/AssignCarrierRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/dto/request/CreateShipmentRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/dto/request/UpdateShipmentStatusRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/dto/response/ApiResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/dto/response/ShipmentHistoryResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/dto/response/ShipmentResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/entity/AbstractEntity.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/entity/Shipment.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/entity/ShipmentHistory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/entity/ShipmentStatus.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/exception/ErrorCode.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/exception/ErrorResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/exception/ShippingServiceException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/mapper/ShipmentMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/OrderCancelledConsumer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/ShipmentRequestedConsumer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/repository/ShipmentHistoryRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/repository/ShipmentRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/service/ShipmentService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/service/implement/ShipmentServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/resources/application.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/test/java/com/example/shippingservice/ShippingServiceApplicationTests.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/start_here.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web-app/src/components/ProductReviews.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web-app/src/components/ProductReviews.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web-app/src/components/ReviewFormModal.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web-app/src/components/ReviewFormModal.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web-app/src/hooks/useShopProductListing.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web-app/src/pages/CustomerOrdersReview.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web-app/src/pages/Shipments.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web-app/src/pages/Shipments.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web-app/src/pages/ShopProductListing.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web-app/src/services/reviewService.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web-app/src/services/shippingService.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/controller/FlashDealController.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/controller/FlashDealController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/dto/response/FlashDealItemResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/dto/response/FlashDealItemResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/entity/FlashDealItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/entity/FlashDealItem.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/exception/ErrorCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/exception/ErrorCode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/repository/FlashDealItemRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/repository/FlashDealItemRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/repository/FlashDealReservationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/repository/FlashDealReservationRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/FlashDealService.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/FlashDealService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/FlashDealServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/FlashDealServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/index.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Categories.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Categories.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Checkout.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Checkout.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/FlashDeals.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/FlashDeals.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Notifications.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Notifications.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway-service/src/main/java/com/example/apigatewayservice/configuration/GatewayAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway-service/src/main/java/com/example/apigatewayservice/configuration/GatewayAuthenticationFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway-service/src/main/java/com/example/apigatewayservice/configuration/GatewayConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway-service/src/main/java/com/example/apigatewayservice/configuration/GatewayConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/controller/InternalInventoryController.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/controller/InternalInventoryController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/enums/ReservationStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/enums/ReservationStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/repository/InventoryReservationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/repository/InventoryReservationRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/service/InventoryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/service/InventoryService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/service/implement/InventoryServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/service/implement/InventoryServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notification-service/src/main/java/com/example/notificationservice/common/NotificationType.java" beforeDir="false" afterPath="$PROJECT_DIR$/notification-service/src/main/java/com/example/notificationservice/common/NotificationType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notification-service/src/main/java/com/example/notificationservice/service/NotificationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/notification-service/src/main/java/com/example/notificationservice/service/NotificationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/client/InventoryClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/client/InventoryClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/common/OrderStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/common/OrderStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/dto/response/OrderItemResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/dto/response/OrderItemResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/repository/OrderItemRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/repository/OrderItemRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/OrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/OrderService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/implement/OrderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/implement/OrderServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/configuration/ElasticsearchIndexInitializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/configuration/ElasticsearchIndexInitializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/controller/ProductDocumentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/controller/ProductDocumentController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/document/ProductDocument.java" beforeDir="false" afterPath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/document/ProductDocument.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/dto/request/SearchRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/dto/request/SearchRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/repository/ProductDocumentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/repository/ProductDocumentRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/service/ProductDocumentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/service/ProductDocumentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/service/impl/ProductDocumentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/service/impl/ProductDocumentServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/components/ShopStoreHeader.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/components/ShopStoreHeader.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/components/SideMenu.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/components/SideMenu.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/configurations/configuration.js" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/configurations/configuration.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/CustomerOrders.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/CustomerOrders.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web-app/src/pages/Orders.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Orders.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Profile.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Profile.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Promotions.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Promotions.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Search.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Search.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web-app/src/pages/Shop.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Shop.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopBestDeals.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopBestDeals.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopCategory.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopCategory.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetail.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetail.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/services/promotionService.js" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/services/promotionService.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopSearch.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopSearch.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web-app/src/routes/AppRoutes.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/routes/AppRoutes.jsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
-  </component>
-  <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="636" />
   </component>
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$/ApiGatewayService">
@@ -47,82 +164,32 @@
     </projectState>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory">{
-  &quot;lastFilter&quot;: {
-    &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;dangkhoi88x&quot;
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "dangkhoi88x"
   }
-}</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/dangkhoi88x/e-com-microNservice&quot;,
-    &quot;accountId&quot;: &quot;a57b9a6b-c445-4ae2-b2ae-28388bdad628&quot;
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/dangkhoi88x/e-com-microNservice/",
+    "accountId": "59baf105-7598-429f-8838-790c3c04119d"
   }
+}]]></component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
 }</component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
-  </component>
-  <component name="NextEditCompletionFeaturesState">
-    <decayedCancelled>
-      <entry key="MS100" value="1.0004156402554523" />
-      <entry key="MS500" value="1.4878980783239668" />
-      <entry key="S2" value="4.511778609145616" />
-      <entry key="S5" value="8.367059763350898" />
-      <entry key="S10" value="11.244918173954545" />
-      <entry key="S30" value="14.132189532784178" />
-      <entry key="S60" value="15.024674910185967" />
-      <entry key="M2" value="15.501459175499031" />
-      <entry key="M5" value="15.797902687392584" />
-      <entry key="M10" value="15.898498524232759" />
-      <entry key="M15" value="15.93223127424098" />
-      <entry key="M30" value="15.966064986915294" />
-      <entry key="H1" value="15.98309516303003" />
-      <entry key="H2" value="16.06202234104309" />
-      <entry key="H4" value="18.153025103144223" />
-      <entry key="D1" value="53.31881719458337" />
-      <entry key="W1" value="76.83739841676692" />
-    </decayedCancelled>
-    <decayedSelected>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="0.0" />
-      <entry key="S2" value="0.0" />
-      <entry key="S5" value="0.0" />
-      <entry key="S10" value="0.0" />
-      <entry key="S30" value="0.0" />
-      <entry key="S60" value="0.0" />
-      <entry key="M2" value="0.0" />
-      <entry key="M5" value="0.0" />
-      <entry key="M10" value="0.0" />
-      <entry key="M15" value="0.0" />
-      <entry key="M30" value="0.0" />
-      <entry key="H1" value="0.0" />
-      <entry key="H2" value="0.0" />
-      <entry key="H4" value="0.0" />
-      <entry key="D1" value="0.0" />
-      <entry key="W1" value="0.0" />
-    </decayedSelected>
-    <decayedShown>
-      <entry key="MS100" value="0.9663434140152241" />
-      <entry key="MS500" value="1.4787915984715494" />
-      <entry key="S2" value="4.493231256701651" />
-      <entry key="S5" value="8.323171308074963" />
-      <entry key="S10" value="11.202489410803718" />
-      <entry key="S30" value="14.110051172607006" />
-      <entry key="S60" value="15.012283851216727" />
-      <entry key="M2" value="15.494903477751384" />
-      <entry key="M5" value="15.79518989457073" />
-      <entry key="M10" value="15.897126690788383" />
-      <entry key="M15" value="15.9313132616904" />
-      <entry key="M30" value="15.965604245519481" />
-      <entry key="H1" value="15.982864356930035" />
-      <entry key="H2" value="16.061906656800062" />
-      <entry key="H4" value="18.152964684081745" />
-      <entry key="D1" value="53.318799965438615" />
-      <entry key="W1" value="76.83739527184458" />
-    </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3,
@@ -148,8 +215,10 @@
     "RequestMappingsPanelWidth1": "75",
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "Spring Boot.ApiGatewayServiceApplication.executor": "Run",
     "Spring Boot.CartServiceApplication.executor": "Run",
     "Spring Boot.DiscoveryServerApplication.executor": "Run",
@@ -162,14 +231,14 @@
     "Spring Boot.ProfileServiceApplication.executor": "Run",
     "Spring Boot.PromotionServiceApplication.executor": "Run",
     "Spring Boot.SearchServiceApplication.executor": "Run",
+    "Spring Boot.ShippingServiceApplication.executor": "Run",
     "Spring Boot.WishlistServiceApplication.executor": "Run",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "admin__dashboard",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
@@ -177,13 +246,15 @@
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.0",
     "run.configurations.included.in.services": "true",
-    "settings.editor.selected.configurable": "configurable.group.appearance",
-    "to.speed.mode.migration.done": "true"
+    "settings.editor.selected.configurable": "configurable.group.build",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RunDashboard">
     <option name="configurationTypes">
       <set>
+        <option value="Application" />
         <option value="KtorApplicationConfigurationType" />
         <option value="MicronautRunConfigurationType" />
         <option value="QuarkusRunConfigurationType" />
@@ -197,19 +268,25 @@
             <map>
               <entry key="ApiGatewayServiceApplication" value="STOPPED" />
               <entry key="CartServiceApplication" value="STOPPED" />
+              <entry key="DiscoveryServerApplication" value="STOPPED" />
+              <entry key="InventoryServiceApplication" value="STOPPED" />
               <entry key="MicroserviceEcomApplication" value="STOPPED" />
               <entry key="NotificationServiceApplication" value="FAILED" />
               <entry key="OrderServiceApplication" value="STOPPED" />
               <entry key="PaymentServiceApplication" value="STOPPED" />
+              <entry key="ProductServiceApplication" value="STOPPED" />
               <entry key="ProfileServiceApplication" value="STOPPED" />
               <entry key="PromotionServiceApplication" value="STOPPED" />
+              <entry key="SearchServiceApplication" value="STOPPED" />
+              <entry key="ShippingServiceApplication" value="STOPPED" />
+              <entry key="WishlistServiceApplication" value="STOPPED" />
             </map>
           </value>
         </entry>
       </map>
     </option>
   </component>
-  <component name="RunManager" selected="Spring Boot.WishlistServiceApplication">
+  <component name="RunManager" selected="Spring Boot.CartServiceApplication">
     <configuration name="Notification" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="com.example.notificationservice.NotificationServiceApplication" />
       <method v="2">
@@ -221,15 +298,9 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="ApiGatewayServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+    <configuration name="ApiGatewayServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="api-gateway-service" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.apigatewayservice.ApiGatewayServiceApplication" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.example.apigatewayservice.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -342,9 +413,30 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="SearchServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <configuration name="ReviewServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="review-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.reviewservice.ReviewServiceApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SearchServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
       <module name="search-service" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.searchservice.SearchServiceApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.searchservice.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ShippingServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="shipping-service" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.shippingservice.ShippingServiceApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -359,35 +451,37 @@
     <list>
       <item itemvalue="Application.Notification" />
       <item itemvalue="Application.Unnamed" />
+      <item itemvalue="Spring Boot.ReviewServiceApplication" />
+      <item itemvalue="Spring Boot.ShippingServiceApplication" />
+      <item itemvalue="Spring Boot.ApiGatewayServiceApplication" />
       <item itemvalue="Spring Boot.DiscoveryServerApplication" />
       <item itemvalue="Spring Boot.InventoryServiceApplication" />
       <item itemvalue="Spring Boot.NotificationServiceApplication" />
       <item itemvalue="Spring Boot.ProductServiceApplication" />
       <item itemvalue="Spring Boot.PromotionServiceApplication" />
-      <item itemvalue="Spring Boot.SearchServiceApplication" />
       <item itemvalue="Spring Boot.WishlistServiceApplication" />
       <item itemvalue="Spring Boot.MicroserviceEcomApplication" />
-      <item itemvalue="Spring Boot.ApiGatewayServiceApplication" />
       <item itemvalue="Spring Boot.CartServiceApplication" />
       <item itemvalue="Spring Boot.OrderServiceApplication" />
       <item itemvalue="Spring Boot.PaymentServiceApplication" />
       <item itemvalue="Spring Boot.ProfileServiceApplication" />
+      <item itemvalue="Spring Boot.SearchServiceApplication" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Spring Boot.ApiGatewayServiceApplication" />
-        <item itemvalue="Spring Boot.OrderServiceApplication" />
-        <item itemvalue="Spring Boot.ProfileServiceApplication" />
         <item itemvalue="Spring Boot.PaymentServiceApplication" />
+        <item itemvalue="Spring Boot.ProfileServiceApplication" />
+        <item itemvalue="Spring Boot.SearchServiceApplication" />
         <item itemvalue="Spring Boot.CartServiceApplication" />
+        <item itemvalue="Spring Boot.OrderServiceApplication" />
       </list>
     </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-63390994e64e-intellij.indexing.shared.core-IU-262.8665.258" />
-        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.8665.258" />
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.32098.37" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.32098.37" />
       </set>
     </attachedChunks>
   </component>
@@ -398,6 +492,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1784445749626</updated>
+      <workItem from="1784722963141" duration="572000" />
     </task>
     <servers />
   </component>
@@ -405,12 +500,7 @@
     <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Fe, cart service , wishlist service merge" />
-    <MESSAGE value="promotion service, flash sale , sale long term , fe" />
-    <option name="LAST_COMMIT_MESSAGE" value="promotion service, flash sale , sale long term , fe" />
-  </component>
-  <component name="XSLT-Support.FileAssociations.UIState">
-    <expand />
-    <select />
+    <MESSAGE value="backend - promotion service 9/10" />
+    <option name="LAST_COMMIT_MESSAGE" value="backend - promotion service 9/10" />
   </component>
 </project>

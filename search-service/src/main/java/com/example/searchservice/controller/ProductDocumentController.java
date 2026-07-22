@@ -30,11 +30,12 @@ public class ProductDocumentController {
             @RequestParam(required = false) String description,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) Double minRating,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Boolean inStock,
             @RequestParam(defaultValue = "createdAt,desc") String sort
     ) {
-        SearchRequest request = new SearchRequest(q, categoryId, name, description, minPrice, maxPrice, status, inStock);
+        SearchRequest request = new SearchRequest(q, categoryId, name, description, minPrice, maxPrice, minRating, status, inStock);
         PageResponse<ProductDocument> data = productDocumentService.getAllWithSearch(page, size, request, sort);
 
         return ApiResponse.<PageResponse<ProductDocument>>builder()
@@ -63,10 +64,11 @@ public class ProductDocumentController {
             @RequestParam(required = false) String description,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) Double minRating,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Boolean inStock
     ) {
-        SearchRequest request = new SearchRequest(null, categoryId, name, description, minPrice, maxPrice, status, inStock);
+        SearchRequest request = new SearchRequest(null, categoryId, name, description, minPrice, maxPrice, minRating, status, inStock);
         AggregationResponse data = productDocumentService.getAggregations(request);
 
         return ApiResponse.<AggregationResponse>builder()

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 import static com.example.searchservice.configuration.ElasticsearchIndexInitializer.PRODUCT_INDEX;
 
@@ -94,6 +95,17 @@ public class ProductDocumentRepository {
         return response.aggregations();
     }
 
+    public void updateReviewSummary(String productId, double averageRating, long reviewCount) throws IOException {
+        Map<String, Object> partialDocument = new HashMap<>();
+        partialDocument.put("averageRating", averageRating);
+        partialDocument.put("reviewCount", reviewCount);
+        elasticsearchClient.update(update -> update
+                        .index(PRODUCT_INDEX)
+                        .id(productId)
+                        .doc(partialDocument),
+                ProductDocument.class);
+    }
+
     public List<ProductDocument> suggestions(String query, int size) throws IOException {
         SearchResponse<ProductDocument> response = elasticsearchClient.search(s -> s
                         .index(PRODUCT_INDEX)
@@ -155,6 +167,12 @@ public class ProductDocumentRepository {
                 }
                 return n;
             }))));
+        }
+
+        if (request.minRating() != null) {
+            filterQueries.add(Query.of(q -> q.range(r -> r.number(n -> n
+                    .field("averageRating")
+                    .gte(request.minRating())))));
         }
 
         if (mustQueries.isEmpty() && filterQueries.isEmpty()) {

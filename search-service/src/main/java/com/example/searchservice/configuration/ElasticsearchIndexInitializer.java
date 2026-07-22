@@ -69,6 +69,10 @@ public class ElasticsearchIndexInitializer {
                                 // inStock: boolean - filter sản phẩm còn hàng/hết hàng
                                 .properties("inStock", p -> p.boolean_(b -> b))
 
+                                .properties("averageRating", p -> p.double_(d -> d))
+
+                                .properties("reviewCount", p -> p.long_(l -> l))
+
                                 // createdAt: date - timestamp, dùng cho sort
                                 .properties("createdAt", p -> p.date(d -> d))
                         )

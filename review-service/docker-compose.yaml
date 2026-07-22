@@ -1,0 +1,22 @@
+name: review-service-local
+
+services:
+  review-postgres:
+    image: postgres:17
+    container_name: review-postgres
+    ports:
+      - "5439:5432"
+    environment:
+      POSTGRES_DB: review_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - review-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d review_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  review-postgres-data:

@@ -38,6 +38,37 @@ const categoryUrl = (category) => `/shop/categories/${encodeURIComponent((catego
 const normalizedCategoryName = (category) => ["skincare", "cham-soc-da"].includes(category.slug) ? "Chăm sóc da" : category.name;
 const categoryIcon = (category) => ({ "dien-thoai": <PhoneIphoneOutlinedIcon />, "dien-thoai-ban": <PhoneInTalkOutlinedIcon />, "thoi-trang": <CheckroomOutlinedIcon />, "skincare": <FaceRetouchingNaturalOutlinedIcon />, "cham-soc-da": <FaceRetouchingNaturalOutlinedIcon />, "nha-cua": <ChairOutlinedIcon /> }[category.slug] || <CategoryOutlinedIcon />);
 const productImageUrl = (product) => product?.imageUrl || product?.images?.find((image) => image.isPrimary)?.url || product?.images?.[0]?.url;
+const shuffle = (items) => {
+  const result = [...items];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const target = Math.floor(Math.random() * (index + 1));
+    [result[index], result[target]] = [result[target], result[index]];
+  }
+  return result;
+};
+
+const recommendFromCategories = (products, limit = 12, perCategory = 3) => {
+  const eligibleProducts = products.filter((product) =>
+    product.status === "ACTIVE" && Number(product.quantity || 0) > 0
+  );
+  const grouped = new Map();
+
+  eligibleProducts.forEach((product) => {
+    const categoryKey = product.categoryId || product.categoryName || "other";
+    if (!grouped.has(categoryKey)) grouped.set(categoryKey, []);
+    grouped.get(categoryKey).push(product);
+  });
+
+  const recommendations = shuffle([...grouped.values()])
+    .flatMap((categoryProducts) => shuffle(categoryProducts).slice(0, perCategory));
+
+  if (recommendations.length < limit) {
+    const selectedIds = new Set(recommendations.map((product) => product.id));
+    recommendations.push(...shuffle(eligibleProducts.filter((product) => !selectedIds.has(product.id))));
+  }
+
+  return shuffle(recommendations).slice(0, limit);
+};
 function ProductImage({ product }) { const source = productImageUrl(product); const [failed, setFailed] = useState(!source); return failed ? <div className="shop-product-placeholder" aria-label="Ảnh sản phẩm NovaShop">N</div> : <img src={source} alt={product.name} onError={() => setFailed(true)} />; }
 
 function ShopFlashSale({ products, deals, upcomingDeals, notifiedIds, onNotify, onOpen }) {
@@ -123,7 +154,7 @@ export default function Shop() {
       });
     }
   };
-  const visibleProducts = products;
+  const recommendedProducts = useMemo(() => recommendFromCategories(products), [products]);
   const saleProducts = useMemo(() => { const best = new Map(); activeSales.forEach((deal) => (deal.items || []).forEach((item) => { if (item.quotaLimited !== false && Number(item.quota || 0) <= 0) return; const product = products.find((entry) => entry.id === item.productId); if (!product || Number(item.salePrice) >= Number(item.originalPrice)) return; const candidate = { ...product, salePrice: Number(item.salePrice), originalPrice: Number(item.originalPrice), discountPercent: Number(item.discountPercent || (100 - Number(item.salePrice) * 100 / Number(item.originalPrice))), saleType: deal.saleType || "FLASH" }; const current = best.get(product.id); if (!current || candidate.salePrice < current.salePrice || (candidate.salePrice === current.salePrice && candidate.saleType === "FLASH" && current.saleType !== "FLASH")) best.set(product.id, candidate); })); return [...best.values()].sort((a, b) => b.discountPercent - a.discountPercent); }, [activeSales, products]);
   const visibleCategories = useMemo(() => { const seen = new Set(); return categories.filter((category) => !/san pham abcx/i.test(category.name)).filter((category) => { const key = normalizedCategoryName(category).toLocaleLowerCase("vi-VN"); if (seen.has(key)) return false; seen.add(key); return true; }); }, [categories]);
   const addToCart = async (product) => {
@@ -149,7 +180,7 @@ export default function Shop() {
       <section className="shop-category-strip">{visibleCategories.slice(0, 6).map((category) => <button key={category.id} onClick={() => navigate(categoryUrl(category))}><span>{categoryIcon(category)}</span>{normalizedCategoryName(category)}</button>)}{visibleCategories.length === 0 && ["Thời trang", "Làm đẹp", "Điện tử", "Nhà cửa", "Thể thao"].map((name) => <button key={name}><span><CategoryOutlinedIcon /></span>{name}</button>)}</section>
       <section className="shop-promo-row"><article><small>FLASH SALE</small><strong>Giảm đến 70%</strong><button>Mua ngay →</button></article><article><small>MIỄN PHÍ VẬN CHUYỂN</small><strong>Đơn từ 500.000đ</strong><button>Mua ngay →</button></article><article><small>HÀNG MỚI VỀ</small><strong>Xu hướng mới nhất</strong><button>Mua ngay →</button></article></section>
       <section id="best-deals"><div className="shop-section-head"><div><small>Được chọn cho bạn</small><h2>Ưu đãi tốt nhất</h2></div><button onClick={() => navigate("/shop/best-deals")}>Xem tất cả →</button></div><div className="shop-product-grid">{saleProducts.slice(0, 8).map((product) => <article className="shop-product-card" key={product.id}><div className="shop-product-media"><span>-{Math.round(product.discountPercent)}%</span><button type="button" className={wishlist.some((item) => item.productId === product.id) ? "is-wishlisted" : ""} disabled={wishlistLoading || wishlistPendingIds.has(product.id)} onClick={(event) => changeWishlist(event, product)} aria-label="Thêm hoặc xoá yêu thích"><FavoriteBorderOutlinedIcon /></button><ProductImage product={product} /></div><div className="shop-product-body"><small>{product.saleType === "LONG_TERM" ? "Sale dài hạn" : "Flash Sale"} · {product.categoryName || "Sản phẩm"}</small><h3>{product.name}</h3><strong>{formatPrice(product.salePrice)}</strong><del className="shop-product-original-price">{formatPrice(product.originalPrice)}</del><div><span><StarRoundedIcon /> 4.8</span><button onClick={() => addToCart(product)} aria-label={`Thêm ${product.name} vào giỏ`}><AddShoppingCartOutlinedIcon /></button></div></div></article>)}</div>{saleProducts.length === 0 && <div className="shop-empty">Chương trình giảm giá mới sẽ sớm được cập nhật.</div>}</section>
-      <section className="shop-recommendations"><div className="shop-section-head"><div><small>Khám phá thêm</small><h2>Gợi ý dành cho bạn</h2></div><button onClick={() => navigate("/search")}>Xem tất cả →</button></div><div className="shop-product-grid">{visibleProducts.slice(8, 16).map((product, index) => <article className="shop-product-card" key={`recommended-${product.id}`}><div className="shop-product-media">{index < 3 && <span>Mới</span>}<button type="button" className={wishlist.some((item) => item.productId === product.id) ? "is-wishlisted" : ""} disabled={wishlistLoading || wishlistPendingIds.has(product.id)} onClick={(event) => changeWishlist(event, product)} aria-label="Thêm hoặc xoá yêu thích"><FavoriteBorderOutlinedIcon /></button><ProductImage product={product} /></div><div className="shop-product-body"><small>{product.categoryName || "Sản phẩm"}</small><h3>{product.name}</h3><strong>{formatPrice(product.price)}</strong><div><span><StarRoundedIcon /> 4.8</span><button onClick={() => addToCart(product)} aria-label={`Thêm ${product.name} vào giỏ`}><AddShoppingCartOutlinedIcon /></button></div></div></article>)}</div></section>
+      <section className="shop-recommendations"><div className="shop-section-head"><div><small>Khám phá từ nhiều danh mục</small><h2>Gợi ý dành cho bạn</h2></div><button onClick={() => navigate("/shop/categories")}>Xem tất cả →</button></div><div className="shop-product-grid">{recommendedProducts.map((product) => <article className="shop-product-card" key={`recommended-${product.id}`}><div className="shop-product-media"><button type="button" className={wishlist.some((item) => item.productId === product.id) ? "is-wishlisted" : ""} disabled={wishlistLoading || wishlistPendingIds.has(product.id)} onClick={(event) => changeWishlist(event, product)} aria-label="Thêm hoặc xoá yêu thích"><FavoriteBorderOutlinedIcon /></button><ProductImage product={product} /></div><div className="shop-product-body"><small>{product.categoryName || "Sản phẩm"}</small><h3>{product.name}</h3><strong>{formatPrice(product.price)}</strong><div><span><StarRoundedIcon /> 4.8</span><button onClick={() => addToCart(product)} aria-label={`Thêm ${product.name} vào giỏ`}><AddShoppingCartOutlinedIcon /></button></div></div></article>)}</div>{recommendedProducts.length === 0 && <div className="shop-empty">Chưa có sản phẩm còn hàng để gợi ý.</div>}</section>
       <section className="shop-trust"><div><ShoppingBagOutlinedIcon /><p><b>Thanh toán an toàn</b>Bảo mật 100%</p></div><div><LocalOfferOutlinedIcon /><p><b>Đổi trả dễ dàng</b>Trong vòng 30 ngày</p></div><div><NotificationsNoneOutlinedIcon /><p><b>Hỗ trợ 24/7</b>Luôn sẵn sàng</p></div></section>
       <ShopFlashSale products={products} deals={flashDeals} upcomingDeals={upcomingFlashDeals} notifiedIds={flashNotificationIds} onNotify={notifyFlashSale} onOpen={(product) => navigate(productUrl(product))} />
     </main>

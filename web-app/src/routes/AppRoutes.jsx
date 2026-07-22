@@ -26,6 +26,7 @@ import ShopWishlist from "../pages/ShopWishlist";
 import ShopHotDeals from "../pages/ShopHotDeals";
 import ShopBestDeals from "../pages/ShopBestDeals";
 import ShopSearch from "../pages/ShopSearch";
+import Shipments from "../pages/Shipments";
 import ShopStoreHeader from "../components/ShopStoreHeader";
 import "../components/StorefrontLayout.css";
 import { isAuthenticated } from "../services/authenticationService";
@@ -56,7 +57,8 @@ export default function AppRoutes() {
         <Route path="/shop/best-deals" element={<ShopBestDeals />} />
         <Route path="/shop/search" element={<ShopSearch />} />
         <Route path="/shop/products/:slug" element={<StorefrontLayout showBack><ShopProductDetail /></StorefrontLayout>} />
-        <Route path="/shop/categories/:slug" element={<ShopCategory />} />
+        <Route path="/shop/categories" element={<StorefrontLayout><ShopCategory /></StorefrontLayout>} />
+        <Route path="/shop/categories/:slug" element={<StorefrontLayout><ShopCategory /></StorefrontLayout>} />
         <Route path="/shop/orders" element={<PrivateRoute><StorefrontLayout><CustomerOrders /></StorefrontLayout></PrivateRoute>} />
         <Route path="/shop/account" element={<PrivateRoute><StorefrontLayout><MyAccount /></StorefrontLayout></PrivateRoute>} />
         <Route path="/shop/account/profile" element={<PrivateRoute><CustomerProfile /></PrivateRoute>} />
@@ -153,6 +155,15 @@ export default function AppRoutes() {
           }
         />
         <Route path="/flash-deals" element={<PrivateRoute><FlashDeals /></PrivateRoute>} />
+
+        <Route
+          path="/shipments"
+          element={
+            <PrivateRoute>
+              <Shipments />
+            </PrivateRoute>
+          }
+        />
 
         <Route
           path="/profile"

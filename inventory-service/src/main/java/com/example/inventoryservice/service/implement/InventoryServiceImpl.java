@@ -174,6 +174,50 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    @Transactional
+    public void confirmReturnedInventory(String orderId) {
+        List<InventoryReservation> reservations = inventoryReservationRepository.findByOrderIdForUpdate(orderId);
+        if (reservations.isEmpty()) {
+            throw new InventoryServiceException(ErrorCode.RESERVATION_NOT_FOUND);
+        }
+
+        for (InventoryReservation reservation : reservations) {
+            if (reservation.getStatus() == ReservationStatus.RETURNED
+                    || reservation.getStatus() == ReservationStatus.RELEASED) {
+                continue;
+            }
+
+            Inventory inventory = findInventoryForUpdate(
+                    reservation.getProductId(),
+                    reservation.getVariantId()
+            );
+
+            if (reservation.getStatus() == ReservationStatus.CONFIRMED) {
+                if (inventory.getSoldQuantity() < reservation.getQuantity()) {
+                    throw new InventoryServiceException(ErrorCode.INVALID_INVENTORY_REQUEST);
+                }
+                inventory.setSoldQuantity(inventory.getSoldQuantity() - reservation.getQuantity());
+                inventory.setAvailableQuantity(inventory.getAvailableQuantity() + reservation.getQuantity());
+            } else if (reservation.getStatus() == ReservationStatus.PENDING) {
+                ensureReservedQuantityEnough(inventory, reservation);
+                inventory.setReservedQuantity(inventory.getReservedQuantity() - reservation.getQuantity());
+                inventory.setAvailableQuantity(inventory.getAvailableQuantity() + reservation.getQuantity());
+            } else {
+                throw new InventoryServiceException(ErrorCode.INVALID_INVENTORY_REQUEST);
+            }
+
+            validateNonNegativeQuantities(inventory);
+            reservation.setStatus(ReservationStatus.RETURNED);
+            inventoryRepository.save(inventory);
+            inventoryReservationRepository.save(reservation);
+            publishInventoryUpdatedEvent(inventory);
+        }
+
+        log.info("Confirmed returned inventory: orderId={}, reservationCount={}",
+                orderId, reservations.size());
+    }
+
+    @Override
     public List<ReservationResponse> getReservationsByOrderId(String orderId) {
         return getReservationsOrThrow(orderId)
                 .stream()

@@ -9,6 +9,8 @@ import com.example.event.CodPaymentCreatedEvent;
 import com.example.event.PaymentCancelledEvent;
 import com.example.event.PaymentFailedEvent;
 import com.example.event.PaymentSuccessEvent;
+import com.example.event.ShipmentRequestedEvent;
+import com.example.event.ShipmentStatusUpdatedEvent;
 import com.example.orderservice.client.InventoryClient;
 import com.example.orderservice.client.CartClient;
 import com.example.orderservice.client.ProductClient;
@@ -25,11 +27,13 @@ import com.example.orderservice.dto.response.PageResponse;
 import com.example.orderservice.dto.response.ProductDetailResponse;
 import com.example.orderservice.dto.response.ProductVariantResponse;
 import com.example.orderservice.dto.response.PromotionCalculationResponse;
+import com.example.orderservice.dto.response.ReviewEligibilityResponse;
 import com.example.orderservice.entity.Order;
 import com.example.orderservice.entity.OrderItem;
 import com.example.orderservice.exception.ErrorCode;
 import com.example.orderservice.exception.OrderServiceException;
 import com.example.orderservice.repository.OrderRepository;
+import com.example.orderservice.repository.OrderItemRepository;
 import com.example.orderservice.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +61,7 @@ public class OrderServiceImpl implements OrderService {
     private static final String ORDER_CREATED_TOPIC = "order-created";
     private static final String ORDER_CANCELLED_TOPIC = "order-cancelled";
     private static final String ORDER_STATUS_UPDATED_TOPIC = "order-status-updated";
+    private static final String SHIPMENT_REQUESTED_TOPIC = "shipment-requested";
     private static final String COD_METHOD = "COD";
     private static final DateTimeFormatter ORDER_CODE_DATE_FORMAT = DateTimeFormatter
             .ofPattern("yyyyMMdd")
@@ -68,11 +73,34 @@ public class OrderServiceImpl implements OrderService {
     );
 
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final ProductClient productClient;
     private final InventoryClient inventoryClient;
     private final CartClient cartClient;
     private final PromotionClient promotionClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Override
+    @Transactional(readOnly = true)
+    public ReviewEligibilityResponse checkReviewEligibility(String userId, String orderItemId) {
+        OrderItem item = orderItemRepository.findByIdWithOrder(orderItemId)
+                .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
+        Order order = item.getOrder();
+
+        if (!order.getUserId().equals(userId)) {
+            throw new OrderServiceException(ErrorCode.ORDER_ACCESS_DENIED);
+        }
+
+        return new ReviewEligibilityResponse(
+                order.getStatus() == OrderStatus.COMPLETED,
+                order.getId(),
+                item.getId(),
+                item.getProductId(),
+                item.getVariantId(),
+                item.getProductName(),
+                order.getStatus().name()
+        );
+    }
 
     @Override
     @Transactional
@@ -281,7 +309,14 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(event.getOrderId())
                 .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
 
-        if (order.getStatus() == OrderStatus.SHIPPING || order.getStatus() == OrderStatus.COMPLETED) {
+        if (order.getStatus() == OrderStatus.SHIPPING) {
+            publishShipmentRequestedEvent(order);
+            log.info("Shipment already requested for COD order: orderId={}, paymentId={}",
+                    event.getOrderId(), event.getPaymentId());
+            return;
+        }
+
+        if (order.getStatus() == OrderStatus.COMPLETED) {
             log.info("Skip COD shipping transition because order is already progressed: orderId={}, paymentId={}, status={}",
                     event.getOrderId(), event.getPaymentId(), order.getStatus());
             return;
@@ -297,6 +332,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.SHIPPING);
         Order savedOrder = orderRepository.save(order);
         publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
+        publishShipmentRequestedEvent(savedOrder);
 
         log.info("Order is shipping for COD payment: orderId={}, paymentId={}",
                 event.getOrderId(), event.getPaymentId());
@@ -314,6 +350,7 @@ public class OrderServiceImpl implements OrderService {
 
         if (order.getStatus() == targetStatus) {
             finalizePaymentSuccess(order);
+            publishShipmentRequestedEvent(order);
             log.info("Skip payment success because order is already {}: orderId={}, paymentId={}",
                     targetStatus,
                     event.getOrderId(),
@@ -338,6 +375,7 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
         publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
         finalizePaymentSuccess(savedOrder);
+        publishShipmentRequestedEvent(savedOrder);
 
         log.info("Order {} from payment success: orderId={}, paymentId={}", targetStatus,
                 event.getOrderId(),
@@ -354,6 +392,65 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void cancelOrderFromPaymentCancelled(PaymentCancelledEvent event) {
         cancelOrderFromPaymentEvent(event.getOrderId(), event.getPaymentId(), "cancelled");
+    }
+
+    @Override
+    @Transactional
+    public void updateOrderFromShipment(ShipmentStatusUpdatedEvent event) {
+        Order order = orderRepository.findById(event.getOrderId())
+                .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
+
+        OrderStatus targetStatus = switch (event.getNewStatus() == null
+                ? ""
+                : event.getNewStatus().toUpperCase()) {
+            case "IN_TRANSIT" -> OrderStatus.SHIPPING;
+            case "DELIVERY_FAILED" -> OrderStatus.DELIVERY_FAILED;
+            case "RETURNING" -> OrderStatus.RETURNING;
+            case "RETURNED" -> OrderStatus.RETURNED;
+            case "DELIVERED" -> OrderStatus.COMPLETED;
+            default -> null;
+        };
+
+        if (targetStatus == null) {
+            log.debug("Shipment status does not change order status: orderId={}, shipmentStatus={}",
+                    event.getOrderId(), event.getNewStatus());
+            return;
+        }
+
+        if (order.getStatus() == targetStatus) {
+            if (targetStatus == OrderStatus.RETURNED) {
+                inventoryClient.confirmReturnedInventory(order.getId());
+            }
+            log.info("Skip duplicate shipment transition: orderId={}, orderStatus={}, shipmentStatus={}",
+                    order.getId(), order.getStatus(), event.getNewStatus());
+            return;
+        }
+
+        boolean allowed = switch (targetStatus) {
+            case SHIPPING -> order.getStatus() == OrderStatus.CONFIRMED
+                    || order.getStatus() == OrderStatus.DELIVERY_FAILED;
+            case DELIVERY_FAILED -> order.getStatus() == OrderStatus.SHIPPING;
+            case RETURNING -> order.getStatus() == OrderStatus.DELIVERY_FAILED;
+            case RETURNED -> order.getStatus() == OrderStatus.RETURNING;
+            case COMPLETED -> order.getStatus() == OrderStatus.SHIPPING;
+            default -> false;
+        };
+        if (!allowed) {
+            log.warn("Skip invalid shipment transition: orderId={}, orderStatus={}, shipmentStatus={}",
+                    order.getId(), order.getStatus(), event.getNewStatus());
+            return;
+        }
+
+        if (targetStatus == OrderStatus.RETURNED) {
+            inventoryClient.confirmReturnedInventory(order.getId());
+        }
+
+        OrderStatus oldStatus = order.getStatus();
+        order.setStatus(targetStatus);
+        Order savedOrder = orderRepository.save(order);
+        publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
+        log.info("Order status synchronized from shipment: orderId={}, oldStatus={}, newStatus={}",
+                savedOrder.getId(), oldStatus, targetStatus);
     }
 
     private void cancelOrderFromPaymentEvent(String orderId, String paymentId, String paymentStatus) {
@@ -395,6 +492,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItemResponse> items = order.getItems()
                 .stream()
                 .map(item -> new OrderItemResponse(
+                        item.getId(),
                         item.getProductId(),
                         item.getVariantId(),
                         item.getProductName(),
@@ -640,6 +738,25 @@ public class OrderServiceImpl implements OrderService {
                             order.getId(),
                             oldStatus,
                             newStatus);
+                });
+    }
+
+    private void publishShipmentRequestedEvent(Order order) {
+        ShipmentRequestedEvent event = ShipmentRequestedEvent.builder()
+                .orderId(order.getId())
+                .orderCode(order.getOrderCode())
+                .userId(order.getUserId())
+                .shippingAddress(order.getShippingAddress())
+                .requestedAt(Instant.now())
+                .build();
+
+        kafkaTemplate.send(SHIPMENT_REQUESTED_TOPIC, order.getId(), event)
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        log.error("Failed to publish ShipmentRequestedEvent: orderId={}", order.getId(), throwable);
+                    } else {
+                        log.info("Published ShipmentRequestedEvent: orderId={}", order.getId());
+                    }
                 });
     }
 

@@ -15,6 +15,8 @@ export const API = {
   CART: "/api/v1/cart",
   ORDERS: "/order/api/v1/orders",
   PAYMENTS: "/payment/api/v1/payments",
+  SHIPMENTS: "/api/v1/shipments",
+  REVIEWS: "/api/v1/reviews",
   WISHLIST: "/api/v1/wishlist",
   PROMOTIONS: "/api/v1/promotions/campaigns",
   PROMOTIONS_ACTIVE: "/api/v1/promotions/campaigns/active",
