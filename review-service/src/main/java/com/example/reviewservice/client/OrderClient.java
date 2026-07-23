@@ -4,6 +4,7 @@ import com.example.reviewservice.dto.response.ReviewEligibilityResponse;
 import com.example.reviewservice.exception.ErrorCode;
 import com.example.reviewservice.exception.ReviewServiceException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -15,11 +16,14 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 public class OrderClient {
     private final WebClient.Builder webClientBuilder;
 
+    @Value("${services.order.base-url:http://ORDER-SERVICE}")
+    private String orderServiceBaseUrl;
+
     public ReviewEligibilityResponse checkEligibility(String orderItemId, String authorization) {
         try {
             return webClientBuilder.build()
                     .get()
-                    .uri("http://ORDER-SERVICE/internal/orders/items/{orderItemId}/review-eligibility", orderItemId)
+                    .uri(orderServiceBaseUrl + "/internal/orders/items/{orderItemId}/review-eligibility", orderItemId)
                     .header(HttpHeaders.AUTHORIZATION, authorization)
                     .retrieve()
                     .bodyToMono(ReviewEligibilityResponse.class)

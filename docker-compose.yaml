@@ -93,9 +93,31 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123456
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICES_ORDER_BASE_URL: http://host.docker.internal:8086
+      SERVICES_PROFILE_BASE_URL: http://host.docker.internal:8081
     depends_on:
       review-postgres:
         condition: service_healthy
+    networks:
+      - microservice_network
+
+  shipping-service:
+    build:
+      context: ./shipping-service
+    container_name: shipping-service
+    ports:
+      - "8096:8096"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://shipping-postgres:5432/shipping_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      shipping-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
     networks:
       - microservice_network
 

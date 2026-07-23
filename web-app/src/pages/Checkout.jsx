@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -63,12 +63,13 @@ export default function Checkout() {
 
   const flashPrice = (item) => flashDeals.flatMap((deal) => (deal.items || []).map((dealItem) => ({ ...dealItem, saleType: deal.saleType || "FLASH" }))).filter((dealItem) => dealItem.productId === item.productId && (dealItem.variantId || null) === (item.variantId || null)).sort((a, b) => Number(a.salePrice) - Number(b.salePrice) || (a.saleType === "FLASH" ? -1 : 1) - (b.saleType === "FLASH" ? -1 : 1))[0]?.salePrice;
   const itemPrice = (item) => Number(flashPrice(item) ?? item.price ?? 0);
-  const subtotal = useMemo(() => cart.reduce((total, item) => total + itemPrice(item) * (item.quantity || 1), 0), [cart, flashDeals]);
+  const subtotal = cart.reduce(
+    (total, item) => total + itemPrice(item) * (item.quantity || 1),
+    0,
+  );
   const shipping = subtotal > 0 ? 30000 : 0;
   const discount = promotionCalculation?.discountAmount || 0;
   const total = Math.max(0, subtotal - discount + shipping);
-  const selectedPayment = paymentMethods.find((item) => item.value === method);
-
   const update = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { AppBar, Avatar, Badge, Box, IconButton, InputBase, Menu, MenuItem, Stack, Toolbar, Tooltip } from "@mui/material";
+import { AppBar, Avatar, Badge, Box, IconButton, InputBase, Menu, MenuItem, Toolbar, Tooltip } from "@mui/material";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import MenuIcon from "@mui/icons-material/Menu";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";

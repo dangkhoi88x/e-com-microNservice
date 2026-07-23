@@ -4,6 +4,7 @@ import com.example.reviewservice.dto.response.ApiResponse;
 import com.example.reviewservice.dto.response.ProfileSnapshotResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -17,11 +18,14 @@ public class ProfileClient {
 
     private final WebClient.Builder webClientBuilder;
 
+    @Value("${services.profile.base-url:http://PROFILE-SERVICE}")
+    private String profileServiceBaseUrl;
+
     public String getPublicReviewerName(String authorization) {
         try {
             ApiResponse<ProfileSnapshotResponse> response = webClientBuilder.build()
                     .get()
-                    .uri("http://PROFILE-SERVICE/api/v1/user-profile/me")
+                    .uri(profileServiceBaseUrl + "/api/v1/user-profile/me")
                     .header(HttpHeaders.AUTHORIZATION, authorization)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<ApiResponse<ProfileSnapshotResponse>>() {})

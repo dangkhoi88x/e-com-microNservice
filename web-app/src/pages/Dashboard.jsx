@@ -5,7 +5,6 @@ import {
   Button,
   Chip,
   CircularProgress,
-  Divider,
   IconButton,
   LinearProgress,
   Paper,
@@ -21,7 +20,6 @@ import {
 } from "@mui/material";
 import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
-import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
@@ -30,7 +28,6 @@ import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNone
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
-import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import TimelineRoundedIcon from "@mui/icons-material/TimelineRounded";
 import { useEffect, useMemo, useState } from "react";
@@ -232,8 +229,6 @@ export default function Dashboard() {
     result[status] = orders.filter((order) => order.status === status).length;
     return result;
   }, {}), [orders]);
-  const maxStatusCount = Math.max(...Object.values(orderStatusCounts), 1);
-
   const loadDashboard = async () => {
     setLoading(true);
     setErrorMessage("");

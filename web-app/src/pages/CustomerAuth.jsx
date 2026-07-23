@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, ShoppingBag, UserRound } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, ShoppingBag } from "lucide-react";
 import { isAuthenticated, login, register } from "../services/authenticationService";
 import "./CustomerAuth.css";
 

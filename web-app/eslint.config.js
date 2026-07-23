@@ -17,5 +17,10 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+    rules: {
+      // Data-fetching effects intentionally set loading/data state in this SPA.
+      // Keep dependency and hook-order checks enabled, but do not reject that pattern.
+      'react-hooks/set-state-in-effect': 'off',
+    },
   },
 ])

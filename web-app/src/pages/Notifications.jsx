@@ -19,7 +19,7 @@ import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import WavingHandOutlinedIcon from "@mui/icons-material/WavingHandOutlined";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import { hasAnyRole } from "../services/authenticationService";
@@ -75,7 +75,7 @@ export default function Notifications() {
     [notifications],
   );
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     setLoading(true);
     setErrorMessage("");
 
@@ -89,11 +89,11 @@ export default function Notifications() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAdmin]);
 
   useEffect(() => {
     loadNotifications();
-  }, []);
+  }, [loadNotifications]);
 
   return (
     <MainLayout>

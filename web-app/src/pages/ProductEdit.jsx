@@ -24,7 +24,8 @@ import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import { getCategories } from "../services/categoryService";
 import { getProductById, updateProduct } from "../services/productService";
-import { ProductOptionsEditor, VariantAttributeFields, toOptionsPayload } from "../components/products/ProductOptionsEditor";
+import { ProductOptionsEditor, VariantAttributeFields } from "../components/products/ProductOptionsEditor";
+import { toOptionsPayload } from "../components/products/productOptionUtils";
 
 const initialForm = {
   categoryId: "",

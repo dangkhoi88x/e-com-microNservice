@@ -20,7 +20,23 @@ public class ShipmentEventConsumer {
 
     @KafkaListener(topics = "shipment-status-updated", groupId = "notification-group")
     public void shipmentStatusUpdated(Map<String, Object> payload) {
-        ShipmentStatusUpdatedEvent event = ShipmentStatusUpdatedEvent.builder()
+        ShipmentStatusUpdatedEvent event;
+        try {
+            event = toEvent(payload);
+        } catch (IllegalArgumentException exception) {
+            log.warn("Skip malformed shipment notification payload: {}", payload);
+            return;
+        }
+
+        if (event.getOrderId() == null || event.getUserId() == null || event.getNewStatus() == null) {
+            log.warn("Skip invalid shipment notification payload: {}", payload);
+            return;
+        }
+        notificationService.createNotificationShipmentStatusUpdated(event);
+    }
+
+    private ShipmentStatusUpdatedEvent toEvent(Map<String, Object> payload) {
+        return ShipmentStatusUpdatedEvent.builder()
                 .shipmentId(asUuid(payload.get("shipmentId")))
                 .orderId(asString(payload.get("orderId")))
                 .userId(asString(payload.get("userId")))
@@ -32,12 +48,6 @@ public class ShipmentEventConsumer {
                 .location(asString(payload.get("location")))
                 .updatedAt(asInstant(payload.get("updatedAt")))
                 .build();
-
-        if (event.getOrderId() == null || event.getUserId() == null || event.getNewStatus() == null) {
-            log.warn("Skip invalid shipment notification payload: {}", payload);
-            return;
-        }
-        notificationService.createNotificationShipmentStatusUpdated(event);
     }
 
     private String asString(Object value) {

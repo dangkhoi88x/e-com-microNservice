@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,6 +54,7 @@ public class ShipmentController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     public ApiResponse<Page<ShipmentResponse>> all(
             @RequestParam(required = false) ShipmentStatus status,
             @RequestParam(defaultValue = "0") int page,
@@ -62,6 +64,7 @@ public class ShipmentController {
     }
 
     @PutMapping("/{shipmentId}/carrier")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     public ApiResponse<ShipmentResponse> assignCarrier(
             @PathVariable UUID shipmentId,
             @RequestBody @Valid AssignCarrierRequest request
@@ -70,6 +73,7 @@ public class ShipmentController {
     }
 
     @PutMapping("/{shipmentId}/packing")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     public ApiResponse<ShipmentResponse> startPacking(
             @PathVariable UUID shipmentId,
             @RequestBody @Valid UpdateShipmentStatusRequest request
@@ -78,6 +82,7 @@ public class ShipmentController {
     }
 
     @PutMapping("/{shipmentId}/ready-to-ship")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     public ApiResponse<ShipmentResponse> readyToShip(
             @PathVariable UUID shipmentId,
             @RequestBody @Valid UpdateShipmentStatusRequest request
@@ -86,6 +91,7 @@ public class ShipmentController {
     }
 
     @PutMapping("/{shipmentId}/ship")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     public ApiResponse<ShipmentResponse> ship(
             @PathVariable UUID shipmentId,
             @RequestBody @Valid UpdateShipmentStatusRequest request
@@ -94,6 +100,7 @@ public class ShipmentController {
     }
 
     @PutMapping("/{shipmentId}/deliver")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     public ApiResponse<ShipmentResponse> deliver(
             @PathVariable UUID shipmentId,
             @RequestBody @Valid UpdateShipmentStatusRequest request
@@ -102,6 +109,7 @@ public class ShipmentController {
     }
 
     @PutMapping("/{shipmentId}/delivery-failed")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     public ApiResponse<ShipmentResponse> deliveryFailed(
             @PathVariable UUID shipmentId,
             @RequestBody @Valid UpdateShipmentStatusRequest request
@@ -110,6 +118,7 @@ public class ShipmentController {
     }
 
     @PutMapping("/{shipmentId}/returning")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     public ApiResponse<ShipmentResponse> startReturning(
             @PathVariable UUID shipmentId,
             @RequestBody @Valid UpdateShipmentStatusRequest request
@@ -118,6 +127,7 @@ public class ShipmentController {
     }
 
     @PutMapping("/{shipmentId}/returned")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     public ApiResponse<ShipmentResponse> markReturned(
             @PathVariable UUID shipmentId,
             @RequestBody @Valid UpdateShipmentStatusRequest request
@@ -126,6 +136,7 @@ public class ShipmentController {
     }
 
     @PutMapping("/{shipmentId}/cancel")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     public ApiResponse<ShipmentResponse> cancel(
             @PathVariable UUID shipmentId,
             @RequestBody @Valid UpdateShipmentStatusRequest request

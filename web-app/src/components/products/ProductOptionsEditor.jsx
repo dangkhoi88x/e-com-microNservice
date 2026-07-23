@@ -2,24 +2,8 @@ import { Box, Button, FormControl, IconButton, InputLabel, MenuItem, Select, Sta
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 
-export const emptyOption = () => ({ name: "", displayName: "", displayType: "BUTTON", displayOrder: 0, required: true, values: [] });
-export const emptyOptionValue = () => ({ value: "", displayValue: "", colorHex: "", imageUrl: "", displayOrder: 0, active: true });
-
-export const toOptionsPayload = (options) => options.map((option, optionIndex) => ({
-  name: String(option.name || "").trim().toLowerCase(),
-  displayName: String(option.displayName || "").trim(),
-  displayType: option.displayType,
-  displayOrder: Number(option.displayOrder) || optionIndex,
-  required: option.required,
-  values: option.values.map((value, valueIndex) => ({
-    value: String(value.value || "").trim().toLowerCase(),
-    displayValue: String(value.displayValue || "").trim(),
-    colorHex: String(value.colorHex || "").trim() || null,
-    imageUrl: String(value.imageUrl || "").trim() || null,
-    displayOrder: Number(value.displayOrder) || valueIndex,
-    active: value.active,
-  })),
-}));
+const emptyOption = () => ({ name: "", displayName: "", displayType: "BUTTON", displayOrder: 0, required: true, values: [] });
+const emptyOptionValue = () => ({ value: "", displayValue: "", colorHex: "", imageUrl: "", displayOrder: 0, active: true });
 
 export function ProductOptionsEditor({ options, onChange }) {
   const updateOption = (index, field, value) => onChange(options.map((option, i) => i === index ? { ...option, [field]: value } : option));

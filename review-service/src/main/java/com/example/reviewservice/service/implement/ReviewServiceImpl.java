@@ -139,14 +139,13 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional(readOnly = true)
     public ReviewSummaryResponse getProductSummary(String productId) {
-        ReviewSummaryProjection summary = reviewRepository.summarizeProduct(productId);
-        double average = summary == null || summary.getAverageRating() == null
-                ? 0.0
-                : summary.getAverageRating();
-        long count = summary == null || summary.getReviewCount() == null
-                ? 0L
-                : summary.getReviewCount();
-        return new ReviewSummaryResponse(productId, average, count, ratingDistribution(productId));
+        SummaryValues summary = summarize(productId);
+        return new ReviewSummaryResponse(
+                productId,
+                summary.averageRating(),
+                summary.reviewCount(),
+                ratingDistribution(productId)
+        );
     }
 
     @Override
@@ -235,6 +234,15 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     private void publishSummaryAfterCommit(String productId) {
+        SummaryValues summary = summarize(productId);
+        eventPublisher.publishAfterCommit(new ReviewSummaryChangedEvent(
+                productId,
+                summary.averageRating(),
+                summary.reviewCount()
+        ));
+    }
+
+    private SummaryValues summarize(String productId) {
         ReviewSummaryProjection summary = reviewRepository.summarizeProduct(productId);
         double average = summary == null || summary.getAverageRating() == null
                 ? 0.0
@@ -242,6 +250,9 @@ public class ReviewServiceImpl implements ReviewService {
         long count = summary == null || summary.getReviewCount() == null
                 ? 0L
                 : summary.getReviewCount();
-        eventPublisher.publishAfterCommit(new ReviewSummaryChangedEvent(productId, average, count));
+        return new SummaryValues(average, count);
+    }
+
+    private record SummaryValues(double averageRating, long reviewCount) {
     }
 }
