@@ -39,6 +39,25 @@ export const createProduct = async (payload) => {
   return response.data?.data;
 };
 
+export const getMySellerProducts = async (params = {}) => {
+  const response = await httpClient.get(API.SELLER_PRODUCTS, { params });
+  return response.data?.data || { content: [], currentPage: 1, totalPages: 0, totalElements: 0 };
+};
+
+export const createSellerProduct = async (payload) => {
+  const response = await httpClient.post(API.SELLER_PRODUCTS, payload);
+  return response.data?.data;
+};
+
+export const submitSellerProduct = async (id) => {
+  const response = await httpClient.post(`${API.SELLER_PRODUCTS}/${id}/submit`);
+  return response.data?.data;
+};
+
+export const deleteSellerProduct = async (id) => {
+  await httpClient.delete(`${API.SELLER_PRODUCTS}/${id}`);
+};
+
 export const getProductById = async (id) => {
   const response = await httpClient.get(`${API.PRODUCTS}/${id}`);
   return response.data?.data;

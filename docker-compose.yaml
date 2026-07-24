@@ -81,6 +81,25 @@ services:
       timeout: 5s
       retries: 10
 
+  seller-postgres:
+    image: postgres:17
+    container_name: seller-postgres
+    ports:
+      - "5440:5432"
+    environment:
+      POSTGRES_DB: seller_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - seller-postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservice_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d seller_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   review-service:
     build:
       context: ./review-service
@@ -115,6 +134,27 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       shipping-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - microservice_network
+
+  seller-service:
+    build:
+      context: ./seller-service
+    container_name: seller-service
+    ports:
+      - "8098:8098"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://seller-postgres:5432/seller_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      IDENTITY_SERVICE_BASE_URL: http://host.docker.internal:8090/identity/api
+    depends_on:
+      seller-postgres:
         condition: service_healthy
       kafka:
         condition: service_started
@@ -279,6 +319,7 @@ volumes:
   elasticsearch_data:
   inventory_postgres_data:
   promotion-postgres-data:
+  seller-postgres-data:
   shipping-postgres-data:
   review-postgres-data:
 networks:

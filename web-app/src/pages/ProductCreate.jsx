@@ -22,7 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import { getCategories } from "../services/categoryService";
-import { createProduct } from "../services/productService";
+import { createSellerProduct } from "../services/productService";
 import { ProductOptionsEditor, VariantAttributeFields } from "../components/products/ProductOptionsEditor";
 import { toOptionsPayload } from "../components/products/productOptionUtils";
 
@@ -138,12 +138,11 @@ export default function ProductCreate() {
       images,
       options: toOptionsPayload(form.options),
       variants: form.variants.map(toVariantPayload),
-      status: form.status,
     };
 
     try {
-      await createProduct(payload);
-      navigate("/products");
+      await createSellerProduct(payload);
+      navigate("/seller/products");
     } catch (error) {
       setErrorMessage(
         error.response?.data?.message || "Could not create product.",
@@ -157,13 +156,13 @@ export default function ProductCreate() {
     <MainLayout>
       <PageHeader
         eyebrow="Product setup"
-        title="Create Product"
-        description="Add a sellable item and publish it to search."
+        title="Create product draft"
+        description="Your product will be submitted for marketplace approval after you finish the draft."
         actions={
         <Button
           variant="outlined"
           startIcon={<ArrowBackOutlinedIcon />}
-          onClick={() => navigate("/products")}
+          onClick={() => navigate("/seller/products")}
         >
           Back
         </Button>
@@ -244,17 +243,6 @@ export default function ProductCreate() {
                   Number(form.quantity) === 0 ? "This product starts out of stock." : " "
                 }
               />
-              <FormControl fullWidth required>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  label="Status"
-                  value={form.status}
-                  onChange={setField("status")}
-                >
-                  <MenuItem value="ACTIVE">Active</MenuItem>
-                  <MenuItem value="INACTIVE">Inactive</MenuItem>
-                </Select>
-              </FormControl>
               </Stack>
             </Box>
 
@@ -323,9 +311,8 @@ export default function ProductCreate() {
                       <TextField label="Image URL" value={variant.imageUrl} onChange={setVariantField(index, "imageUrl")} />
                       <FormControl>
                         <InputLabel>Status</InputLabel>
-                        <Select label="Status" value={variant.status} onChange={setVariantField(index, "status")}>
-                          <MenuItem value="ACTIVE">Active</MenuItem>
-                          <MenuItem value="INACTIVE">Inactive</MenuItem>
+                        <Select label="Status" value="DRAFT" disabled>
+                          <MenuItem value="DRAFT">Draft</MenuItem>
                         </Select>
                       </FormControl>
                       <IconButton color="error" onClick={() => removeVariant(index)}>
@@ -339,14 +326,14 @@ export default function ProductCreate() {
 
             <Box className="form-action-bar">
               <Stack direction={{ xs: "column-reverse", sm: "row" }} justifyContent="flex-end" spacing={1}>
-                <Button onClick={() => navigate("/products")}>Cancel</Button>
+                <Button onClick={() => navigate("/seller/products")}>Cancel</Button>
                 <Button
                   type="submit"
                   variant="contained"
                   startIcon={<SaveOutlinedIcon />}
                   disabled={submitting}
                 >
-                  {submitting ? "Saving..." : "Create product"}
+                  {submitting ? "Saving..." : "Save draft"}
                 </Button>
               </Stack>
             </Box>

@@ -24,6 +24,10 @@ public class GatewayConfiguration {
                 .route("product-service", r -> r.path("/product/**")
                         .filters(f -> f.stripPrefix(1))
                         .uri("lb://PRODUCT-SERVICE"))
+                .route("seller-product-service", r -> r.path("/api/v1/seller/products/**")
+                        .uri("lb://PRODUCT-SERVICE"))
+                .route("admin-product-service", r -> r.path("/api/v1/admin/products/**")
+                        .uri("lb://PRODUCT-SERVICE"))
                 .route("search-service-direct", r -> r.path("/api/v1/search/**")
                         .uri("lb://SEARCH-SERVICE"))
                 .route("search-service", r -> r.path("/search/**")
@@ -48,6 +52,8 @@ public class GatewayConfiguration {
                         .uri("lb://SHIPPING-SERVICE"))
                 .route("review-service", r -> r.path("/api/v1/reviews/**")
                         .uri("lb://REVIEW-SERVICE"))
+                .route("seller-service", r -> r.path("/api/v1/sellers/**")
+                        .uri("lb://SELLER-SERVICE"))
                 .build();
     }
 

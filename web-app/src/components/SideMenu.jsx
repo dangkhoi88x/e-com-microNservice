@@ -30,17 +30,26 @@ import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import { useLocation, useNavigate } from "react-router-dom";
-import { logout } from "../services/authenticationService";
+import { hasAnyRole, logout } from "../services/authenticationService";
 
-const menuGroups = [
+const adminMenuGroups = [
   { label: "Workspace", items: [{ label: "Dashboard", path: "/dashboard", icon: <DashboardOutlinedIcon /> }, { label: "Analytics", path: "/orders", icon: <AnalyticsOutlinedIcon />, badge: "Live" }] },
   { label: "Store service", items: [{ label: "Products", path: "/products", icon: <Inventory2OutlinedIcon /> }, { label: "Categories", path: "/categories", icon: <CategoryOutlinedIcon />, badge: "" }, { label: "Promotions", path: "/promotions", icon: <LocalOfferOutlinedIcon /> }, { label: "Flash Sale", path: "/flash-deals", icon: <LocalFireDepartmentOutlinedIcon /> }, { label: "Search", path: "/search", icon: <SearchOutlinedIcon /> }, { label: "Orders", path: "/orders", icon: <ShoppingBagOutlinedIcon /> }, { label: "Shipments", path: "/shipments", icon: <LocalShippingOutlinedIcon /> }, { label: "Payments", path: "/payments", icon: <PaymentsOutlinedIcon /> }] },
   { label: "Account", items: [{ label: "Notifications", path: "/notifications", icon: <NotificationsNoneOutlinedIcon /> }, { label: "Profile", path: "/profile", icon: <PersonOutlineOutlinedIcon /> }, { label: "Settings", path: "/profile", icon: <SettingsOutlinedIcon /> }] },
 ];
 
+const sellerMenuGroups = [
+  { label: "Seller center", items: [{ label: "Tổng quan", path: "/seller/dashboard", icon: <DashboardOutlinedIcon /> }, { label: "Sản phẩm", path: "/seller/products", icon: <Inventory2OutlinedIcon /> }] },
+  { label: "Account", items: [{ label: "Notifications", path: "/notifications", icon: <NotificationsNoneOutlinedIcon /> }, { label: "Profile", path: "/profile", icon: <PersonOutlineOutlinedIcon /> }] },
+];
+
 export default function SideMenu({ drawerWidth, collapsed, mobileOpen, onClose, onToggle }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const isAdmin = hasAnyRole("ROLE_ADMIN", "ADMIN", "ROLE_SUPER_ADMIN", "SUPER_ADMIN");
+  const isSeller = hasAnyRole("ROLE_SELLER", "SELLER");
+  const menuGroups = isAdmin ? adminMenuGroups : isSeller ? sellerMenuGroups : adminMenuGroups;
+  const workspaceLabel = isAdmin ? "Admin workspace" : isSeller ? "Seller center" : "Workspace";
   const handleLogout = async () => { await logout(); onClose?.(); navigate("/login", { replace: true }); };
   const handleNavigate = (path) => { navigate(path); onClose?.(); };
 
@@ -49,7 +58,7 @@ export default function SideMenu({ drawerWidth, collapsed, mobileOpen, onClose, 
       <Stack className="brand-row" direction="row" alignItems="center" justifyContent="space-between">
         <Stack direction="row" spacing={1.2} alignItems="center" className="brand-lockup">
           <Box className="brand-mark"><StorefrontOutlinedIcon fontSize="small" /></Box>
-          {!collapsed && <Box><Typography className="brand-name">Khoi<span>Commerce</span></Typography><Typography className="brand-caption">Admin workspace</Typography></Box>}
+          {!collapsed && <Box><Typography className="brand-name">Khoi<span>Commerce</span></Typography><Typography className="brand-caption">{workspaceLabel}</Typography></Box>}
         </Stack>
         <Tooltip title={collapsed ? "Expand sidebar" : "Collapse sidebar"}><IconButton className="sidebar-toggle" onClick={onToggle} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}><ChevronLeftRoundedIcon sx={{ transform: collapsed ? "rotate(180deg)" : "none" }} /></IconButton></Tooltip>
       </Stack>

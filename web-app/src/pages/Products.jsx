@@ -20,23 +20,18 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
-import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
-import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import MoreHorizOutlinedIcon from "@mui/icons-material/MoreHorizOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import { getCategories } from "../services/categoryService";
-import { deleteProduct, getProducts } from "../services/productService";
+import { getProducts } from "../services/productService";
 
 const formatPrice = (value) => {
   if (value === null || value === undefined) return "-";
@@ -107,7 +102,6 @@ const defaultFilters = {
 };
 
 export default function Products() {
-  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [pageInfo, setPageInfo] = useState({
@@ -121,9 +115,6 @@ export default function Products() {
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
 
-  const selectedProducts = products.filter((product) =>
-    selectedIds.includes(product.id),
-  );
   const allVisibleSelected =
     products.length > 0 && selectedIds.length === products.length;
   const someVisibleSelected =
@@ -183,19 +174,6 @@ export default function Products() {
     setTimeout(() => loadProducts(1), 0);
   };
 
-  const handleDelete = async (product) => {
-    if (!window.confirm(`Delete product "${product.name}"?`)) return;
-
-    try {
-      await deleteProduct(product.id);
-      await loadProducts(pageInfo.currentPage);
-    } catch (error) {
-      setErrorMessage(
-        error.response?.data?.message || "Could not delete product.",
-      );
-    }
-  };
-
   const toggleProduct = (productId) => {
     setSelectedIds((current) =>
       current.includes(productId)
@@ -208,38 +186,12 @@ export default function Products() {
     setSelectedIds(allVisibleSelected ? [] : products.map((product) => product.id));
   };
 
-  const handleDeleteSelected = async () => {
-    if (selectedProducts.length === 0) return;
-    if (!window.confirm(`Delete ${selectedProducts.length} selected products?`)) {
-      return;
-    }
-
-    try {
-      await Promise.all(selectedProducts.map((product) => deleteProduct(product.id)));
-      setSelectedIds([]);
-      await loadProducts(pageInfo.currentPage);
-    } catch (error) {
-      setErrorMessage(
-        error.response?.data?.message || "Could not delete selected products.",
-      );
-    }
-  };
-
-  const handleEditSelected = () => {
-    if (selectedProducts.length !== 1) {
-      window.alert("Please select exactly one product to edit.");
-      return;
-    }
-
-    navigate(`/products/${selectedProducts[0].id}/edit`);
-  };
-
   return (
     <MainLayout>
       <PageHeader
         eyebrow="Store service"
         title="Products"
-        description="View, filter, and manage product catalog data."
+        description="Review marketplace catalog data. Sellers create and manage their own products."
         actions={
           <>
           <Button
@@ -248,13 +200,6 @@ export default function Products() {
             onClick={() => loadProducts(pageInfo.currentPage)}
           >
             Refresh
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddOutlinedIcon />}
-            onClick={() => navigate("/products/new")}
-          >
-            New product
           </Button>
           </>
         }
@@ -378,7 +323,7 @@ export default function Products() {
           <Box sx={{ p: 4 }}>
             <Typography fontWeight={800}>No products found</Typography>
             <Typography color="text.secondary" sx={{ mt: 1 }}>
-              Adjust filters or create a new product.
+              Adjust filters to review the marketplace catalog.
             </Typography>
           </Box>
         ) : (
@@ -486,17 +431,7 @@ export default function Products() {
                             </Typography>
                           </Stack>
                         </TableCell>
-                        <TableCell align="center">
-                          <Tooltip title="Delete">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => handleDelete(product)}
-                            >
-                              <DeleteOutlineOutlinedIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </TableCell>
+                        <TableCell align="center">—</TableCell>
                       </TableRow>
                     );
                   })}
@@ -530,26 +465,7 @@ export default function Products() {
                 <Typography className="selection-count">
                   {selectedIds.length} Selected
                 </Typography>
-                <Button size="small" variant="outlined" startIcon={<AddOutlinedIcon />}>
-                  Apply Code
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  startIcon={<EditOutlinedIcon />}
-                  onClick={handleEditSelected}
-                >
-                  Edit Info
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="error"
-                  startIcon={<DeleteOutlineOutlinedIcon />}
-                  onClick={handleDeleteSelected}
-                >
-                  Delete
-                </Button>
+                <Typography variant="body2" color="text.secondary">Product changes belong to the seller. Moderation actions will be added here.</Typography>
                 <IconButton size="small">
                   <MoreHorizOutlinedIcon />
                 </IconButton>

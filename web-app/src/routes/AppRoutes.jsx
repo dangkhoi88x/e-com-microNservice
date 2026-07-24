@@ -4,7 +4,8 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Products from "../pages/Products";
 import ProductCreate from "../pages/ProductCreate";
-import ProductEdit from "../pages/ProductEdit";
+import SellerProducts from "../pages/SellerProducts";
+import SellerDashboard from "../pages/SellerDashboard";
 import Search from "../pages/Search";
 import Orders from "../pages/Orders";
 import Payments from "../pages/Payments";
@@ -94,21 +95,17 @@ export default function AppRoutes() {
 
         <Route
           path="/products/new"
-          element={
-            <PrivateRoute>
-              <ProductCreate />
-            </PrivateRoute>
-          }
+          element={<Navigate to="/products" replace />}
         />
 
         <Route
           path="/products/:id/edit"
-          element={
-            <PrivateRoute>
-              <ProductEdit />
-            </PrivateRoute>
-          }
+          element={<Navigate to="/products" replace />}
         />
+
+        <Route path="/seller/products" element={<PrivateRoute><SellerProducts /></PrivateRoute>} />
+        <Route path="/seller/products/new" element={<PrivateRoute><ProductCreate /></PrivateRoute>} />
+        <Route path="/seller/dashboard" element={<PrivateRoute><SellerDashboard /></PrivateRoute>} />
 
         <Route
           path="/categories"

@@ -35,6 +35,11 @@ import java.util.List;
     @Column(nullable = false)
     private String sellerId;
 
+    // Product data created before the marketplace migration can remain without a shop.
+    // Every new seller product receives this value from seller-service, never from the request body.
+    @Column(name = "shop_id")
+    private String shopId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
@@ -56,5 +61,14 @@ import java.util.List;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProductStatus status;
+
+    @Column(name = "moderation_note", length = 1_000)
+    private String moderationNote;
+
+    @Column(name = "moderated_by")
+    private String moderatedBy;
+
+    @Column(name = "moderated_at")
+    private java.time.Instant moderatedAt;
 
 }

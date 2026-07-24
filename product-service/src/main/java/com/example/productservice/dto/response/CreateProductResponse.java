@@ -11,6 +11,7 @@ import java.util.List;
 @Builder
 public record CreateProductResponse(
         String id,
+        String shopId,
         String name,
         String slug,
         String description,

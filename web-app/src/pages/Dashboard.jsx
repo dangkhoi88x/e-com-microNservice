@@ -285,7 +285,6 @@ export default function Dashboard() {
           </Box>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} className="intro-actions">
             <ShadcnButton variant="outline" className="date-button"><TimelineRoundedIcon fontSize="small" />{lastUpdated.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</ShadcnButton>
-            <ShadcnButton className="primary-action" onClick={() => navigate("/products/new")}><Inventory2OutlinedIcon fontSize="small" />New product</ShadcnButton>
           </Stack>
         </Stack>
 

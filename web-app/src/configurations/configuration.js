@@ -11,6 +11,7 @@ export const API = {
 
   CATEGORIES: "/product/api/v1/categories",
   PRODUCTS: "/product/api/v1/products",
+  SELLER_PRODUCTS: "/api/v1/seller/products",
   INVENTORY: "/inventory/api/v1/inventory",
   CART: "/api/v1/cart",
   ORDERS: "/order/api/v1/orders",
