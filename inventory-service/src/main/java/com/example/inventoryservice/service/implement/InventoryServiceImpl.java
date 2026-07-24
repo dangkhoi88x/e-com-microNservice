@@ -69,6 +69,34 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    @Transactional
+    public InventoryResponse setAvailableQuantity(String productId, String variantId, Integer availableQuantity) {
+        String normalizedVariantId = normalizeVariantId(variantId);
+        Inventory inventory = normalizedVariantId == null
+                ? inventoryRepository.findByProductIdAndVariantIdIsNull(productId).orElse(null)
+                : inventoryRepository.findByVariantId(normalizedVariantId).orElse(null);
+
+        if (inventory == null) {
+            inventory = Inventory.builder()
+                    .productId(productId)
+                    .variantId(normalizedVariantId)
+                    .availableQuantity(availableQuantity)
+                    .reservedQuantity(0)
+                    .soldQuantity(0)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
+        } else {
+            inventory.setAvailableQuantity(availableQuantity);
+            inventory.setUpdatedAt(Instant.now());
+        }
+
+        Inventory savedInventory = inventoryRepository.save(inventory);
+        publishInventoryUpdatedEvent(savedInventory);
+        return inventoryMapper.toResponse(savedInventory);
+    }
+
+    @Override
     public InventoryResponse getInventoryByProductId(String productId) {
         Inventory inventory = inventoryRepository.findByProductIdAndVariantIdIsNull(productId)
                 .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));

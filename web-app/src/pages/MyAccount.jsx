@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Bell, Check, LogOut, Pencil, Save, Settings, Star, UserRound } from "lucide-react";
-import { logout } from "../services/authenticationService";
+import { Bell, Check, LogOut, Pencil, Save, Settings, Star, Store, UserRound } from "lucide-react";
+import { hasAnyRole, logout } from "../services/authenticationService";
 import { getMyProfile, updateMyProfile } from "../services/profileService";
 import { getMyNotifications } from "../services/notificationService";
 import "./MyAccount.css";
@@ -16,6 +16,7 @@ export default function MyAccount() {
   const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState(false);
   const activeTab = searchParams.get("tab") === "notifications" ? "notifications" : "profile";
+  const canRegisterSeller = !hasAnyRole("ROLE_SELLER", "SELLER", "ROLE_ADMIN", "ADMIN", "ROLE_SUPER_ADMIN", "SUPER_ADMIN");
 
   useEffect(() => {
     getMyProfile()
@@ -64,6 +65,7 @@ export default function MyAccount() {
             <button className={activeTab === "profile" ? "active" : ""} type="button" onClick={() => setSearchParams({})}><UserRound size={20} />Thông tin cá nhân</button>
             <button type="button" onClick={() => setNotice("Cài đặt thông báo sẽ sớm được cập nhật.")}><Settings size={20} />Cài đặt</button>
             <button className={activeTab === "notifications" ? "active" : ""} type="button" onClick={() => setSearchParams({ tab: "notifications" })}><Bell size={20} />Thông báo</button>
+            {canRegisterSeller && <Link to="/seller/register"><Store size={20} />Đăng ký bán hàng</Link>}
           </nav>
           <button className="account-logout" onClick={leave}><LogOut size={19} />Đăng xuất</button>
         </aside>

@@ -15,6 +15,7 @@ import com.example.orderservice.client.InventoryClient;
 import com.example.orderservice.client.CartClient;
 import com.example.orderservice.client.ProductClient;
 import com.example.orderservice.client.PromotionClient;
+import com.example.orderservice.client.ShipmentClient;
 import com.example.orderservice.common.OrderStatus;
 import com.example.orderservice.dto.request.CreateOrderRequest;
 import com.example.orderservice.dto.request.CheckoutOrderRequest;
@@ -28,6 +29,8 @@ import com.example.orderservice.dto.response.ProductDetailResponse;
 import com.example.orderservice.dto.response.ProductVariantResponse;
 import com.example.orderservice.dto.response.PromotionCalculationResponse;
 import com.example.orderservice.dto.response.ReviewEligibilityResponse;
+import com.example.orderservice.dto.response.SellerOrderDetailResponse;
+import com.example.orderservice.dto.response.SellerAnalyticsResponse;
 import com.example.orderservice.entity.Order;
 import com.example.orderservice.entity.OrderItem;
 import com.example.orderservice.exception.ErrorCode;
@@ -52,6 +55,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -78,6 +83,7 @@ public class OrderServiceImpl implements OrderService {
     private final InventoryClient inventoryClient;
     private final CartClient cartClient;
     private final PromotionClient promotionClient;
+    private final ShipmentClient shipmentClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
@@ -98,7 +104,8 @@ public class OrderServiceImpl implements OrderService {
                 item.getProductId(),
                 item.getVariantId(),
                 item.getProductName(),
-                order.getStatus().name()
+                order.getStatus().name(),
+                order.getSellerId()
         );
     }
 
@@ -130,6 +137,13 @@ public class OrderServiceImpl implements OrderService {
 
             if (!"ACTIVE".equals(product.status())) {
                 throw new OrderServiceException(ErrorCode.PRODUCT_NOT_ACTIVE);
+            }
+
+            if (order.getSellerId() == null) {
+                order.setSellerId(product.sellerId());
+                order.setShopId(product.shopId());
+            } else if (!order.getSellerId().equals(product.sellerId())) {
+                throw new OrderServiceException(ErrorCode.MULTI_SHOP_CHECKOUT_NOT_SUPPORTED);
             }
 
             ProductVariantResponse variant = findVariant(product, itemRequest.variantId());
@@ -218,6 +232,36 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public PageResponse<OrderResponse> getSellerOrders(String sellerId, int page, int size) {
+        Pageable pageable = createOrderPageable(page, size);
+        Page<Order> orderPage = orderRepository.findBySellerId(sellerId, pageable);
+        return toPageResponse(orderPage, orderPage.getContent().stream().map(this::toOrderResponse).toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SellerOrderDetailResponse getSellerOrderDetail(String sellerId, String orderId) {
+        Order order = orderRepository.findById(orderId).filter(value -> sellerId.equals(value.getSellerId()))
+                .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
+        return new SellerOrderDetailResponse(toOrderResponse(order), shipmentClient.getByOrderId(orderId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SellerAnalyticsResponse getSellerAnalytics(String sellerId, Instant from, Instant to) {
+        List<Order> orders = orderRepository.findBySellerIdAndCreatedAtBetween(sellerId, from, to);
+        List<Order> completed = orders.stream().filter(order -> order.getStatus() == OrderStatus.COMPLETED).toList();
+        BigDecimal revenue = completed.stream().map(Order::getTotalAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        Map<String, Long> statuses = new HashMap<>();
+        orders.forEach(order -> statuses.merge(order.getStatus().name(), 1L, Long::sum));
+        Map<String, SellerAnalyticsResponse.TopProduct> products = new HashMap<>();
+        completed.forEach(order -> order.getItems().forEach(item -> products.merge(item.getProductId(), new SellerAnalyticsResponse.TopProduct(item.getProductId(), item.getProductName(), item.getQuantity(), item.getSubtotal()), (left, right) -> new SellerAnalyticsResponse.TopProduct(left.productId(), left.name(), left.quantitySold() + right.quantitySold(), left.revenue().add(right.revenue())))));
+        List<SellerAnalyticsResponse.TopProduct> topProducts = products.values().stream().sorted((left, right) -> right.revenue().compareTo(left.revenue())).limit(5).toList();
+        return new SellerAnalyticsResponse(revenue, completed.size(), orders.size(), completed.isEmpty() ? BigDecimal.ZERO : revenue.divide(BigDecimal.valueOf(completed.size()), 0, java.math.RoundingMode.HALF_UP), statuses, topProducts);
+    }
+
+    @Override
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     @Transactional(readOnly = true)
     public PageResponse<OrderResponse> getAllOrders(int page, int size) {
@@ -277,6 +321,23 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(status);
         Order savedOrder = orderRepository.save(order);
         publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
+        return toOrderResponse(savedOrder);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse updateSellerOrderStatus(String sellerId, String orderId, OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+                .filter(value -> sellerId.equals(value.getSellerId()))
+                .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
+        if (order.getStatus() != OrderStatus.CONFIRMED || status != OrderStatus.SHIPPING) {
+            throw new OrderServiceException(ErrorCode.SELLER_ORDER_TRANSITION_INVALID);
+        }
+        OrderStatus oldStatus = order.getStatus();
+        order.setStatus(OrderStatus.SHIPPING);
+        Order savedOrder = orderRepository.save(order);
+        publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
+        publishShipmentRequestedEvent(savedOrder);
         return toOrderResponse(savedOrder);
     }
 
@@ -506,6 +567,8 @@ public class OrderServiceImpl implements OrderService {
                 order.getId(),
                 order.getOrderCode(),
                 order.getUserId(),
+                order.getSellerId(),
+                order.getShopId(),
                 order.getSubtotalAmount(),
                 order.getDiscountAmount(),
                 order.getPromotionCode(),

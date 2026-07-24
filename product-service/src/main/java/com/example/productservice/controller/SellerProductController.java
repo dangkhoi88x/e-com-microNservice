@@ -2,6 +2,8 @@ package com.example.productservice.controller;
 
 import com.example.productservice.dto.request.CreateSellerProductRequest;
 import com.example.productservice.dto.request.UpdateSellerProductRequest;
+import com.example.productservice.dto.request.UpdateSellerProductQuantityRequest;
+import com.example.productservice.dto.request.UpdateSellerProductStatusRequest;
 import com.example.productservice.dto.response.ApiResponse;
 import com.example.productservice.dto.response.CreateProductResponse;
 import com.example.productservice.dto.response.PageResponse;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -60,6 +63,26 @@ public class SellerProductController {
     ) {
         return response(HttpStatus.OK, "Product draft updated successfully",
                 productService.updateSellerProduct(id, jwt.getSubject(), request));
+    }
+
+    @PatchMapping("/{id}/quantity")
+    public ApiResponse<ProductDetailResponse> updateQuantity(
+            @PathVariable String id,
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody UpdateSellerProductQuantityRequest request
+    ) {
+        return response(HttpStatus.OK, "Product quantity updated successfully",
+                productService.updateSellerProductQuantity(id, jwt.getSubject(), request));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ApiResponse<ProductDetailResponse> updateStatus(
+            @PathVariable String id,
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody UpdateSellerProductStatusRequest request
+    ) {
+        return response(HttpStatus.OK, "Product status updated successfully",
+                productService.updateSellerProductStatus(id, jwt.getSubject(), request));
     }
 
     @PostMapping("/{id}/submit")

@@ -49,6 +49,11 @@ public class AdminSellerShopController {
                 sellerShopService.getAll(status, pageable));
     }
 
+    @GetMapping("/{shopId}")
+    public ApiResponse<SellerShopResponse> getById(@PathVariable UUID shopId) {
+        return response(HttpStatus.OK, "Seller shop retrieved successfully", sellerShopService.getById(shopId));
+    }
+
     @PutMapping("/{shopId}/review")
     public ApiResponse<SellerShopResponse> review(
             @PathVariable UUID shopId,

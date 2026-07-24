@@ -12,6 +12,8 @@ import com.example.productservice.dto.request.ProductOptionRequest;
 import com.example.productservice.dto.request.ProductOptionValueRequest;
 import com.example.productservice.dto.request.SearchRequest;
 import com.example.productservice.dto.request.UpdateProductRequest;
+import com.example.productservice.dto.request.UpdateSellerProductQuantityRequest;
+import com.example.productservice.dto.request.UpdateSellerProductStatusRequest;
 import com.example.productservice.dto.request.UpdateSellerProductRequest;
 import com.example.productservice.dto.response.CreateProductResponse;
 import com.example.productservice.dto.response.PageResponse;
@@ -151,6 +153,7 @@ public class ProductServiceImpl implements ProductService {
         replaceVariants(product, request.variants());
         product.getVariants().forEach(variant -> variant.setStatus(ProductStatus.DRAFT));
         Product savedProduct = productRepository.save(product);
+        savedProduct.setQuantity(inventoryClient.setAvailableQuantity(savedProduct.getId(), request.quantity()));
         sendProductCreatedEvent(toProductCreatedEvent(savedProduct));
         return toCreateProductResponse(savedProduct);
     }
@@ -297,6 +300,49 @@ public class ProductServiceImpl implements ProductService {
 
         applySellerUpdate(product, request);
         product.getVariants().forEach(variant -> variant.setStatus(product.getStatus()));
+        Product savedProduct = productRepository.save(product);
+        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
+        return toProductDetailResponse(savedProduct);
+    }
+
+    @Override
+    @Transactional
+    public ProductDetailResponse updateSellerProductQuantity(
+            String id,
+            String sellerId,
+            UpdateSellerProductQuantityRequest request
+    ) {
+        Product product = productRepository.findByIdAndSellerId(id, sellerId)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+        if (product.getStatus() == ProductStatus.PENDING_APPROVAL) {
+            throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
+        }
+
+        product.setQuantity(inventoryClient.setAvailableQuantity(product.getId(), request.quantity()));
+        Product savedProduct = productRepository.save(product);
+        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
+        return toProductDetailResponse(savedProduct);
+    }
+
+    @Override
+    @Transactional
+    public ProductDetailResponse updateSellerProductStatus(
+            String id,
+            String sellerId,
+            UpdateSellerProductStatusRequest request
+    ) {
+        Product product = productRepository.findByIdAndSellerId(id, sellerId)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+        ProductStatus currentStatus = product.getStatus();
+        ProductStatus targetStatus = request.status();
+        boolean currentCanBeChanged = currentStatus == ProductStatus.ACTIVE || currentStatus == ProductStatus.INACTIVE;
+        boolean targetCanBeSet = targetStatus == ProductStatus.ACTIVE || targetStatus == ProductStatus.INACTIVE;
+        if (!currentCanBeChanged || !targetCanBeSet) {
+            throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
+        }
+
+        product.setStatus(targetStatus);
+        product.getVariants().forEach(variant -> variant.setStatus(targetStatus));
         Product savedProduct = productRepository.save(product);
         sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
         return toProductDetailResponse(savedProduct);
@@ -652,6 +698,7 @@ public class ProductServiceImpl implements ProductService {
         return ProductDetailResponse.builder()
                 .id(product.getId())
                 .shopId(product.getShopId())
+                .sellerId(product.getSellerId())
                 .name(product.getName())
                 .slug(product.getSlug())
                 .description(product.getDescription())

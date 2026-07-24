@@ -49,6 +49,18 @@ export const updateOrderStatus = async (id, status) => {
   return response.data?.data;
 };
 
+export const getSellerOrders = async (params = {}) => {
+  const response = await httpClient.get(`${API.ORDERS}/seller`, { params });
+  return response.data?.data || defaultPage(params);
+};
+
+export const updateSellerOrderStatus = async (id, status) => {
+  const response = await httpClient.put(`${API.ORDERS}/seller/${id}/status`, null, { params: { status } });
+  return response.data?.data;
+};
+export const getSellerOrderDetail = async (id) => (await httpClient.get(`${API.ORDERS}/seller/${id}`)).data?.data;
+export const getSellerAnalytics = async (from, to) => (await httpClient.get(`${API.ORDERS}/seller/analytics`, { params: { from: from.toISOString(), to: to.toISOString() } })).data?.data;
+
 export const checkoutOrder = async ({ shippingAddress, campaignCode }) => {
   const response = await httpClient.post(`${API.ORDERS}/checkout`, {
     shippingAddress,

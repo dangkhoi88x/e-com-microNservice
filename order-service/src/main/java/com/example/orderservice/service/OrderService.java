@@ -11,12 +11,18 @@ import com.example.orderservice.dto.request.CheckoutOrderRequest;
 import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.PageResponse;
 import com.example.orderservice.dto.response.ReviewEligibilityResponse;
+import com.example.orderservice.dto.response.SellerOrderDetailResponse;
+import com.example.orderservice.dto.response.SellerAnalyticsResponse;
 
 public interface OrderService {
     OrderResponse createOrder(String userId, CreateOrderRequest request, String token);
     OrderResponse checkout(String userId, CheckoutOrderRequest request, String token);
 
     PageResponse<OrderResponse> getMyOrders(String userId, int page, int size);
+
+    PageResponse<OrderResponse> getSellerOrders(String sellerId, int page, int size);
+    SellerOrderDetailResponse getSellerOrderDetail(String sellerId, String orderId);
+    SellerAnalyticsResponse getSellerAnalytics(String sellerId, java.time.Instant from, java.time.Instant to);
 
     PageResponse<OrderResponse> getAllOrders(int page, int size);
 
@@ -27,6 +33,8 @@ public interface OrderService {
     OrderResponse getOrderDetailForAdmin(String orderId);
 
     OrderResponse updateOrderStatus(String orderId, OrderStatus status);
+
+    OrderResponse updateSellerOrderStatus(String sellerId, String orderId, OrderStatus status);
 
     OrderResponse cancelOrder(String userId, String orderId, String token);
 

@@ -6,6 +6,8 @@ import com.example.productservice.dto.request.ModerateProductRequest;
 import com.example.productservice.dto.request.SearchRequest;
 import com.example.productservice.dto.request.UpdateProductRequest;
 import com.example.productservice.dto.request.UpdateSellerProductRequest;
+import com.example.productservice.dto.request.UpdateSellerProductQuantityRequest;
+import com.example.productservice.dto.request.UpdateSellerProductStatusRequest;
 import com.example.productservice.dto.response.CreateProductResponse;
 import com.example.productservice.dto.response.PageResponse;
 import com.example.productservice.dto.response.ProductDetailResponse;
@@ -22,6 +24,8 @@ public interface ProductService {
     ProductDetailResponse getProductBySlug(String slug);
     ProductDetailResponse updateProduct(String id, String userId, UpdateProductRequest request);
     ProductDetailResponse updateSellerProduct(String id, String sellerId, UpdateSellerProductRequest request);
+    ProductDetailResponse updateSellerProductQuantity(String id, String sellerId, UpdateSellerProductQuantityRequest request);
+    ProductDetailResponse updateSellerProductStatus(String id, String sellerId, UpdateSellerProductStatusRequest request);
     ProductDetailResponse submitSellerProduct(String id, String sellerId, String authorization);
     ProductDetailResponse moderateProduct(String id, String adminUserId, ModerateProductRequest request);
     void deleteProduct(String id);

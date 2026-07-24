@@ -18,7 +18,7 @@ import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { isAuthenticated, login } from "../services/authenticationService";
+import { getRoleHomePath, isAuthenticated, login } from "../services/authenticationService";
 import heroImage from "../assets/hero.png";
 
 export default function Login() {
@@ -30,7 +30,7 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      navigate("/dashboard", { replace: true });
+      navigate(getRoleHomePath(), { replace: true });
     }
   }, [navigate]);
 
@@ -41,7 +41,7 @@ export default function Login() {
 
     try {
       await login(email, password);
-      navigate("/dashboard", { replace: true });
+      navigate(getRoleHomePath(), { replace: true });
     } catch (error) {
       setErrorMessage(
         error.response?.data?.message ||

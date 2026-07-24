@@ -46,6 +46,9 @@ public class ProductReview extends AbstractEntity {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
+    @Column(name = "seller_id")
+    private String sellerId;
+
     @Column(name = "reviewer_name", length = 120)
     private String reviewerName;
 

@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface InventoryService {
     InventoryResponse createInventory(CreateInventoryRequest request);
+    InventoryResponse setAvailableQuantity(String productId, String variantId, Integer availableQuantity);
 
     InventoryResponse getInventoryByProductId(String productId);
 

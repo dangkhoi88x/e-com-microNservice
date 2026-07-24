@@ -9,6 +9,7 @@ import com.example.promotionservice.repository.FlashDealReservationRepository;
 import com.example.promotionservice.repository.FlashDealNotificationSubscriptionRepository;
 import com.example.promotionservice.repository.FlashDealItemMetricProjection;
 import com.example.promotionservice.repository.FlashDealCampaignMetricProjection;
+import com.example.promotionservice.client.SellerProductOwnershipClient;
 import com.example.promotionservice.exception.PromotionServiceException;
 import com.example.promotionservice.exception.ErrorCode;
 import com.example.promotionservice.service.FlashDealService;
@@ -30,11 +31,21 @@ public class FlashDealServiceImpl implements FlashDealService {
     private final FlashDealReservationRepository reservationRepository;
     private final FlashDealNotificationSubscriptionRepository notificationSubscriptionRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final SellerProductOwnershipClient sellerProductOwnershipClient;
     @Override @Transactional public FlashDealResponse create(CreateFlashDealRequest request) { return save(new FlashDeal(), request); }
+    @Override @Transactional public FlashDealResponse createForSeller(String sellerId, CreateFlashDealRequest request) {
+        FlashDeal deal = new FlashDeal();
+        deal.setSellerId(sellerId);
+        return save(deal, request);
+    }
     @Override @Transactional public List<FlashDealResponse> getAll(String status) {
         synchronizeStatuses();
         List<FlashDeal> deals = status == null || status.isBlank() ? repository.findAllByOrderByStartAtDesc() : repository.findAllByStatusOrderByStartAtAsc(FlashDealStatus.valueOf(status.toUpperCase()));
         return deals.stream().map(this::response).toList();
+    }
+    @Override @Transactional public List<FlashDealResponse> getAllForSeller(String sellerId) {
+        synchronizeStatuses();
+        return repository.findAllBySellerIdOrderByStartAtDesc(sellerId).stream().map(this::response).toList();
     }
     @Override @Transactional public List<FlashDealResponse> getByStatusAndType(FlashDealStatus status, SaleType saleType) {
         synchronizeStatuses();
@@ -63,8 +74,13 @@ public class FlashDealServiceImpl implements FlashDealService {
         }).toList();
         return new FlashDealDetailResponse(deal.getId(), deal.getName(), deal.getDescription(), deal.getStatus(), deal.effectiveSaleType(), deal.getStartAt(), deal.getEndAt(), countdownTarget, remainingSeconds, campaignMetric == null ? 0 : campaignMetric.getOrderCount(), campaignMetric == null || campaignMetric.getSoldQuantity() == null ? 0 : campaignMetric.getSoldQuantity(), campaignMetric == null || campaignMetric.getRevenue() == null ? BigDecimal.ZERO : campaignMetric.getRevenue(), items);
     }
+    @Override @Transactional public FlashDealDetailResponse getDetailForSeller(String id, String sellerId) {
+        return getDetail(ownedDeal(id, sellerId).getId().toString());
+    }
     @Override @Transactional public FlashDealResponse update(String id, CreateFlashDealRequest request) { return save(find(id), request); }
+    @Override @Transactional public FlashDealResponse updateForSeller(String id, String sellerId, CreateFlashDealRequest request) { return save(ownedDeal(id, sellerId), request); }
     @Override @Transactional public void delete(String id) { repository.delete(find(id)); }
+    @Override @Transactional public void deleteForSeller(String id, String sellerId) { repository.delete(ownedDeal(id, sellerId)); }
     @Override @Transactional public List<FlashDealPriceResponse> reserve(ReserveFlashDealRequest request) {
         synchronizeStatuses();
         List<FlashDealPriceResponse> result = new ArrayList<>();
@@ -109,6 +125,9 @@ public class FlashDealServiceImpl implements FlashDealService {
     }
     private FlashDealResponse save(FlashDeal deal, CreateFlashDealRequest request) {
         if (!request.endAt().isAfter(request.startAt())) throw new PromotionServiceException(ErrorCode.INVALID_PROMOTION_PERIOD);
+        if (deal.getSellerId() != null && !sellerProductOwnershipClient.ownsAll(deal.getSellerId(), request.items().stream().map(FlashDealItemRequest::productId).toList())) {
+            throw new PromotionServiceException(ErrorCode.SELLER_PRODUCT_NOT_OWNED);
+        }
         SaleType saleType = request.saleType() == null ? SaleType.FLASH : request.saleType();
         validateNoOverlappingCampaign(deal, request, saleType);
         deal.setName(request.name().trim()); deal.setDescription(request.description()); deal.setStartAt(request.startAt()); deal.setEndAt(request.endAt());
@@ -136,4 +155,9 @@ public class FlashDealServiceImpl implements FlashDealService {
     private boolean isBlocking(FlashDeal deal) { return deal.getStatus() == FlashDealStatus.DRAFT || deal.getStatus() == FlashDealStatus.SCHEDULED || deal.getStatus() == FlashDealStatus.LIVE; }
     private FlashDealResponse response(FlashDeal d) { return new FlashDealResponse(d.getId(), d.getName(), d.getDescription(), d.getStatus(), d.effectiveSaleType(), d.getStartAt(), d.getEndAt(), d.getItems().stream().map(i -> new FlashDealItemResponse(i.getId(), i.getProductId(), i.getVariantId(), i.getOriginalPrice(), i.getSalePrice(), i.getDiscountPercent(), i.getQuota(), i.effectiveInitialQuota(), i.isQuotaLimited())).toList()); }
     private FlashDeal find(String id) { return repository.findById(UUID.fromString(id)).orElseThrow(() -> new IllegalArgumentException("Flash deal not found")); }
+    private FlashDeal ownedDeal(String id, String sellerId) {
+        FlashDeal deal = find(id);
+        if (!sellerId.equals(deal.getSellerId())) throw new PromotionServiceException(ErrorCode.INVALID_REQUEST);
+        return deal;
+    }
 }

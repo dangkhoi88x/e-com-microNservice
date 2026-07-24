@@ -22,6 +22,7 @@ public interface ProductRepository extends JpaRepository<Product, String>, JpaSp
     Page<Product> findAllBySellerIdOrderByCreatedAtDesc(String sellerId, Pageable pageable);
 
     Optional<Product> findByIdAndSellerId(String id, String sellerId);
+    long countByIdInAndSellerId(List<String> ids, String sellerId);
 
     List<Product> findAllByShopIdAndStatus(String shopId, ProductStatus status);
 }

@@ -13,8 +13,9 @@ import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import { searchProductSuggestions } from "../services/productService";
-import { isAuthenticated, logout } from "../services/authenticationService";
+import { hasAnyRole, isAuthenticated, logout } from "../services/authenticationService";
 import { cartQuantity, getMyCart, removeCartItem, updateCartItem } from "../services/cartService";
 import { getMyNotifications } from "../services/notificationService";
 import "./ShopStoreHeader.css";
@@ -40,6 +41,7 @@ export default function ShopStoreHeader({ showBack = false }) {
   const notificationRef = useRef(null);
   const cartRef = useRef(null);
   const loggedIn = isAuthenticated();
+  const isSeller = hasAnyRole("ROLE_SELLER", "SELLER");
 
   useEffect(() => {
     if (!loggedIn) return;
@@ -92,6 +94,7 @@ export default function ShopStoreHeader({ showBack = false }) {
       <Link to="/shop/wishlist"><FavoriteBorderOutlinedIcon />Yêu thích</Link>
       <Link to="/shop/account"><PersonOutlineOutlinedIcon />Tài khoản</Link>
       <div className="store-header-mini-cart" ref={cartRef}><button className="store-header-cart" type="button" onClick={toggleCart} aria-label="Mở giỏ hàng"><AddShoppingCartOutlinedIcon />{cartCount > 0 && <b>{cartCount}</b>}</button>{cartOpen && <section className="store-cart-popover"><header><strong>Giỏ hàng của bạn</strong><span>{cartCount} sản phẩm</span></header>{cartLoading ? <p>Đang tải giỏ hàng…</p> : cartItems.length ? <><div className="store-cart-popover-items">{cartItems.slice(0, 4).map((item) => <article key={item.id}><img src={item.imageUrl || "https://placehold.co/80x80/e7f2f8/3b82c4?text=Nova"} alt="" /><div><b>{item.productName}</b><small>{new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(Number(item.price || 0))}</small><section className="store-mini-cart-quantity"><button type="button" onClick={() => changeMiniCartQuantity(item, -1)} aria-label="Giảm số lượng"><RemoveOutlinedIcon /></button><span>{item.quantity}</span><button type="button" onClick={() => changeMiniCartQuantity(item, 1)} aria-label="Tăng số lượng"><AddOutlinedIcon /></button></section></div><button type="button" className="store-mini-cart-remove" onClick={() => removeMiniCartItem(item.id)} aria-label="Xóa sản phẩm"><DeleteOutlineOutlinedIcon /></button></article>)}</div><footer><p><span>Tạm tính</span><b>{new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(miniCartTotal)}</b></p><Link to="/cart" onClick={() => setCartOpen(false)}>Xem tất cả giỏ hàng</Link></footer></> : <p>Giỏ hàng đang trống.</p>}</section>}</div>
+      {isSeller && <Link to="/seller"><StorefrontOutlinedIcon />Cửa hàng của tôi</Link>}
       {showBack && <button className="store-header-back" type="button" onClick={() => navigate(-1)}><ArrowBackOutlinedIcon />Quay lại</button>}
     </nav>
   </header>;

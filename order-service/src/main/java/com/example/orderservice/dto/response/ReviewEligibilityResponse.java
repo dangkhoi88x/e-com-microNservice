@@ -7,6 +7,7 @@ public record ReviewEligibilityResponse(
         String productId,
         String variantId,
         String productName,
-        String orderStatus
+        String orderStatus,
+        String sellerId
 ) {
 }

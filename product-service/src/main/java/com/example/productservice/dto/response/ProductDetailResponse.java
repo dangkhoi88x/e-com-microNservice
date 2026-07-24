@@ -12,6 +12,7 @@ import java.util.List;
 public record ProductDetailResponse(
         String id,
         String shopId,
+        String sellerId,
         String name,
         String slug,
         String description,

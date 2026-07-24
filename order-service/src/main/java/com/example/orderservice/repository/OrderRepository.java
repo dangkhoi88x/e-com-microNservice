@@ -7,10 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
+import java.time.Instant;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, String> {
     Page<Order> findByUserId(String userId, Pageable pageable);
+    Page<Order> findBySellerId(String sellerId, Pageable pageable);
+    List<Order> findBySellerIdAndCreatedAtBetween(String sellerId, Instant from, Instant to);
 
     Page<Order> findByPromotionCodeIgnoreCase(String promotionCode, Pageable pageable);
 

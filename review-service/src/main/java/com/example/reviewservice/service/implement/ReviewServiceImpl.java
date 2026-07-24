@@ -136,6 +136,16 @@ public class ReviewServiceImpl implements ReviewService {
         return pageResponse(reviewRepository.findByUserId(userId, pageable(page, size)));
     }
 
+    @Override @Transactional(readOnly = true)
+    public PageResponse<ProductReviewResponse> getSellerReviews(String sellerId, int page, int size) { return pageResponse(reviewRepository.findBySellerId(sellerId, pageable(page, size))); }
+
+    @Override @Transactional
+    public ProductReviewResponse replySellerReview(String sellerId, UUID reviewId, SellerReplyRequest request) {
+        ProductReview review = reviewRepository.findById(reviewId).filter(value -> sellerId.equals(value.getSellerId())).orElseThrow(() -> new ReviewServiceException(ErrorCode.REVIEW_NOT_FOUND));
+        if (review.getSellerReply() != null && !review.getSellerReply().isBlank()) throw new ReviewServiceException(ErrorCode.REVIEW_ACCESS_DENIED);
+        review.setSellerReply(request.reply().trim()); return reviewMapper.toResponse(reviewRepository.save(review));
+    }
+
     @Override
     @Transactional(readOnly = true)
     public ReviewSummaryResponse getProductSummary(String productId) {

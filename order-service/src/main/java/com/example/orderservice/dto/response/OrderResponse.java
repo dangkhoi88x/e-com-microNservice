@@ -8,6 +8,8 @@ public record OrderResponse(
         String id,
         String orderCode,
         String userId,
+        String sellerId,
+        String shopId,
         BigDecimal subtotalAmount,
         BigDecimal discountAmount,
         String promotionCode,

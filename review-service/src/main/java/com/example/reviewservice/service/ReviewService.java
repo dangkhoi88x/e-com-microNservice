@@ -20,6 +20,8 @@ public interface ReviewService {
     ProductReviewResponse replyReview(UUID reviewId, SellerReplyRequest request);
     PageResponse<ProductReviewResponse> getProductReviews(String productId, int page, int size);
     PageResponse<ProductReviewResponse> getMyReviews(String userId, int page, int size);
+    PageResponse<ProductReviewResponse> getSellerReviews(String sellerId, int page, int size);
+    ProductReviewResponse replySellerReview(String sellerId, UUID reviewId, SellerReplyRequest request);
     ReviewSummaryResponse getProductSummary(String productId);
     ProductReviewResponse getReview(UUID reviewId);
     ProductReviewResponse getMyReviewByOrderItem(String userId, String orderItemId);

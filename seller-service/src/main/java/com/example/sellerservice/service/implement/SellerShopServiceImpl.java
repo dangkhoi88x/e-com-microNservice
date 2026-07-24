@@ -107,6 +107,14 @@ public class SellerShopServiceImpl implements SellerShopService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public SellerShopResponse getById(UUID shopId) {
+        SellerShop shop = sellerShopRepository.findById(shopId)
+                .orElseThrow(() -> new SellerServiceException(ErrorCode.SELLER_SHOP_NOT_FOUND));
+        return toResponse(shop);
+    }
+
+    @Override
     @Transactional
     public SellerShopResponse reviewShop(
             UUID shopId,

@@ -7,10 +7,10 @@ import FilterListOutlinedIcon from "@mui/icons-material/FilterListOutlined";
 import MoreHorizOutlinedIcon from "@mui/icons-material/MoreHorizOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
-import { createFlashDeal, deleteFlashDeal, getFlashDealDetail, getFlashDeals, updateFlashDeal } from "../services/promotionService";
-import { getProducts } from "../services/productService";
+import { createFlashDeal, createSellerFlashDeal, deleteFlashDeal as deleteAdminFlashDeal, deleteSellerFlashDeal, getFlashDealDetail, getFlashDeals, getSellerFlashDealDetail, getSellerFlashDeals, updateFlashDeal, updateSellerFlashDeal } from "../services/promotionService";
+import { getMySellerProducts, getProducts } from "../services/productService";
 import "./FlashDeals.css";
 
 const localInput = (value) => { const date = value ? new Date(value) : new Date(Date.now() + 86400000); const offset = date.getTimezoneOffset(); return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 16); };
@@ -22,13 +22,14 @@ const salePrice = (item) => Number(item.salePrice || (Number(item.originalPrice 
 const campaignWins = (left, right) => salePrice(left) < salePrice(right) || (salePrice(left) === salePrice(right) && left.saleType === "FLASH" && right.saleType !== "FLASH");
 const duration = (seconds = 0) => { const value = Math.max(0, Number(seconds)); const days = Math.floor(value / 86400); const hours = Math.floor(value / 3600) % 24; const minutes = Math.floor(value / 60) % 60; return `${days ? `${days} ngày ` : ""}${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`; };
 
-export default function FlashDeals() {
+export default function FlashDeals({ sellerMode = false }) {
   const [deals, setDeals] = useState([]); const [products, setProducts] = useState([]); const [form, setForm] = useState(() => blank()); const [tab, setTab] = useState("FLASH");
   const [open, setOpen] = useState(false); const [error, setError] = useState(""); const [saving, setSaving] = useState(false);
   const [detail, setDetail] = useState(null); const [detailLoading, setDetailLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const load = async () => { try { setDeals(await getFlashDeals()); setError(""); } catch (e) { setError(e.response?.data?.message || "Không thể tải chương trình giảm giá."); } };
-  useEffect(() => { load(); getProducts({ page: 1, size: 100 }).then((p) => setProducts(p.content || [])).catch(() => {}); }, []);
+  const deleteFlashDeal = sellerMode ? deleteSellerFlashDeal : deleteAdminFlashDeal;
+  const load = useCallback(async () => { try { setDeals(sellerMode ? await getSellerFlashDeals() : await getFlashDeals()); setError(""); } catch (e) { setError(e.response?.data?.message || "Không thể tải chương trình giảm giá."); } }, [sellerMode]);
+  useEffect(() => { load(); (sellerMode ? getMySellerProducts({ page: 1, size: 100 }) : getProducts({ page: 1, size: 100 })).then((p) => setProducts((p.content || []).filter((product) => !sellerMode || product.status === "ACTIVE"))).catch(() => {}); }, [load, sellerMode]);
   const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const getProduct = (id) => products.find((product) => product.id === id);
   const updateItem = (index, patch) => setForm((current) => ({ ...current, items: current.items.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item) }));
@@ -38,11 +39,11 @@ export default function FlashDeals() {
   const setDiscount = (index, value) => { const item = form.items[index]; const percent = Number(value); const sale = item.originalPrice && Number.isFinite(percent) ? Number(item.originalPrice) * (1 - percent / 100) : ""; updateItem(index, { discountPercent: value, salePrice: sale === "" ? "" : sale.toFixed(2) }); };
   const changeSaleType = (saleType) => setForm((current) => ({ ...current, saleType, items: current.items.map((item) => ({ ...item, quotaLimited: saleType === "FLASH", quota: saleType === "FLASH" ? (item.quota || "10") : "" })) }));
   const openCreate = (saleType) => { setTab(saleType); setForm(blank(saleType)); setOpen(true); };
-  const viewDetail = async (id) => { setDetailLoading(true); setDetail(null); try { setDetail(await getFlashDealDetail(id)); } catch (e) { setError(e.response?.data?.message || "Không thể tải chi tiết chương trình sale."); } finally { setDetailLoading(false); } };
+  const viewDetail = async (id) => { setDetailLoading(true); setDetail(null); try { setDetail(sellerMode ? await getSellerFlashDealDetail(id) : await getFlashDealDetail(id)); } catch (e) { setError(e.response?.data?.message || "Không thể tải chi tiết chương trình sale."); } finally { setDetailLoading(false); } };
   const submit = async (event) => {
     event.preventDefault(); setSaving(true); setError("");
     const payload = { name: form.name, description: form.description || null, status: form.status, saleType: form.saleType, startAt: new Date(form.startAt).toISOString(), endAt: new Date(form.endAt).toISOString(), items: form.items.map((item) => ({ productId: item.productId, variantId: item.variantId || null, originalPrice: Number(item.originalPrice), discountPercent: Number(item.discountPercent), quotaLimited: form.saleType === "FLASH" || item.quotaLimited, quota: form.saleType === "FLASH" || item.quotaLimited ? Number(item.quota) : null })) };
-    try { if (form.id) await updateFlashDeal(form.id, payload); else await createFlashDeal(payload); setOpen(false); await load(); } catch (e) { setError(e.response?.data?.message || "Không thể lưu chương trình giảm giá."); } finally { setSaving(false); }
+    try { if (form.id) { if (sellerMode) await updateSellerFlashDeal(form.id, payload); else await updateFlashDeal(form.id, payload); } else if (sellerMode) await createSellerFlashDeal(payload); else await createFlashDeal(payload); setOpen(false); await load(); } catch (e) { setError(e.response?.data?.message || "Không thể lưu chương trình giảm giá."); } finally { setSaving(false); }
   };
   const edit = (deal) => { const saleType = deal.saleType || "FLASH"; setTab(saleType); setForm({ ...deal, saleType, startAt: localInput(deal.startAt), endAt: localInput(deal.endAt), items: deal.items.map((item) => ({ ...item, quotaLimited: saleType === "FLASH" || Boolean(item.quotaLimited), originalPrice: String(item.originalPrice), discountPercent: String(item.discountPercent ?? (100 - (Number(item.salePrice) / Number(item.originalPrice) * 100)).toFixed(2)), salePrice: String(item.salePrice), quota: item.quotaLimited === false ? "" : String(item.quota || "") })) }); setOpen(true); };
   const visibleDeals = deals.filter((deal) => (deal.saleType || "FLASH") === tab).filter((deal) => `${deal.name} ${deal.description || ""} ${deal.status}`.toLocaleLowerCase("vi-VN").includes(search.trim().toLocaleLowerCase("vi-VN")));
@@ -60,9 +61,12 @@ export default function FlashDeals() {
   }, [deals, form]);
   const hasBlockingConflict = overlappingItems.some((item) => item.hasSameType);
 
+  const pageTitle = sellerMode ? "Khuyến mãi của shop" : "Chương trình sale";
+  const pageDescription = sellerMode ? "Tạo Flash Sale hoặc sale dài hạn cho các sản phẩm đang bán của shop." : "Quản lý Flash Sale và các ưu đãi dài hạn của cửa hàng.";
+
   return <MainLayout>
     <section className="flash-deals-page">
-      <header className="flash-deals-header"><div><Typography component="h1">Chương trình sale</Typography><Typography>Quản lý Flash Sale và các ưu đãi dài hạn của cửa hàng.</Typography></div><Stack direction="row" spacing={1.25}><Button className="flash-deals-period" startIcon={<CalendarMonthOutlinedIcon />}>Tháng này</Button><Button className="flash-deals-long-term" onClick={() => openCreate("LONG_TERM")}>Sale dài hạn</Button><Button className="flash-deals-create" startIcon={<AddOutlinedIcon />} onClick={() => openCreate("FLASH")}>Tạo Flash Sale</Button></Stack></header>
+      <header className="flash-deals-header"><div><Typography component="h1">{pageTitle}</Typography><Typography>{pageDescription}</Typography></div><Stack direction="row" spacing={1.25}><Button className="flash-deals-period" startIcon={<CalendarMonthOutlinedIcon />}>Tháng này</Button><Button className="flash-deals-long-term" onClick={() => openCreate("LONG_TERM")}>Sale dài hạn</Button><Button className="flash-deals-create" startIcon={<AddOutlinedIcon />} onClick={() => openCreate("FLASH")}>Tạo Flash Sale</Button></Stack></header>
       <Tabs className="flash-deals-tabs" value={tab} onChange={(_, value) => setTab(value)}><Tab value="FLASH" label={<span>Flash Sale <b>{deals.filter((deal) => (deal.saleType || "FLASH") === "FLASH").length}</b></span>} /><Tab value="LONG_TERM" label={<span>Sale dài hạn <b>{deals.filter((deal) => (deal.saleType || "FLASH") === "LONG_TERM").length}</b></span>} /></Tabs>
       <div className="flash-deals-toolbar"><Typography>Hiển thị <b>{visibleDeals.length}</b> chương trình</Typography><div><TextField className="flash-deals-search" size="small" placeholder="Tìm tên chương trình..." value={search} onChange={(event) => setSearch(event.target.value)} InputProps={{ startAdornment: <InputAdornment position="start"><SearchOutlinedIcon /></InputAdornment> }} /><Tooltip title="Bộ lọc"><IconButton className="flash-deals-tool-icon"><FilterListOutlinedIcon /></IconButton></Tooltip><Tooltip title="Tùy chọn hiển thị"><IconButton className="flash-deals-tool-icon"><MoreHorizOutlinedIcon /></IconButton></Tooltip></div></div>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}

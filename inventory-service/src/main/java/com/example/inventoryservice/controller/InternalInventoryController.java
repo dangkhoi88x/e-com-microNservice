@@ -1,11 +1,14 @@
 package com.example.inventoryservice.controller;
 
 import com.example.inventoryservice.dto.request.InventoryOrderRequest;
+import com.example.inventoryservice.dto.request.SetInventoryQuantityRequest;
+import com.example.inventoryservice.dto.response.InventoryResponse;
 import com.example.inventoryservice.service.InventoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +25,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class InternalInventoryController {
 
     private final InventoryService inventoryService;
+
+    @PutMapping("/products/{productId}/quantity")
+    public InventoryResponse setAvailableQuantity(@PathVariable String productId, @Valid @RequestBody SetInventoryQuantityRequest request) {
+        return inventoryService.setAvailableQuantity(productId, null, request.availableQuantity());
+    }
 
     @PostMapping("/confirm")
     @ResponseStatus(HttpStatus.NO_CONTENT)

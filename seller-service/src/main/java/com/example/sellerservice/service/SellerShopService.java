@@ -24,5 +24,7 @@ public interface SellerShopService {
 
     Page<SellerShopResponse> getAll(SellerStatus status, Pageable pageable);
 
+    SellerShopResponse getById(UUID shopId);
+
     SellerShopResponse reviewShop(UUID shopId, String adminUserId, String authorization, ReviewSellerShopRequest request);
 }

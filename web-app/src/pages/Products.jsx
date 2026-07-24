@@ -5,6 +5,10 @@ import {
   Checkbox,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   IconButton,
   InputLabel,
@@ -23,6 +27,8 @@ import {
   Typography,
 } from "@mui/material";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
+import DoNotDisturbOnOutlinedIcon from "@mui/icons-material/DoNotDisturbOnOutlined";
 import MoreHorizOutlinedIcon from "@mui/icons-material/MoreHorizOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
@@ -31,7 +37,8 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import { getCategories } from "../services/categoryService";
-import { getProducts } from "../services/productService";
+import { getAdminProducts, reviewProduct } from "../services/productService";
+import { getSellerShopForAdmin } from "../services/sellerService";
 
 const formatPrice = (value) => {
   if (value === null || value === undefined) return "-";
@@ -114,6 +121,12 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
+  const [reviewTarget, setReviewTarget] = useState(null);
+  const [reviewAction, setReviewAction] = useState("");
+  const [reviewNote, setReviewNote] = useState("");
+  const [reviewing, setReviewing] = useState(false);
+  const [shopDetail, setShopDetail] = useState(null);
+  const [shopLoading, setShopLoading] = useState(false);
 
   const allVisibleSelected =
     products.length > 0 && selectedIds.length === products.length;
@@ -125,7 +138,7 @@ export default function Products() {
     setErrorMessage("");
 
     try {
-      const data = await getProducts({
+      const data = await getAdminProducts({
         page,
         size: pageInfo.pageSize,
         ...filters,
@@ -184,6 +197,55 @@ export default function Products() {
 
   const toggleAllVisible = () => {
     setSelectedIds(allVisibleSelected ? [] : products.map((product) => product.id));
+  };
+
+  const openReview = (product, action) => {
+    setReviewTarget(product);
+    setReviewAction(action);
+    setReviewNote("");
+  };
+
+  const closeReview = () => {
+    if (!reviewing) setReviewTarget(null);
+  };
+
+  const submitReview = async () => {
+    if (!reviewTarget) return;
+    if (reviewAction === "REJECT" && !reviewNote.trim()) {
+      setErrorMessage("Nhập lý do từ chối để seller có thể chỉnh sửa sản phẩm.");
+      return;
+    }
+    setReviewing(true);
+    try {
+      await reviewProduct(reviewTarget.id, { action: reviewAction, note: reviewNote.trim() || null });
+      setReviewTarget(null);
+      await loadProducts(pageInfo.currentPage);
+    } catch (error) {
+      setErrorMessage(error.response?.data?.message || "Không thể duyệt sản phẩm.");
+    } finally {
+      setReviewing(false);
+    }
+  };
+
+  const openShopDetail = async (product) => {
+    if (!product.shopId) return;
+    setShopDetail({ loading: true });
+    setShopLoading(true);
+    try {
+      const shop = await getSellerShopForAdmin(product.shopId);
+      setShopDetail(shop);
+    } catch (error) {
+      const message = error.response?.data?.message || "Không thể tải thông tin shop.";
+      setShopDetail({ error: message });
+    } finally {
+      setShopLoading(false);
+    }
+  };
+
+  const closeShopDetail = () => {
+    if (!shopLoading) {
+      setShopDetail(null);
+    }
   };
 
   return (
@@ -245,7 +307,10 @@ export default function Products() {
                 onChange={handleFilterChange("status")}
               >
                 <MenuItem value="">All</MenuItem>
+                <MenuItem value="DRAFT">Draft</MenuItem>
+                <MenuItem value="PENDING_APPROVAL">Pending approval</MenuItem>
                 <MenuItem value="ACTIVE">Active</MenuItem>
+                <MenuItem value="REJECTED">Rejected</MenuItem>
                 <MenuItem value="INACTIVE">Inactive</MenuItem>
               </Select>
             </FormControl>
@@ -345,9 +410,10 @@ export default function Products() {
                     <TableCell>Sales</TableCell>
                     <TableCell>Revenue</TableCell>
                     <TableCell>Stock</TableCell>
+                    <TableCell>Availability</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Rating</TableCell>
-                    <TableCell align="center">+</TableCell>
+                    <TableCell align="center">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -387,9 +453,15 @@ export default function Products() {
                               )}
                             </Box>
                             <Box sx={{ minWidth: 0 }}>
-                              <Typography className="table-primary" noWrap>
+                              <Button
+                                variant="text"
+                                size="small"
+                                disabled={!product.shopId}
+                                onClick={() => openShopDetail(product)}
+                                sx={{ p: 0, minWidth: 0, fontWeight: 800, textTransform: "none", justifyContent: "flex-start" }}
+                              >
                                 {product.name}
-                              </Typography>
+                              </Button>
                               <Typography className="table-secondary" noWrap>
                                 {product.slug || product.description || "No description"}
                               </Typography>
@@ -424,6 +496,17 @@ export default function Products() {
                           />
                         </TableCell>
                         <TableCell>
+                          <Chip
+                            size="small"
+                            label={product.status || "UNKNOWN"}
+                            color={
+                              product.status === "ACTIVE" ? "success"
+                                : product.status === "PENDING_APPROVAL" ? "warning"
+                                  : product.status === "REJECTED" ? "error" : "default"
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>
                           <Stack direction="row" spacing={0.5} alignItems="center">
                             <StarRoundedIcon className="rating-star" />
                             <Typography className="table-primary">
@@ -431,7 +514,18 @@ export default function Products() {
                             </Typography>
                           </Stack>
                         </TableCell>
-                        <TableCell align="center">—</TableCell>
+                        <TableCell align="center">
+                          {product.status === "PENDING_APPROVAL" ? (
+                            <Stack direction="row" justifyContent="center" spacing={0.5}>
+                              <IconButton color="success" size="small" aria-label="Approve product" onClick={() => openReview(product, "APPROVE")}>
+                                <CheckCircleOutlineOutlinedIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton color="error" size="small" aria-label="Reject product" onClick={() => openReview(product, "REJECT")}>
+                                <DoNotDisturbOnOutlinedIcon fontSize="small" />
+                              </IconButton>
+                            </Stack>
+                          ) : "—"}
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -477,6 +571,49 @@ export default function Products() {
           </>
         )}
       </Paper>
+      <Dialog open={Boolean(reviewTarget)} onClose={closeReview} fullWidth maxWidth="sm">
+        <DialogTitle>{reviewAction === "REJECT" ? "Reject product" : "Approve product"}</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ mb: 2 }}>Product: <b>{reviewTarget?.name}</b></Typography>
+          <TextField
+            autoFocus
+            fullWidth
+            required={reviewAction === "REJECT"}
+            label={reviewAction === "REJECT" ? "Reason for rejection" : "Review note (optional)"}
+            multiline
+            minRows={3}
+            value={reviewNote}
+            onChange={(event) => setReviewNote(event.target.value)}
+            inputProps={{ maxLength: 1000 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeReview}>Cancel</Button>
+          <Button variant="contained" color={reviewAction === "REJECT" ? "error" : "success"} disabled={reviewing} onClick={submitReview}>
+            {reviewing ? "Saving..." : reviewAction === "REJECT" ? "Reject" : "Approve"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={Boolean(shopDetail)} onClose={closeShopDetail} fullWidth maxWidth="sm">
+        <DialogTitle>Thông tin shop</DialogTitle>
+        <DialogContent>
+          {shopLoading ? <Box sx={{ minHeight: 180, display: "grid", placeItems: "center" }}><CircularProgress /></Box> : shopDetail?.error ? <Alert severity="error">{shopDetail.error}</Alert> : <Stack spacing={2.25}>
+            <Box>
+              <Typography variant="overline" color="text.secondary">Tên shop</Typography>
+              <Typography variant="h6" fontWeight={900}>{shopDetail?.shopName}</Typography>
+              <Chip sx={{ mt: 0.75 }} size="small" label={shopDetail?.status} color={shopDetail?.status === "APPROVED" ? "success" : "warning"} />
+            </Box>
+            <Box><Typography variant="caption" color="text.secondary">Mô tả</Typography><Typography>{shopDetail?.description || "Chưa có mô tả"}</Typography></Box>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={3}>
+              <Box><Typography variant="caption" color="text.secondary">Điện thoại</Typography><Typography fontWeight={700}>{shopDetail?.phone || "—"}</Typography></Box>
+              <Box><Typography variant="caption" color="text.secondary">Thành phố</Typography><Typography fontWeight={700}>{shopDetail?.city || "—"}</Typography></Box>
+            </Stack>
+            <Box><Typography variant="caption" color="text.secondary">Địa chỉ</Typography><Typography fontWeight={700}>{shopDetail?.address || "—"}</Typography></Box>
+            {shopDetail?.reviewNote && <Alert severity="info">Phản hồi duyệt shop: {shopDetail.reviewNote}</Alert>}
+          </Stack>}
+        </DialogContent>
+        <DialogActions><Button onClick={closeShopDetail}>Đóng</Button></DialogActions>
+      </Dialog>
     </MainLayout>
   );
 }

@@ -26,6 +26,7 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, UU
     );
 
     Page<ProductReview> findByUserId(String userId, Pageable pageable);
+    Page<ProductReview> findBySellerId(String sellerId, Pageable pageable);
 
     @Query("""
             select coalesce(avg(review.rating), 0) as averageRating,

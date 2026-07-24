@@ -77,3 +77,9 @@ export const hasAnyRole = (...roles) => {
   const currentRoles = getCurrentUserRoles();
   return roles.some((role) => currentRoles.includes(role));
 };
+
+export const getRoleHomePath = () => {
+  if (hasAnyRole("ROLE_ADMIN", "ADMIN", "ROLE_SUPER_ADMIN", "SUPER_ADMIN")) return "/admin";
+  if (hasAnyRole("ROLE_SELLER", "SELLER")) return "/seller";
+  return "/shop";
+};

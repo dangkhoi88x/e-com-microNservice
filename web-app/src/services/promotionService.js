@@ -70,3 +70,8 @@ export const subscribeFlashDealNotification = async (flashDealId) => { await htt
 export const createFlashDeal = async (payload) => (await httpClient.post(API.FLASH_DEALS, payload)).data?.data;
 export const updateFlashDeal = async (id, payload) => (await httpClient.put(`${API.FLASH_DEALS}/${id}`, payload)).data?.data;
 export const deleteFlashDeal = async (id) => { await httpClient.delete(`${API.FLASH_DEALS}/${id}`); };
+export const getSellerFlashDeals = async () => (await httpClient.get(`${API.FLASH_DEALS}/seller`)).data?.data || [];
+export const getSellerFlashDealDetail = async (id) => (await httpClient.get(`${API.FLASH_DEALS}/seller/${id}/detail`)).data?.data;
+export const createSellerFlashDeal = async (payload) => (await httpClient.post(`${API.FLASH_DEALS}/seller`, payload)).data?.data;
+export const updateSellerFlashDeal = async (id, payload) => (await httpClient.put(`${API.FLASH_DEALS}/seller/${id}`, payload)).data?.data;
+export const deleteSellerFlashDeal = async (id) => { await httpClient.delete(`${API.FLASH_DEALS}/seller/${id}`); };

@@ -34,6 +34,20 @@ export const getProducts = async (params = {}) => {
   };
 };
 
+export const getAdminProducts = async (params = {}) => {
+  const response = await httpClient.get(API.ADMIN_PRODUCTS, {
+    params: removeEmptyParams(params),
+  });
+  return response.data?.data || {
+    content: [], currentPage: 1, pageSize: params.size || 10, totalPages: 0, totalElements: 0,
+  };
+};
+
+export const reviewProduct = async (id, payload) => {
+  const response = await httpClient.put(`${API.ADMIN_PRODUCTS}/${id}/review`, payload);
+  return response.data?.data;
+};
+
 export const createProduct = async (payload) => {
   const response = await httpClient.post(API.PRODUCTS, payload);
   return response.data?.data;
@@ -51,6 +65,16 @@ export const createSellerProduct = async (payload) => {
 
 export const submitSellerProduct = async (id) => {
   const response = await httpClient.post(`${API.SELLER_PRODUCTS}/${id}/submit`);
+  return response.data?.data;
+};
+
+export const updateSellerProductQuantity = async (id, quantity) => {
+  const response = await httpClient.patch(`${API.SELLER_PRODUCTS}/${id}/quantity`, { quantity });
+  return response.data?.data;
+};
+
+export const updateSellerProductStatus = async (id, status) => {
+  const response = await httpClient.patch(`${API.SELLER_PRODUCTS}/${id}/status`, { status });
   return response.data?.data;
 };
 
