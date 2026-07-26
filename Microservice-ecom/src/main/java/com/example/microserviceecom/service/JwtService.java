@@ -4,6 +4,7 @@ import com.example.microserviceecom.common.TokenType;
 import com.example.microserviceecom.dto.TokenPayload;
 import com.example.microserviceecom.exception.AuthenticationException;
 import com.example.microserviceecom.exception.ErrorCode;
+import com.example.microserviceecom.repository.UserRepository;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JOSEException;
@@ -32,8 +33,9 @@ public class JwtService {
     private String secretKey;
 
     private final TokenService tokenService;
+    private final UserRepository userRepository;
 
-    public String generateAccessToken(String userId, List<String> roles) {
+    public String generateAccessToken(String userId, List<String> roles, int authVersion) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
         Date now = new Date();
         Date expirationTime = Date.from(now.toInstant().plus(15, ChronoUnit.MINUTES));
@@ -44,6 +46,7 @@ public class JwtService {
                 .expirationTime(expirationTime)
                 .issuer("http://localhost:8090")
                 .claim("roles", roles)
+                .claim("ver", authVersion)
                 .claim("typ", TokenType.ACCESS.name())
                 .jwtID(UUID.randomUUID().toString())
                 .build();
@@ -95,6 +98,18 @@ public class JwtService {
 
         String jti = signedJWT.getJWTClaimsSet().getJWTID();
         if (tokenService.findByJti(jti) != null) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+        }
+
+        String userId = signedJWT.getJWTClaimsSet().getSubject();
+        Integer tokenVersion = signedJWT.getJWTClaimsSet().getIntegerClaim("ver");
+        if (tokenVersion == null) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+        }
+        boolean currentVersion = userRepository.findById(userId)
+                .map(user -> user.getAuthVersion() != null && user.getAuthVersion() == tokenVersion)
+                .orElse(false);
+        if (!currentVersion) {
             throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
         }
 

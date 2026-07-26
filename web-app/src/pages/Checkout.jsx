@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { getActiveProductSales, getClaimedPromotions, previewPromotion } from "../services/promotionService";
 import { checkoutOrder } from "../services/orderService";
-import { createPayment } from "../services/paymentService";
+import { createPayment, createStripeCheckout } from "../services/paymentService";
 import { isAuthenticated } from "../services/authenticationService";
 import { getMyCart, removeCartItem, updateCartItem } from "../services/cartService";
 import "./Checkout.css";
@@ -29,6 +29,7 @@ const money = (value) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(value || 0);
 
 const paymentMethods = [
+  { value: "STRIPE", title: "Stripe", description: "Thanh toán quốc tế an toàn bằng thẻ", icon: CreditCard, mark: "S" },
   { value: "VNPAY", title: "VNPay", description: "Thanh toán an toàn qua VNPay", icon: CreditCard, mark: "V" },
   { value: "MOMO", title: "Ví MoMo", description: "Mở ứng dụng MoMo để xác nhận", icon: WalletCards, mark: "M" },
   { value: "BANK_TRANSFER", title: "Chuyển khoản ngân hàng", description: "Xác nhận thanh toán nhanh chóng", icon: BadgeCheck, mark: "BK" },
@@ -42,7 +43,7 @@ function CheckoutQuantityEditor({ cart, onChange, priceOf }) {
 export default function Checkout() {
   const navigate = useNavigate();
   const [cart, setCart] = useState([]);
-  const [method, setMethod] = useState("VNPAY");
+  const [method, setMethod] = useState("STRIPE");
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
   const [promotionCalculation, setPromotionCalculation] = useState(null);
@@ -133,7 +134,18 @@ export default function Checkout() {
           : "Đơn hàng chưa sẵn sàng để thanh toán. Vui lòng thử lại sau.");
       }
       const payment = await createPayment({ orderId: order.id, method });
-      navigate(`/payments?paymentId=${payment?.id || ""}`, { state: { order, payment, method } });
+      if (method === "STRIPE") {
+        const stripeCheckout = await createStripeCheckout(payment.id);
+        if (!stripeCheckout?.checkoutUrl) {
+          throw new Error("Stripe không trả về đường dẫn thanh toán.");
+        }
+        window.location.assign(stripeCheckout.checkoutUrl);
+        return;
+      }
+
+      navigate(`/shop/payment-result?status=pending&paymentId=${payment?.id || ""}`, {
+        state: { order, payment, method },
+      });
     } catch (error) {
       setNotice(error.response?.data?.message || error.response?.data?.error || error.message || "Không thể khởi tạo thanh toán. Vui lòng thử lại sau.");
     } finally {

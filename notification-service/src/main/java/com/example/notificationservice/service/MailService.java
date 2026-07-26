@@ -48,4 +48,25 @@ public class MailService {
         }
     }
 
+    @Async
+    public void sendPasswordResetOtp(String to, String otp, long expiresInMinutes) {
+        MimeMessage message = mailSender.createMimeMessage();
+        try {
+            Context context = new Context();
+            context.setVariable("otp", otp);
+            context.setVariable("expiresInMinutes", expiresInMinutes);
+            String htmlContent = springTemplateEngine.process("password-reset-otp", context);
+
+            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+            helper.setFrom(from, "NovaShop");
+            helper.setTo(to);
+            helper.setSubject("Mã xác nhận đặt lại mật khẩu NovaShop");
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Password reset email sent successfully");
+        } catch (MessagingException | UnsupportedEncodingException exception) {
+            log.error("Could not send password reset email", exception);
+        }
+    }
+
 }

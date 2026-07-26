@@ -14,6 +14,20 @@ export const createPayment = async (request) => {
   return response.data?.data;
 };
 
+export const createStripeCheckout = async (paymentId) => {
+  const response = await httpClient.post(
+    `${API.PAYMENTS}/${paymentId}/stripe-checkout`,
+  );
+  return response.data?.data;
+};
+
+export const reconcileStripePayment = async (paymentId) => {
+  const response = await httpClient.post(
+    `${API.PAYMENTS}/${paymentId}/stripe-reconcile`,
+  );
+  return response.data?.data;
+};
+
 export const getMyPayments = async (params = {}) => {
   const response = await httpClient.get(`${API.PAYMENTS}/my-payments`, {
     params,

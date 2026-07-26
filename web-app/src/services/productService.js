@@ -58,8 +58,18 @@ export const getMySellerProducts = async (params = {}) => {
   return response.data?.data || { content: [], currentPage: 1, totalPages: 0, totalElements: 0 };
 };
 
+export const getSellerProductById = async (id) => {
+  const response = await httpClient.get(`${API.SELLER_PRODUCTS}/${id}`);
+  return response.data?.data;
+};
+
 export const createSellerProduct = async (payload) => {
   const response = await httpClient.post(API.SELLER_PRODUCTS, payload);
+  return response.data?.data;
+};
+
+export const updateSellerProduct = async (id, payload) => {
+  const response = await httpClient.put(`${API.SELLER_PRODUCTS}/${id}`, payload);
   return response.data?.data;
 };
 

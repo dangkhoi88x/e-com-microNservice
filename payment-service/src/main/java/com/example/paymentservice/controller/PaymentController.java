@@ -4,10 +4,12 @@ import com.example.paymentservice.dto.request.CreatePaymentRequest;
 import com.example.paymentservice.dto.response.ApiResponse;
 import com.example.paymentservice.dto.response.PageResponse;
 import com.example.paymentservice.dto.response.PaymentResponse;
+import com.example.paymentservice.dto.response.StripeCheckoutResponse;
 import com.example.paymentservice.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -82,6 +84,43 @@ public class PaymentController {
                 .message("Payment retrieved successfully")
                 .data(data)
                 .build();
+    }
+
+    @PostMapping("/{id}/stripe-checkout")
+    public ApiResponse<StripeCheckoutResponse> createStripeCheckout(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String id
+    ) {
+        StripeCheckoutResponse data = paymentService.createStripeCheckout(jwt.getSubject(), id);
+
+        return ApiResponse.<StripeCheckoutResponse>builder()
+                .status(HttpStatus.CREATED.value())
+                .message("Stripe checkout session created successfully")
+                .data(data)
+                .build();
+    }
+
+    @PostMapping("/{id}/stripe-reconcile")
+    public ApiResponse<PaymentResponse> reconcileStripePayment(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String id
+    ) {
+        PaymentResponse data = paymentService.reconcileStripePayment(jwt.getSubject(), id);
+
+        return ApiResponse.<PaymentResponse>builder()
+                .status(HttpStatus.OK.value())
+                .message("Stripe payment reconciled successfully")
+                .data(data)
+                .build();
+    }
+
+    @PostMapping("/stripe/webhook")
+    public ResponseEntity<Void> handleStripeWebhook(
+            @RequestHeader("Stripe-Signature") String signature,
+            @RequestBody String payload
+    ) {
+        paymentService.handleStripeWebhook(payload, signature);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}/success")

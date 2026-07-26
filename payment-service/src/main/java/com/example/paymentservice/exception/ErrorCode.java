@@ -25,7 +25,13 @@ public enum ErrorCode {
     PAYMENT_CANNOT_BE_FAILED(400, "Payment cannot be failed", HttpStatus.BAD_REQUEST),
     PAYMENT_CANNOT_BE_CANCELLED(400, "Payment cannot be cancelled", HttpStatus.BAD_REQUEST),
     INVALID_PAYMENT_STATUS(400, "Invalid payment status", HttpStatus.BAD_REQUEST),
-    INVALID_PAYMENT_METHOD(400, "Invalid payment method", HttpStatus.BAD_REQUEST);
+    INVALID_PAYMENT_METHOD(400, "Invalid payment method", HttpStatus.BAD_REQUEST),
+    PAYMENT_NOT_STRIPE(400, "This payment does not use Stripe", HttpStatus.BAD_REQUEST),
+    STRIPE_REQUIRES_WEBHOOK(400, "Stripe payments can only be completed by a verified webhook", HttpStatus.BAD_REQUEST),
+
+    STRIPE_NOT_CONFIGURED(503, "Stripe is not configured", HttpStatus.SERVICE_UNAVAILABLE),
+    STRIPE_CHECKOUT_FAILED(502, "Could not create Stripe checkout session", HttpStatus.BAD_GATEWAY),
+    INVALID_STRIPE_WEBHOOK(400, "Invalid Stripe webhook", HttpStatus.BAD_REQUEST);
 
     private final int code;
     private final String message;

@@ -7,16 +7,26 @@ import com.example.event.PaymentSuccessEvent;
 import com.example.paymentservice.common.PaymentMethod;
 import com.example.paymentservice.client.OrderClient;
 import com.example.paymentservice.common.PaymentStatus;
+import com.example.paymentservice.configuration.StripeProperties;
 import com.example.paymentservice.dto.request.CreatePaymentRequest;
 import com.example.paymentservice.dto.response.OrderResponse;
 import com.example.paymentservice.dto.response.PageResponse;
 import com.example.paymentservice.dto.response.PaymentResponse;
+import com.example.paymentservice.dto.response.StripeCheckoutResponse;
 import com.example.paymentservice.entity.Payment;
 import com.example.paymentservice.exception.ErrorCode;
 import com.example.paymentservice.exception.PaymentServiceException;
 import com.example.paymentservice.mapper.PaymentMapper;
 import com.example.paymentservice.repository.PaymentRepository;
 import com.example.paymentservice.service.PaymentService;
+import com.stripe.exception.SignatureVerificationException;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Event;
+import com.stripe.model.StripeObject;
+import com.stripe.model.checkout.Session;
+import com.stripe.net.RequestOptions;
+import com.stripe.net.Webhook;
+import com.stripe.param.checkout.SessionCreateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,7 +38,10 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -46,6 +59,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderClient orderClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final StripeProperties stripeProperties;
 
     @Override
     @Transactional
@@ -137,6 +151,10 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse markPaymentSuccess(String userId, String token, String paymentId) {
         Payment payment = getPaymentForAdmin(paymentId);
 
+        if (payment.getMethod() == PaymentMethod.STRIPE) {
+            throw new PaymentServiceException(ErrorCode.STRIPE_REQUIRES_WEBHOOK);
+        }
+
         if (payment.getStatus() == PaymentStatus.SUCCESS) {
             throw new PaymentServiceException(ErrorCode.PAYMENT_ALREADY_SUCCESS);
         }
@@ -203,6 +221,231 @@ public class PaymentServiceImpl implements PaymentService {
         return PaymentMapper.toResponse(savedPayment);
     }
 
+    @Override
+    @Transactional
+    public StripeCheckoutResponse createStripeCheckout(String userId, String paymentId) {
+        validateStripeConfiguration(false);
+
+        Payment payment = paymentRepository.findByIdAndUserIdForUpdate(paymentId, userId)
+                .orElseThrow(() -> new PaymentServiceException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        if (payment.getMethod() != PaymentMethod.STRIPE) {
+            throw new PaymentServiceException(ErrorCode.PAYMENT_NOT_STRIPE);
+        }
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            throw new PaymentServiceException(ErrorCode.PAYMENT_CANNOT_BE_COMPLETED);
+        }
+
+        if (StringUtils.hasText(payment.getStripeCheckoutUrl())
+                && payment.getStripeCheckoutExpiresAt() != null
+                && payment.getStripeCheckoutExpiresAt().isAfter(Instant.now().plusSeconds(30))) {
+            return toStripeCheckoutResponse(payment);
+        }
+
+        long stripeAmount = toStripeMinorUnit(payment.getAmount());
+        String successUrl = stripeProperties.successUrl()
+                .replace("{PAYMENT_ID}", payment.getId());
+        String cancelUrl = stripeProperties.cancelUrl()
+                .replace("{PAYMENT_ID}", payment.getId());
+
+        SessionCreateParams params = SessionCreateParams.builder()
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setClientReferenceId(payment.getId())
+                .setSuccessUrl(successUrl)
+                .setCancelUrl(cancelUrl)
+                .putMetadata("paymentId", payment.getId())
+                .putMetadata("orderId", payment.getOrderId())
+                .putMetadata("transactionCode", payment.getTransactionCode())
+                .setPaymentIntentData(
+                        SessionCreateParams.PaymentIntentData.builder()
+                                .putMetadata("paymentId", payment.getId())
+                                .putMetadata("orderId", payment.getOrderId())
+                                .putMetadata("transactionCode", payment.getTransactionCode())
+                                .build()
+                )
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency(stripeProperties.currency().toLowerCase())
+                                                .setUnitAmount(stripeAmount)
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName("NovaShop order " + payment.getTransactionCode())
+                                                                .build()
+                                                )
+                                                .build()
+                                )
+                                .build()
+                )
+                .build();
+
+        try {
+            RequestOptions requestOptions = RequestOptions.builder()
+                    .setApiKey(stripeProperties.secretKey())
+                    .build();
+            Session session = Session.create(params, requestOptions);
+
+            payment.setStripeCheckoutSessionId(session.getId());
+            payment.setStripeCheckoutUrl(session.getUrl());
+            payment.setStripeCheckoutExpiresAt(
+                    session.getExpiresAt() == null ? Instant.now().plusSeconds(1800) : Instant.ofEpochSecond(session.getExpiresAt())
+            );
+            Payment savedPayment = paymentRepository.save(payment);
+
+            log.info("Stripe Checkout Session created: paymentId={}, orderId={}, sessionId={}",
+                    savedPayment.getId(), savedPayment.getOrderId(), savedPayment.getStripeCheckoutSessionId());
+            return toStripeCheckoutResponse(savedPayment);
+        } catch (StripeException exception) {
+            log.error("Stripe Checkout Session creation failed: paymentId={}, orderId={}",
+                    payment.getId(), payment.getOrderId(), exception);
+            throw new PaymentServiceException(ErrorCode.STRIPE_CHECKOUT_FAILED);
+        }
+    }
+
+    @Override
+    @Transactional
+    public PaymentResponse reconcileStripePayment(String userId, String paymentId) {
+        validateStripeConfiguration(false);
+
+        Payment payment = paymentRepository.findByIdAndUserIdForUpdate(paymentId, userId)
+                .orElseThrow(() -> new PaymentServiceException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        return reconcileStripePayment(payment);
+    }
+
+    private PaymentResponse reconcileStripePayment(Payment payment) {
+
+        if (payment.getMethod() != PaymentMethod.STRIPE) {
+            throw new PaymentServiceException(ErrorCode.PAYMENT_NOT_STRIPE);
+        }
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            return PaymentMapper.toResponse(payment);
+        }
+        if (!StringUtils.hasText(payment.getStripeCheckoutSessionId())) {
+            throw new PaymentServiceException(ErrorCode.PAYMENT_CANNOT_BE_COMPLETED);
+        }
+
+        try {
+            RequestOptions requestOptions = RequestOptions.builder()
+                    .setApiKey(stripeProperties.secretKey())
+                    .build();
+            Session session = Session.retrieve(payment.getStripeCheckoutSessionId(), requestOptions);
+
+            log.info("Stripe reconciliation lookup: paymentId={}, sessionId={}, status={}, paymentStatus={}",
+                    payment.getId(), session.getId(), session.getStatus(), session.getPaymentStatus());
+
+            if (!"paid".equalsIgnoreCase(session.getPaymentStatus())) {
+                return PaymentMapper.toResponse(payment);
+            }
+
+            Payment savedPayment = completeStripePayment(payment, session, null);
+            log.info("Reconciled paid Stripe Checkout Session: paymentId={}, orderId={}, sessionId={}",
+                    savedPayment.getId(), savedPayment.getOrderId(), session.getId());
+            return PaymentMapper.toResponse(savedPayment);
+        } catch (PaymentServiceException exception) {
+            log.warn("Stripe reconciliation rejected: paymentId={}, orderId={}, reason={}",
+                    payment.getId(), payment.getOrderId(), exception.getErrorCode().name());
+            throw exception;
+        } catch (StripeException exception) {
+            log.error("Stripe reconciliation failed: paymentId={}, orderId={}", payment.getId(), payment.getOrderId(), exception);
+            throw new PaymentServiceException(ErrorCode.STRIPE_CHECKOUT_FAILED);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void handleStripeWebhook(String payload, String signature) {
+        validateStripeConfiguration(true);
+
+        Event event;
+        try {
+            event = Webhook.constructEvent(payload, signature, stripeProperties.webhookSecret());
+        } catch (SignatureVerificationException | RuntimeException exception) {
+            log.warn("Rejected Stripe webhook with invalid payload or signature");
+            throw new PaymentServiceException(ErrorCode.INVALID_STRIPE_WEBHOOK);
+        }
+
+        if (!isSupportedStripeCheckoutEvent(event.getType())) {
+            log.debug("Ignoring Stripe event: id={}, type={}", event.getId(), event.getType());
+            return;
+        }
+
+        StripeObject stripeObject = deserializeStripeEventObject(event);
+        if (!(stripeObject instanceof Session session)) {
+            log.warn("Stripe event does not contain a Checkout Session: id={}, type={}", event.getId(), event.getType());
+            throw new PaymentServiceException(ErrorCode.INVALID_STRIPE_WEBHOOK);
+        }
+
+        if (isStripePaymentCompletedEvent(event.getType())
+                && !"paid".equalsIgnoreCase(session.getPaymentStatus())) {
+            log.info("Stripe Checkout Session is not paid yet: eventId={}, sessionId={}, paymentStatus={}",
+                    event.getId(), session.getId(), session.getPaymentStatus());
+            return;
+        }
+
+        Payment payment = paymentRepository.findByStripeCheckoutSessionIdForUpdate(session.getId())
+                .orElse(null);
+        if (payment == null) {
+            log.warn("Ignoring Stripe event for unknown Checkout Session: eventId={}, sessionId={}",
+                    event.getId(), session.getId());
+            return;
+        }
+
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            log.info("Stripe event already applied: eventId={}, paymentId={}", event.getId(), payment.getId());
+            return;
+        }
+        if (payment.getMethod() != PaymentMethod.STRIPE) {
+            log.warn("Ignoring Stripe event for a non-Stripe payment: eventId={}, paymentId={}, method={}",
+                    event.getId(), payment.getId(), payment.getMethod());
+            return;
+        }
+
+        if (isStripeCheckoutExpiredEvent(event.getType())) {
+            payment.setStatus(PaymentStatus.CANCELLED);
+            payment.setFailureReason("Stripe Checkout Session expired");
+            payment.setStripeEventId(event.getId());
+            Payment savedPayment = paymentRepository.save(payment);
+            publishPaymentCancelledEvent(savedPayment);
+            log.info("Expired Stripe Checkout Session cancelled payment: eventId={}, paymentId={}, orderId={}",
+                    event.getId(), savedPayment.getId(), savedPayment.getOrderId());
+            return;
+        }
+
+        if (isStripeAsyncPaymentFailedEvent(event.getType())) {
+            payment.setStatus(PaymentStatus.FAILED);
+            payment.setFailureReason("Stripe asynchronous payment failed");
+            payment.setStripeEventId(event.getId());
+            Payment savedPayment = paymentRepository.save(payment);
+            publishPaymentFailedEvent(savedPayment);
+            log.info("Stripe asynchronous payment failed: eventId={}, paymentId={}, orderId={}",
+                    event.getId(), savedPayment.getId(), savedPayment.getOrderId());
+            return;
+        }
+
+        Payment savedPayment = completeStripePayment(payment, session, event.getId());
+        log.info("Stripe payment completed: eventId={}, paymentId={}, orderId={}",
+                event.getId(), savedPayment.getId(), savedPayment.getOrderId());
+    }
+
+    private Payment completeStripePayment(Payment payment, Session session, String stripeEventId) {
+        validateStripeCheckoutResult(payment, session);
+        OrderResponse order = orderClient.getOrderDetailForPaymentWebhook(payment.getOrderId());
+        validateOrderCompletable(payment, order);
+
+        payment.setStatus(PaymentStatus.SUCCESS);
+        payment.setFailureReason(null);
+        payment.setStripePaymentIntentId(session.getPaymentIntent());
+        payment.setStripeEventId(stripeEventId);
+        payment.setPaidAt(Instant.now());
+
+        Payment savedPayment = paymentRepository.save(payment);
+        publishPaymentSuccessEvent(savedPayment);
+        return savedPayment;
+    }
+
     private Payment getPaymentForUser(String userId, String paymentId) {
         return paymentRepository.findByIdAndUserId(paymentId, userId)
                 .orElseThrow(() -> new PaymentServiceException(ErrorCode.PAYMENT_NOT_FOUND));
@@ -211,6 +454,95 @@ public class PaymentServiceImpl implements PaymentService {
     private Payment getPaymentForAdmin(String paymentId) {
         return paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new PaymentServiceException(ErrorCode.PAYMENT_NOT_FOUND));
+    }
+
+    private void validateStripeConfiguration(boolean webhookRequired) {
+        boolean missingSecretKey = !webhookRequired && !StringUtils.hasText(stripeProperties.secretKey());
+        boolean missingWebhookSecret = webhookRequired && !StringUtils.hasText(stripeProperties.webhookSecret());
+        if (missingSecretKey || missingWebhookSecret) {
+            throw new PaymentServiceException(ErrorCode.STRIPE_NOT_CONFIGURED);
+        }
+    }
+
+    private StripeObject deserializeStripeEventObject(Event event) {
+        try {
+            var deserializer = event.getDataObjectDeserializer();
+            var stripeObject = deserializer.getObject();
+            if (stripeObject.isPresent()) {
+                return stripeObject.get();
+            }
+
+            // Stripe can deliver an event using the API version pinned on the
+            // webhook endpoint. We only consume stable Checkout Session fields
+            // and validate all identifiers, amount and currency afterwards.
+            log.warn("Stripe event API version differs from SDK; using guarded deserialization: eventId={}, type={}",
+                    event.getId(), event.getType());
+            return deserializer.deserializeUnsafe();
+        } catch (Exception exception) {
+            log.warn("Could not deserialize Stripe event: eventId={}, type={}", event.getId(), event.getType());
+            throw new PaymentServiceException(ErrorCode.INVALID_STRIPE_WEBHOOK);
+        }
+    }
+
+    private long toStripeMinorUnit(BigDecimal amount) {
+        if (amount == null || amount.signum() <= 0) {
+            throw new PaymentServiceException(ErrorCode.STRIPE_CHECKOUT_FAILED);
+        }
+
+        try {
+            // VND is a zero-decimal Stripe currency, therefore the backend
+            // order total is sent directly without multiplying by 100.
+            return amount.setScale(0, RoundingMode.UNNECESSARY).longValueExact();
+        } catch (ArithmeticException exception) {
+            throw new PaymentServiceException(ErrorCode.STRIPE_CHECKOUT_FAILED);
+        }
+    }
+
+    private StripeCheckoutResponse toStripeCheckoutResponse(Payment payment) {
+        return new StripeCheckoutResponse(
+                payment.getId(),
+                payment.getStripeCheckoutSessionId(),
+                payment.getStripeCheckoutUrl(),
+                payment.getStripeCheckoutExpiresAt()
+        );
+    }
+
+    private boolean isStripePaymentCompletedEvent(String eventType) {
+        return "checkout.session.completed".equals(eventType)
+                || "checkout.session.async_payment_succeeded".equals(eventType);
+    }
+
+    private boolean isStripeCheckoutExpiredEvent(String eventType) {
+        return "checkout.session.expired".equals(eventType);
+    }
+
+    private boolean isStripeAsyncPaymentFailedEvent(String eventType) {
+        return "checkout.session.async_payment_failed".equals(eventType);
+    }
+
+    private boolean isSupportedStripeCheckoutEvent(String eventType) {
+        return isStripePaymentCompletedEvent(eventType)
+                || isStripeCheckoutExpiredEvent(eventType)
+                || isStripeAsyncPaymentFailedEvent(eventType);
+    }
+
+    private void validateStripeCheckoutResult(Payment payment, Session session) {
+        String metadataPaymentId = session.getMetadata() == null ? null : session.getMetadata().get("paymentId");
+        String metadataOrderId = session.getMetadata() == null ? null : session.getMetadata().get("orderId");
+        Long amountTotal = session.getAmountTotal();
+        String currency = session.getCurrency();
+
+        boolean paid = "paid".equalsIgnoreCase(session.getPaymentStatus());
+        boolean paymentMatches = payment.getId().equals(metadataPaymentId);
+        boolean orderMatches = payment.getOrderId().equals(metadataOrderId);
+        boolean amountMatches = amountTotal != null && amountTotal == toStripeMinorUnit(payment.getAmount());
+        boolean currencyMatches = currency != null && currency.equalsIgnoreCase(stripeProperties.currency());
+
+        if (!paid || !paymentMatches || !orderMatches || !amountMatches || !currencyMatches) {
+            log.error("Stripe webhook validation failed: paymentId={}, sessionId={}, paid={}, paymentMatches={}, orderMatches={}, amountMatches={}, currencyMatches={}",
+                    payment.getId(), session.getId(), paid, paymentMatches, orderMatches, amountMatches, currencyMatches);
+            throw new PaymentServiceException(ErrorCode.INVALID_STRIPE_WEBHOOK);
+        }
     }
 
     private void validateOrderPayable(String userId, OrderResponse order) {

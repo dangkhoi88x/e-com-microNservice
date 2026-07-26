@@ -9,7 +9,6 @@ import {
   Paper,
   Select,
   Stack,
-  Switch,
   TextField,
   Typography,
 } from "@mui/material";
@@ -17,14 +16,18 @@ import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
+import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
+import ArrowUpwardOutlinedIcon from "@mui/icons-material/ArrowUpwardOutlined";
+import ArrowDownwardOutlinedIcon from "@mui/icons-material/ArrowDownwardOutlined";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import { getCategories } from "../services/categoryService";
 import { createSellerProduct } from "../services/productService";
+import { deleteMedia, uploadProductImage } from "../services/mediaService";
 import { ProductOptionsEditor, VariantAttributeFields } from "../components/products/ProductOptionsEditor";
-import { toOptionsPayload } from "../components/products/productOptionUtils";
+import { resolveOptionImageUrls, toOptionsPayload } from "../components/products/productOptionUtils";
 
 const initialForm = {
   categoryId: "",
@@ -33,9 +36,7 @@ const initialForm = {
   price: "",
   quantity: "",
   status: "ACTIVE",
-  imageUrl: "",
-  isPrimary: true,
-  displayOrder: 1,
+  imageFiles: [],
   options: [],
   variants: [],
 };
@@ -46,8 +47,14 @@ const emptyVariant = {
   price: "",
   quantity: "",
   imageUrl: "",
+  imageFile: null,
+  imagePreviewUrl: "",
   status: "ACTIVE",
 };
+
+const MAX_PRODUCT_IMAGES = 8;
+const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 const toVariantPayload = (variant) => ({
   sku: variant.sku.trim() || null,
@@ -114,36 +121,102 @@ export default function ProductCreate() {
     }));
   };
 
+  const selectVariantImage = (index) => (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!ALLOWED_IMAGE_TYPES.has(file.type) || file.size > MAX_IMAGE_BYTES) {
+      setErrorMessage("Ảnh variant phải là JPEG, PNG hoặc WebP và không quá 6 MB.");
+      return;
+    }
+    setForm((current) => ({
+      ...current,
+      variants: current.variants.map((variant, itemIndex) => {
+        if (itemIndex !== index) return variant;
+        if (variant.imagePreviewUrl) URL.revokeObjectURL(variant.imagePreviewUrl);
+        return { ...variant, imageFile: file, imagePreviewUrl: URL.createObjectURL(file), imageUrl: "" };
+      }),
+    }));
+  };
+
+  const handleImageSelection = (event) => {
+    const selected = Array.from(event.target.files || []);
+    const validFiles = selected.filter((file) => ALLOWED_IMAGE_TYPES.has(file.type) && file.size <= MAX_IMAGE_BYTES);
+    if (validFiles.length !== selected.length) {
+      setErrorMessage("Chỉ chọn JPEG, PNG hoặc WebP, mỗi ảnh tối đa 6 MB.");
+    }
+    setForm((current) => {
+      const remaining = MAX_PRODUCT_IMAGES - current.imageFiles.length;
+      if (validFiles.length > remaining) setErrorMessage(`Tối đa ${MAX_PRODUCT_IMAGES} ảnh cho một sản phẩm.`);
+      return {
+        ...current,
+        imageFiles: [...current.imageFiles, ...validFiles.slice(0, Math.max(0, remaining)).map((file) => ({
+          id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
+          file,
+          previewUrl: URL.createObjectURL(file),
+        }))],
+      };
+    });
+    event.target.value = "";
+  };
+
+  const removeImage = (id) => setForm((current) => {
+    const item = current.imageFiles.find((image) => image.id === id);
+    if (item) URL.revokeObjectURL(item.previewUrl);
+    return { ...current, imageFiles: current.imageFiles.filter((image) => image.id !== id) };
+  });
+
+  const moveImage = (index, direction) => setForm((current) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= current.imageFiles.length) return current;
+    const imageFiles = [...current.imageFiles];
+    [imageFiles[index], imageFiles[targetIndex]] = [imageFiles[targetIndex], imageFiles[index]];
+    return { ...current, imageFiles };
+  });
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setSubmitting(true);
     setErrorMessage("");
 
-    const images = form.imageUrl.trim()
-      ? [
-          {
-            url: form.imageUrl.trim(),
-            isPrimary: form.isPrimary,
-            displayOrder: Number(form.displayOrder) || 1,
-          },
-        ]
-      : [];
-
-    const payload = {
-      categoryId: form.categoryId,
-      name: form.name.trim(),
-      description: form.description.trim(),
-      price: Number(form.price),
-      quantity: Number(form.quantity),
-      images,
-      options: toOptionsPayload(form.options),
-      variants: form.variants.map(toVariantPayload),
-    };
+    const uploadedMedia = [];
 
     try {
+      const images = [];
+      for (const image of form.imageFiles) {
+        const media = await uploadProductImage(image.file);
+        uploadedMedia.push(media);
+        images.push(media);
+      }
+      const variants = [];
+      for (const variant of form.variants) {
+        let imageUrl = variant.imageUrl;
+        if (variant.imageFile) {
+          const media = await uploadProductImage(variant.imageFile);
+          uploadedMedia.push(media);
+          imageUrl = media.contentUrl;
+        }
+        variants.push(toVariantPayload({ ...variant, imageUrl }));
+      }
+      const options = await resolveOptionImageUrls(form.options, uploadProductImage, (media) => uploadedMedia.push(media));
+      const payload = {
+        categoryId: form.categoryId,
+        name: form.name.trim(),
+        description: form.description.trim(),
+        price: Number(form.price),
+        quantity: Number(form.quantity),
+        images: images.map((media, index) => ({
+          url: media.contentUrl,
+          isPrimary: index === 0,
+          displayOrder: index + 1,
+        })),
+        options: toOptionsPayload(options),
+        variants,
+      };
       await createSellerProduct(payload);
       navigate("/seller/products");
     } catch (error) {
+      uploadedMedia.forEach((media) => deleteMedia(media.id).catch(() => {}));
       setErrorMessage(
         error.response?.data?.message || "Could not create product.",
       );
@@ -182,7 +255,7 @@ export default function ProductCreate() {
 
         <Box component="form" onSubmit={handleSubmit}>
           <Stack spacing={3}>
-            <ProductOptionsEditor options={form.options} onChange={(options) => setForm((current) => ({ ...current, options }))} />
+            <ProductOptionsEditor options={form.options} onChange={(options) => setForm((current) => ({ ...current, options }))} onError={setErrorMessage} />
 
             <Box>
               <Typography className="form-section-kicker">Basic information</Typography>
@@ -249,36 +322,21 @@ export default function ProductCreate() {
             <Box>
               <Typography className="form-section-kicker">Product image</Typography>
               <Stack spacing={2}>
-              <TextField
-                label="Image URL"
-                value={form.imageUrl}
-                onChange={setField("imageUrl")}
-                fullWidth
-              />
-              <TextField
-                label="Order"
-                type="number"
-                value={form.displayOrder}
-                onChange={setField("displayOrder")}
-                fullWidth
-                inputProps={{ min: 1 }}
-              />
-              <Stack
-                direction="row"
-                alignItems="center"
-                spacing={1}
-                className="primary-switch-row"
-              >
-                <Switch
-                  checked={form.isPrimary}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      isPrimary: event.target.checked,
-                    }))
-                  }
-                />
-                <Typography fontWeight={700}>Primary</Typography>
+              <Button component="label" variant="outlined" startIcon={<CloudUploadOutlinedIcon />} disabled={form.imageFiles.length >= MAX_PRODUCT_IMAGES}>
+                Thêm ảnh sản phẩm
+                <input hidden type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleImageSelection} />
+              </Button>
+              <Typography variant="caption" color="text.secondary">JPEG, PNG hoặc WebP · tối đa 6 MB/ảnh · tối đa {MAX_PRODUCT_IMAGES} ảnh. Ảnh đầu tiên là ảnh chính.</Typography>
+              <Stack spacing={1}>
+                {form.imageFiles.map((image, index) => (
+                  <Stack key={image.id} direction="row" spacing={1} alignItems="center" sx={{ p: 1, border: "1px solid", borderColor: "divider", borderRadius: 1 }}>
+                    <Box component="img" src={image.previewUrl} alt="Xem trước ảnh sản phẩm" sx={{ width: 56, height: 56, objectFit: "cover", borderRadius: 1 }} />
+                    <Box sx={{ flex: 1, minWidth: 0 }}><Typography noWrap fontWeight={index === 0 ? 800 : 500}>{index + 1}. {image.file.name}{index === 0 ? " · Ảnh chính" : ""}</Typography><Typography variant="caption" color="text.secondary">{Math.ceil(image.file.size / 1024)} KB</Typography></Box>
+                    <IconButton size="small" disabled={index === 0} onClick={() => moveImage(index, -1)} aria-label="Di chuyển ảnh lên"><ArrowUpwardOutlinedIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" disabled={index === form.imageFiles.length - 1} onClick={() => moveImage(index, 1)} aria-label="Di chuyển ảnh xuống"><ArrowDownwardOutlinedIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" color="error" onClick={() => removeImage(image.id)} aria-label="Xóa ảnh"><DeleteOutlineOutlinedIcon fontSize="small" /></IconButton>
+                  </Stack>
+                ))}
               </Stack>
               </Stack>
             </Box>
@@ -308,7 +366,13 @@ export default function ProductCreate() {
                       <VariantAttributeFields options={form.options} attributes={variant.attributes} onChange={(name, value) => setVariantAttribute(index, name, value)} />
                       <TextField label="Price" type="number" value={variant.price} onChange={setVariantField(index, "price")} />
                       <TextField label="Stock" type="number" value={variant.quantity} onChange={setVariantField(index, "quantity")} />
-                      <TextField label="Image URL" value={variant.imageUrl} onChange={setVariantField(index, "imageUrl")} />
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        {variant.imagePreviewUrl && <Box component="img" src={variant.imagePreviewUrl} alt="Ảnh variant" sx={{ width: 42, height: 42, borderRadius: 1, objectFit: "cover" }} />}
+                        <Button component="label" size="small" variant="outlined" startIcon={<CloudUploadOutlinedIcon />}>
+                          {variant.imageFile ? "Đổi ảnh" : "Ảnh variant"}
+                          <input hidden type="file" accept="image/jpeg,image/png,image/webp" onChange={selectVariantImage(index)} />
+                        </Button>
+                      </Stack>
                       <FormControl>
                         <InputLabel>Status</InputLabel>
                         <Select label="Status" value="DRAFT" disabled>

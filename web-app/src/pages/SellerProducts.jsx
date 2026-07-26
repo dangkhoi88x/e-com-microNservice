@@ -224,6 +224,7 @@ export default function SellerProducts() {
                         <TableCell align="right">
                           <Stack direction="row" justifyContent="flex-end" spacing={0.5} alignItems="center">
                             {quantityEditable && <IconButton size="small" color="primary" aria-label="Sửa số lượng" title="Sửa số lượng" onClick={() => openQuantityEditor(product)}><EditOutlinedIcon fontSize="small" /></IconButton>}
+                            {editable && <Button size="small" onClick={() => navigate(`/seller/products/${product.id}/edit`)}>Chỉnh sửa</Button>}
                             {["ACTIVE", "INACTIVE"].includes(product.status) && <Button size="small" onClick={() => updateStatus(product)}>{product.status === "ACTIVE" ? "Ẩn sản phẩm" : "Đăng bán"}</Button>}
                             {editable && <Button size="small" startIcon={<SendOutlinedIcon />} onClick={() => submit(product)}>Gửi duyệt</Button>}
                             {editable && <IconButton size="small" color="error" aria-label="Xóa sản phẩm" onClick={() => remove(product)}><DeleteOutlineOutlinedIcon fontSize="small" /></IconButton>}

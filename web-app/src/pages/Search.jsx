@@ -28,6 +28,7 @@ import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import {
@@ -83,7 +84,8 @@ const defaultFilters = {
 };
 
 export default function Search() {
-  const [filters, setFilters] = useState(defaultFilters);
+  const [searchParams] = useSearchParams();
+  const [filters, setFilters] = useState(() => ({ ...defaultFilters, name: searchParams.get("name") || "" }));
   const [products, setProducts] = useState([]);
   const [aggregations, setAggregations] = useState({
     categories: [],
@@ -136,6 +138,13 @@ export default function Search() {
     loadSearch(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const name = searchParams.get("name") || "";
+    setFilters((current) => (current.name === name ? current : { ...current, name }));
+    if (name) setTimeout(() => loadSearch(1), 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const setField = (field) => (event) => {
     setFilters((current) => ({

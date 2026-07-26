@@ -13,3 +13,15 @@ export const toOptionsPayload = (options) => options.map((option, optionIndex) =
     active: value.active,
   })),
 }));
+
+export const resolveOptionImageUrls = async (options, uploadImage, onUploaded) => Promise.all(
+  options.map(async (option) => ({
+    ...option,
+    values: await Promise.all(option.values.map(async (value) => {
+      if (!value.imageFile) return value;
+      const media = await uploadImage(value.imageFile);
+      onUploaded(media);
+      return { ...value, imageUrl: media.contentUrl };
+    })),
+  })),
+);

@@ -55,6 +55,15 @@ public class SellerProductController {
                 productService.getMySellerProducts(jwt.getSubject(), page, size));
     }
 
+    @GetMapping("/{id}")
+    public ApiResponse<ProductDetailResponse> getMineById(
+            @PathVariable String id,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return response(HttpStatus.OK, "Seller product retrieved successfully",
+                productService.getSellerProductById(id, jwt.getSubject()));
+    }
+
     @PutMapping("/{id}")
     public ApiResponse<ProductDetailResponse> update(
             @PathVariable String id,

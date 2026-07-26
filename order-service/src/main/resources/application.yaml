@@ -3,6 +3,8 @@ server:
 spring:
   application:
     name: order-service
+  config:
+    import: optional:file:.env.dev[.properties],optional:file:../.env.dev[.properties]
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
     username: root
@@ -17,6 +19,10 @@ spring:
     bootstrap-servers: localhost:9094
 jwt:
   secret-key: "your-secret-key-here"
+
+services:
+  payment:
+    internal-api-key: ${INTERNAL_PAYMENT_API_KEY:local-payment-internal-key}
 
 eureka:
   instance:

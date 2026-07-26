@@ -29,6 +29,10 @@ public class User extends BaseEntity implements UserDetails {
     @JsonIgnore
     private String password;
 
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private Integer authVersion = 0;
+
 
     @Enumerated(EnumType.STRING)
     private UserStatus status;

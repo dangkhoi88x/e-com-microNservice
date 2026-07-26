@@ -222,6 +222,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public ProductDetailResponse getSellerProductById(String id, String sellerId) {
+        return productRepository.findByIdAndSellerId(id, sellerId)
+                .map(this::toProductDetailResponseWithFreshInventory)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+    }
+
+    @Override
     public ProductDetailResponse getProductBySlug(String slug) {
         return productRepository.findBySlug(slug)
                 .filter(product -> product.getStatus() == ProductStatus.ACTIVE)

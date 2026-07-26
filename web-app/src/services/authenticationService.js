@@ -31,6 +31,16 @@ export const register = async ({ email, password, firstName, lastName }) => {
   return response.data;
 };
 
+export const requestPasswordReset = async (email) => {
+  const response = await httpClient.post(API.PASSWORD_RESET_REQUEST, { email });
+  return response.data;
+};
+
+export const confirmPasswordReset = async ({ email, otp, newPassword, confirmPassword }) => {
+  const response = await httpClient.post(API.PASSWORD_RESET_CONFIRM, { email, otp, newPassword, confirmPassword });
+  return response.data;
+};
+
 export const restoreSession = () => {
   if (!restorePromise) {
     restorePromise = httpClient.post(API.REFRESH_TOKEN)

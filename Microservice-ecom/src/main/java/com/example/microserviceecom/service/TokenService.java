@@ -22,6 +22,7 @@ import java.util.HexFormat;
 public class TokenService {
 
     private static final String REFRESH_SESSION_PREFIX = "refresh-session:";
+    private static final String USER_REFRESH_SESSIONS_PREFIX = "user-refresh-sessions:";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final TokenRepository tokenRepository;
@@ -50,21 +51,44 @@ public class TokenService {
     }
 
     /** Creates a 256-bit opaque refresh token; Redis stores only its SHA-256 hash. */
-    public String createRefreshSession(String userId, Duration ttl) {
+    public String createRefreshSession(String userId, int authVersion, Duration ttl) {
         byte[] tokenBytes = new byte[32];
         SECURE_RANDOM.nextBytes(tokenBytes);
         String refreshToken = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
-        stringRedisTemplate.opsForValue().set(refreshSessionKey(refreshToken), userId, ttl);
+        String sessionKey = refreshSessionKey(refreshToken);
+        String userSessionsKey = userSessionsKey(userId);
+        stringRedisTemplate.opsForValue().set(sessionKey, userId + "|" + authVersion, ttl);
+        stringRedisTemplate.opsForSet().add(userSessionsKey, sessionKey);
+        stringRedisTemplate.expire(userSessionsKey, ttl);
         return refreshToken;
     }
 
     /** Atomically consume a refresh session so the old token cannot be replayed. */
-    public String consumeRefreshSession(String refreshToken) {
-        return stringRedisTemplate.opsForValue().getAndDelete(refreshSessionKey(refreshToken));
+    public RefreshSession consumeRefreshSession(String refreshToken) {
+        String sessionKey = refreshSessionKey(refreshToken);
+        RefreshSession session = parseRefreshSession(stringRedisTemplate.opsForValue().getAndDelete(sessionKey));
+        if (session != null) {
+            stringRedisTemplate.opsForSet().remove(userSessionsKey(session.userId()), sessionKey);
+        }
+        return session;
     }
 
     public void deleteRefreshSession(String refreshToken) {
-        stringRedisTemplate.delete(refreshSessionKey(refreshToken));
+        String sessionKey = refreshSessionKey(refreshToken);
+        RefreshSession session = parseRefreshSession(stringRedisTemplate.opsForValue().get(sessionKey));
+        stringRedisTemplate.delete(sessionKey);
+        if (session != null) {
+            stringRedisTemplate.opsForSet().remove(userSessionsKey(session.userId()), sessionKey);
+        }
+    }
+
+    public void revokeAllRefreshSessions(String userId) {
+        String indexKey = userSessionsKey(userId);
+        var sessionKeys = stringRedisTemplate.opsForSet().members(indexKey);
+        if (sessionKeys != null && !sessionKeys.isEmpty()) {
+            stringRedisTemplate.delete(sessionKeys);
+        }
+        stringRedisTemplate.delete(indexKey);
     }
 
     private String refreshSessionKey(String refreshToken) {
@@ -77,4 +101,20 @@ public class TokenService {
         }
     }
 
+    private String userSessionsKey(String userId) {
+        return USER_REFRESH_SESSIONS_PREFIX + userId;
+    }
+
+    private RefreshSession parseRefreshSession(String value) {
+        if (value == null) return null;
+        String[] parts = value.split("\\|", 2);
+        if (parts.length != 2) return null;
+        try {
+            return new RefreshSession(parts[0], Integer.parseInt(parts[1]));
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
+    public record RefreshSession(String userId, int authVersion) { }
 }

@@ -22,6 +22,8 @@ public final class PaymentMapper {
                 payment.getStatus().name(),
                 payment.getTransactionCode(),
                 payment.getFailureReason(),
+                payment.getStripeCheckoutSessionId(),
+                payment.getPaidAt(),
                 payment.getCreatedAt()
         );
     }

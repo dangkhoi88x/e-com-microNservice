@@ -31,6 +31,7 @@ import com.example.orderservice.dto.response.PromotionCalculationResponse;
 import com.example.orderservice.dto.response.ReviewEligibilityResponse;
 import com.example.orderservice.dto.response.SellerOrderDetailResponse;
 import com.example.orderservice.dto.response.SellerAnalyticsResponse;
+import com.example.orderservice.dto.response.AdminAnalyticsResponse;
 import com.example.orderservice.entity.Order;
 import com.example.orderservice.entity.OrderItem;
 import com.example.orderservice.exception.ErrorCode;
@@ -51,12 +52,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.TreeMap;
 
 @Service
 @RequiredArgsConstructor
@@ -264,6 +267,37 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     @Transactional(readOnly = true)
+    public AdminAnalyticsResponse getAdminAnalytics(Instant from, Instant to) {
+        List<Order> orders = orderRepository.findByCreatedAtBetween(from, to);
+        List<Order> completed = orders.stream().filter(order -> order.getStatus() == OrderStatus.COMPLETED).toList();
+        BigDecimal revenue = completed.stream().map(Order::getTotalAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Map<String, Long> statuses = new HashMap<>();
+        orders.forEach(order -> statuses.merge(order.getStatus().name(), 1L, Long::sum));
+
+        Map<LocalDate, AdminAnalyticsResponse.RevenuePoint> daily = new TreeMap<>();
+        completed.forEach(order -> {
+            LocalDate date = order.getCreatedAt().atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate();
+            daily.merge(date, new AdminAnalyticsResponse.RevenuePoint(date.toString(), order.getTotalAmount(), 1),
+                    (left, right) -> new AdminAnalyticsResponse.RevenuePoint(left.date(), left.revenue().add(right.revenue()), left.orders() + right.orders()));
+        });
+
+        Map<String, AdminAnalyticsResponse.TopProduct> products = new HashMap<>();
+        completed.forEach(order -> order.getItems().forEach(item -> products.merge(item.getProductId(),
+                new AdminAnalyticsResponse.TopProduct(item.getProductId(), item.getProductName(), item.getQuantity(), item.getSubtotal()),
+                (left, right) -> new AdminAnalyticsResponse.TopProduct(left.productId(), left.name(), left.quantitySold() + right.quantitySold(), left.revenue().add(right.revenue())))));
+        List<AdminAnalyticsResponse.TopProduct> topProducts = products.values().stream()
+                .sorted((left, right) -> right.revenue().compareTo(left.revenue())).limit(5).toList();
+
+        BigDecimal averageOrderValue = completed.isEmpty() ? BigDecimal.ZERO
+                : revenue.divide(BigDecimal.valueOf(completed.size()), 0, java.math.RoundingMode.HALF_UP);
+        return new AdminAnalyticsResponse(revenue, orders.size(), completed.size(), averageOrderValue, statuses,
+                List.copyOf(daily.values()), topProducts);
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @Transactional(readOnly = true)
     public PageResponse<OrderResponse> getAllOrders(int page, int size) {
         Pageable pageable = createOrderPageable(page, size);
         Page<Order> orderPage = orderRepository.findAll(pageable);
@@ -305,9 +339,26 @@ public class OrderServiceImpl implements OrderService {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
     @Transactional(readOnly = true)
     public OrderResponse getOrderDetailForAdmin(String orderId) {
+        return getOrderForPaymentValidation(orderId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse getOrderForPaymentValidation(String orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
 
+        return toOrderResponse(order);
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @Transactional(readOnly = true)
+    public OrderResponse searchOrderForAdmin(String query) {
+        String value = query == null ? "" : query.trim();
+        Order order = orderRepository.findById(value)
+                .or(() -> orderRepository.findByOrderCodeIgnoreCase(value))
+                .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
         return toOrderResponse(order);
     }
 

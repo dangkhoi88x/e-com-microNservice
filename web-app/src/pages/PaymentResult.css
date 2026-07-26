@@ -1,0 +1,215 @@
+.payment-result-page {
+  --result-accent: #0f9f78;
+  --result-soft: #eafaf4;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 36px 18px;
+  font-family: Inter, system-ui, sans-serif;
+  color: #152033;
+  background:
+    radial-gradient(circle at 10% 5%, color-mix(in srgb, var(--result-accent) 16%, transparent), transparent 34%),
+    linear-gradient(145deg, #f8fbff, #eef4f8);
+}
+
+.payment-result-page.is-cancel,
+.payment-result-page.is-failed {
+  --result-accent: #e45858;
+  --result-soft: #fff1f1;
+}
+
+.payment-result-page.is-pending {
+  --result-accent: #d99018;
+  --result-soft: #fff8e8;
+}
+
+.payment-result-card {
+  width: min(100%, 620px);
+  padding: 30px clamp(22px, 5vw, 52px) 36px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(155, 170, 188, 0.28);
+  border-radius: 28px;
+  box-shadow: 0 24px 70px rgba(34, 52, 78, 0.14);
+}
+
+.payment-result-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #edf0f3;
+}
+
+.payment-result-brand > span {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  border-radius: 10px;
+  background: #121b2a;
+}
+
+.payment-result-brand strong {
+  font-family: Sora, Inter, sans-serif;
+}
+
+.payment-result-brand em {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #667085;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.payment-result-icon {
+  width: 78px;
+  height: 78px;
+  margin: 34px auto 20px;
+  display: grid;
+  place-items: center;
+  color: var(--result-accent);
+  border-radius: 26px;
+  background: var(--result-soft);
+}
+
+.payment-result-icon svg {
+  width: 40px;
+  height: 40px;
+}
+
+.payment-result-spinner {
+  animation: payment-result-spin 0.9s linear infinite;
+}
+
+.payment-result-eyebrow {
+  margin: 0 0 8px;
+  color: var(--result-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.payment-result-card h1 {
+  margin: 0;
+  font: 700 clamp(26px, 5vw, 36px)/1.18 Sora, Inter, sans-serif;
+  letter-spacing: -0.035em;
+}
+
+.payment-result-description {
+  max-width: 490px;
+  margin: 14px auto 26px;
+  color: #667085;
+  line-height: 1.65;
+}
+
+.payment-result-details {
+  margin: 0;
+  padding: 6px 20px;
+  text-align: left;
+  border: 1px solid #e6eaf0;
+  border-radius: 18px;
+  background: #fbfcfd;
+}
+
+.payment-result-details div {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid #edf0f3;
+}
+
+.payment-result-details div:last-child {
+  border-bottom: 0;
+}
+
+.payment-result-details dt {
+  color: #778195;
+  font-size: 13px;
+}
+
+.payment-result-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+  font-weight: 700;
+}
+
+.payment-result-details div:first-child dd {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+}
+
+.payment-result-actions {
+  margin-top: 26px;
+  display: grid;
+  gap: 10px;
+}
+
+.payment-result-primary,
+.payment-result-secondary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.payment-result-primary {
+  border: 0;
+  color: white;
+  background: #172133;
+  box-shadow: 0 12px 24px rgba(23, 33, 51, 0.18);
+}
+
+.payment-result-retry {
+  cursor: pointer;
+  font: inherit;
+}
+
+.payment-result-retry:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.payment-result-secondary {
+  color: #344054;
+  border: 1px solid #dce1e8;
+}
+
+.payment-result-card > small {
+  display: block;
+  margin-top: 22px;
+  color: #98a2b3;
+}
+
+@keyframes payment-result-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 520px) {
+  .payment-result-brand em {
+    display: none;
+  }
+
+  .payment-result-details div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 0;
+  }
+
+  .payment-result-details dd {
+    text-align: left;
+  }
+}

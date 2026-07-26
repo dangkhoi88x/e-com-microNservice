@@ -32,8 +32,13 @@ jwt:
 services:
   user-profile:
     url: http://localhost:8081
+  notification:
+    url: ${NOTIFICATION_INTERNAL_URL:http://localhost:8083}
+    internal-api-key: ${INTERNAL_NOTIFICATION_API_KEY:local-reset-mail-key}
 
 security:
+  password-reset:
+    pepper: ${PASSWORD_RESET_PEPPER:${JWT_SECRET}}
   refresh-cookie:
     secure: false
     same-site: Lax

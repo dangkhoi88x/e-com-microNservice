@@ -37,6 +37,8 @@ export const getOrderDetail = async (id) => {
   return response.data?.data;
 };
 
+export const searchAdminOrder = async (query) => (await httpClient.get(`${API.ORDERS}/search`, { params: { query } })).data?.data;
+
 export const cancelOrder = async (id) => {
   const response = await httpClient.put(`${API.ORDERS}/${id}/cancel`);
   return response.data?.data;
@@ -60,6 +62,7 @@ export const updateSellerOrderStatus = async (id, status) => {
 };
 export const getSellerOrderDetail = async (id) => (await httpClient.get(`${API.ORDERS}/seller/${id}`)).data?.data;
 export const getSellerAnalytics = async (from, to) => (await httpClient.get(`${API.ORDERS}/seller/analytics`, { params: { from: from.toISOString(), to: to.toISOString() } })).data?.data;
+export const getAdminAnalytics = async (from, to) => (await httpClient.get(`${API.ORDERS}/admin/analytics`, { params: { from: from.toISOString(), to: to.toISOString() } })).data?.data;
 
 export const checkoutOrder = async ({ shippingAddress, campaignCode }) => {
   const response = await httpClient.post(`${API.ORDERS}/checkout`, {

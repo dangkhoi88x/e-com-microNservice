@@ -28,11 +28,16 @@ import {
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
-import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
+import DoneOutlinedIcon from "@mui/icons-material/DoneOutlined";
+import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
+import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import { hasAnyRole } from "../services/authenticationService";
@@ -41,9 +46,11 @@ import {
   cancelOrder,
   getAllOrders,
   getMyOrders,
+  searchAdminOrder,
   updateOrderStatus,
 } from "../services/orderService";
 import { formatDateTime } from "../utils/dateTimeUtils";
+import "./Orders.css";
 
 const cancellableStatuses = new Set(["PENDING", "CONFIRMED"]);
 const orderStatuses = [
@@ -60,7 +67,6 @@ const orderStatuses = [
   "CANCELLED",
 ];
 const adminStatusActions = ["CONFIRMED", "SHIPPING", "COMPLETED"];
-const orderStatusSteps = ["PENDING", "PENDING_PAYMENT", "CONFIRMED", "SHIPPING", "COMPLETED"];
 const completableStatuses = new Set(["PENDING_PAYMENT", "CONFIRMED", "SHIPPING"]);
 
 const statusColor = (status) => {
@@ -98,13 +104,36 @@ const formatPrice = (value) => {
   }).format(Number(value));
 };
 
-const getCompletedSteps = (status) => {
-  const index = orderStatusSteps.indexOf(status);
-  if (index < 0) return 0;
-  return index + 1;
+const fulfillmentSteps = [
+  { status: "PENDING", label: "Đã đặt" },
+  { status: "CONFIRMED", label: "Xác nhận" },
+  { status: "SHIPPING", label: "Đang giao" },
+  { status: "COMPLETED", label: "Hoàn tất" },
+];
+
+const getFulfillmentStep = (status) => {
+  if (["PENDING", "PENDING_PAYMENT", "INVENTORY_FAILED"].includes(status)) return 0;
+  if (status === "CONFIRMED") return 1;
+  if (status === "SHIPPING") return 2;
+  if (status === "COMPLETED") return 3;
+  return -1;
 };
 
+const statusLabel = (status) => ({
+  PENDING: "Chờ xử lý",
+  PENDING_PAYMENT: "Chờ thanh toán",
+  INVENTORY_FAILED: "Không đủ tồn kho",
+  CONFIRMED: "Đã xác nhận",
+  SHIPPING: "Đang giao hàng",
+  DELIVERY_FAILED: "Giao hàng thất bại",
+  RETURNING: "Đang hoàn hàng",
+  RETURNED: "Đã hoàn hàng",
+  COMPLETED: "Hoàn tất",
+  CANCELLED: "Đã hủy",
+}[status] || status || "Không xác định");
+
 export default function Orders() {
+  const [searchParams] = useSearchParams();
   const isAdmin = hasAnyRole("ROLE_ADMIN", "ADMIN");
   const [orders, setOrders] = useState([]);
   const [viewMode, setViewMode] = useState("mine");
@@ -121,16 +150,24 @@ export default function Orders() {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const visibleOrders =
+  const orderQuery = (searchParams.get("query") || "").trim().toLowerCase();
+  const statusOrders =
     statusFilter === "ALL"
       ? orders
       : orders.filter((order) => order.status === statusFilter);
+  const visibleOrders = !orderQuery ? statusOrders : statusOrders.filter((order) => [order.orderCode, order.id, order.userId].some((value) => value?.toLowerCase().includes(orderQuery)));
 
   const loadOrders = async (page = pageInfo.currentPage, mode = viewMode) => {
     setLoading(true);
     setErrorMessage("");
 
     try {
+      if (orderQuery && isAdmin) {
+        const order = await searchAdminOrder(orderQuery);
+        setOrders(order ? [order] : []);
+        setPageInfo((current) => ({ ...current, currentPage: 1, totalPages: 1, totalElements: order ? 1 : 0 }));
+        return;
+      }
       const request = mode === "all" && isAdmin ? getAllOrders : getMyOrders;
       const data = await request({
         page,
@@ -154,7 +191,7 @@ export default function Orders() {
   useEffect(() => {
     loadOrders(1, viewMode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode]);
+  }, [viewMode, orderQuery]);
 
   const handleViewDetail = (order) => {
     setDetailLoading(false);
@@ -460,155 +497,58 @@ export default function Orders() {
         onClose={() => setSelectedOrder(null)}
         fullWidth
         maxWidth="md"
+        PaperProps={{ className: "order-detail-modal", sx: { borderRadius: 4, overflow: "hidden", maxWidth: 860, border: "1px solid", borderColor: "divider", boxShadow: "0 24px 60px -20px rgba(15,23,32,.35)" } }}
       >
-        <DialogTitle>
-          {detailLoading ? "Loading order..." : "Order detail"}
+        <DialogTitle sx={{ px: { xs: 2.5, md: 4 }, py: 2.5, borderBottom: "1px solid", borderColor: "divider", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Typography className="order-detail-modal-title" fontSize={20} fontWeight={800} letterSpacing="-0.3px">{detailLoading ? "Đang tải đơn hàng..." : "Chi tiết đơn hàng"}</Typography>
+          <IconButton aria-label="Đóng chi tiết đơn hàng" onClick={() => setSelectedOrder(null)} sx={{ bgcolor: "grey.50", border: "1px solid", borderColor: "divider", borderRadius: 2 }}><CloseOutlinedIcon fontSize="small" /></IconButton>
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent sx={{ px: { xs: 2.5, md: 4 }, py: 3.5, bgcolor: "#fcfcfd" }}>
           {detailLoading ? (
             <Stack alignItems="center" sx={{ py: 6 }}>
               <CircularProgress />
             </Stack>
           ) : selectedOrder ? (
-            <Stack spacing={3}>
-              <Box className="detail-hero">
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  justifyContent="space-between"
-                  alignItems={{ xs: "stretch", sm: "center" }}
-                  spacing={2}
-                >
-                  <Box>
-                    <Typography variant="caption" color="text.secondary">
-                      Fulfillment progress
-                    </Typography>
-                    <Typography fontWeight={900}>
-                      {selectedOrder.status || "UNKNOWN"}
-                    </Typography>
-                  </Box>
-                  <LocalShippingOutlinedIcon className="detail-hero-icon" />
-                </Stack>
-                <Box className="order-progress">
-                  <Box
-                    sx={{
-                      width: `${Math.min(
-                        100,
-                        (getCompletedSteps(selectedOrder.status) /
-                          orderStatusSteps.length) *
-                          100,
-                      )}%`,
-                    }}
-                  />
-                </Box>
-              </Box>
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                justifyContent="space-between"
-                spacing={2}
-              >
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Order code
-                  </Typography>
-                  <Typography fontWeight={900}>{selectedOrder.orderCode || selectedOrder.id}</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Internal ID: {selectedOrder.id}
-                  </Typography>
-                </Box>
-                <Box>{renderStatus(selectedOrder.status)}</Box>
-              </Stack>
-
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={3}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Total
-                  </Typography>
-                  <Typography fontWeight={900}>
-                    {formatPrice(selectedOrder.totalAmount)}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    User
-                  </Typography>
-                  <Typography fontWeight={800}>
-                    {selectedOrder.userId || "-"}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Created At
-                  </Typography>
-                  <Typography fontWeight={800}>
-                    {formatDateTime(selectedOrder.createdAt)}
-                  </Typography>
-                </Box>
-              </Stack>
-
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Shipping Address
-                </Typography>
-                <Typography fontWeight={800}>
-                  {selectedOrder.shippingAddress || "-"}
-                </Typography>
-              </Box>
-
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: 2,
-                  backgroundColor: selectedOrder.promotionCode ? "success.50" : "background.paper",
-                  borderColor: selectedOrder.promotionCode ? "success.200" : "divider",
-                }}
-              >
-                <Typography variant="subtitle2" fontWeight={900} gutterBottom>
-                  Promotion and price breakdown
-                </Typography>
-                <Stack spacing={0.75}>
-                  <Stack direction="row" justifyContent="space-between" spacing={2}>
-                    <Typography variant="body2" color="text.secondary">Promotion code</Typography>
-                    <Typography variant="body2" fontWeight={800}>
-                      {selectedOrder.promotionCode || "Not applied"}
-                    </Typography>
+            <Stack className="order-detail-modal-content" spacing={3.25}>
+              {(() => {
+                const activeStep = getFulfillmentStep(selectedOrder.status);
+                const isException = activeStep < 0;
+                return <Box sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, border: "1px solid", borderColor: isException ? "warning.200" : "#cfeae7", background: isException ? "#fffaf0" : "linear-gradient(180deg, #e6f4f3 0%, #f4fbfa 100%)" }}>
+                  <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={2} sx={{ mb: 2.5 }}>
+                    <Box><Typography variant="overline" color={isException ? "warning.dark" : "#0a5f5e"} fontWeight={800} letterSpacing=".08em">TIẾN TRÌNH GIAO HÀNG</Typography><Stack direction="row" alignItems="center" spacing={1}><Box sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: isException ? "warning.main" : "#0e7c7b", boxShadow: "0 0 0 5px rgba(14,124,123,.12)" }} /><Typography fontWeight={900} fontSize={22}>{statusLabel(selectedOrder.status)}</Typography></Stack></Box>
+                    <Box sx={{ textAlign: { xs: "left", sm: "right" } }}><Typography fontFamily="monospace" fontWeight={700}>{selectedOrder.orderCode || selectedOrder.id}</Typography><Chip size="small" label={selectedOrder.status || "UNKNOWN"} sx={{ mt: .75, bgcolor: isException ? "warning.main" : "#0e7c7b", color: "common.white", fontWeight: 800, letterSpacing: ".04em" }} /></Box>
                   </Stack>
-                  <Stack direction="row" justifyContent="space-between" spacing={2}>
-                    <Typography variant="body2" color="text.secondary">Subtotal</Typography>
-                    <Typography variant="body2" fontWeight={800}>{formatPrice(selectedOrder.subtotalAmount)}</Typography>
+                  <Stack direction="row" sx={{ overflowX: "auto", minWidth: 0 }}>
+                    {fulfillmentSteps.map((step, index) => { const complete = !isException && index <= activeStep; return <Box key={step.status} sx={{ flex: 1, minWidth: 92, textAlign: "center", position: "relative", "&:not(:last-child)::after": { content: '""', position: "absolute", top: 15, left: "50%", width: "100%", height: 3, bgcolor: complete && index < activeStep ? "#0e7c7b" : "#cfe1df", zIndex: 0 } }}><Box sx={{ mx: "auto", position: "relative", zIndex: 1, width: 30, height: 30, borderRadius: "50%", display: "grid", placeItems: "center", bgcolor: complete ? "#0e7c7b" : "#d9e6e5", color: complete ? "common.white" : "text.secondary", boxShadow: complete ? "0 2px 6px rgba(14,124,123,.35)" : "none" }}>{complete ? <DoneOutlinedIcon fontSize="small" /> : index + 1}</Box><Typography mt={1} fontSize={12} fontWeight={700} color={complete ? "#0a5f5e" : "text.secondary"}>{step.label}</Typography><Typography fontSize={10.5} color="text.secondary">{index === 0 ? formatDateTime(selectedOrder.createdAt) : complete ? "Đã cập nhật" : "Chưa tới"}</Typography></Box>; })}
                   </Stack>
-                  <Stack direction="row" justifyContent="space-between" spacing={2}>
-                    <Typography variant="body2" color="text.secondary">Promotion discount</Typography>
-                    <Typography variant="body2" fontWeight={900} color={Number(selectedOrder.discountAmount || 0) > 0 ? "success.main" : "text.primary"}>
-                      {Number(selectedOrder.discountAmount || 0) > 0 ? `-${formatPrice(selectedOrder.discountAmount)}` : formatPrice(0)}
-                    </Typography>
-                  </Stack>
-                  <Stack direction="row" justifyContent="space-between" spacing={2} sx={{ pt: 0.75, borderTop: "1px solid", borderColor: "divider" }}>
-                    <Typography variant="body2" fontWeight={900}>Total paid</Typography>
-                    <Typography variant="body2" fontWeight={900}>{formatPrice(selectedOrder.totalAmount)}</Typography>
-                  </Stack>
-                </Stack>
-              </Paper>
+                </Box>;
+              })()}
 
-              <TableContainer component={Paper} elevation={0} variant="outlined">
+              <Box><Typography className="order-detail-section-title" variant="overline" fontWeight={800} color="text.secondary" letterSpacing=".08em">THÔNG TIN ĐƠN HÀNG</Typography><Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" }, gap: 1.5, mt: 1 }}>
+                {[{ label: "Tổng tiền", value: formatPrice(selectedOrder.totalAmount) }, { label: "Khách hàng", value: selectedOrder.userId || "-", mono: true, icon: <PersonOutlineOutlinedIcon fontSize="small" /> }, { label: "Ngày tạo", value: formatDateTime(selectedOrder.createdAt) }, { label: "Địa chỉ giao hàng", value: selectedOrder.shippingAddress || "-", wide: true, icon: <LocationOnOutlinedIcon fontSize="small" /> }, { label: "Internal ID", value: selectedOrder.id, wide: true, mono: true }].map((field) => <Box key={field.label} sx={{ gridColumn: field.wide ? { sm: "span 3" } : undefined, p: 1.75, border: "1px solid", borderColor: "divider", borderRadius: 2.5, bgcolor: "grey.50" }}><Typography className="order-detail-label" fontSize={11.5} color="text.secondary">{field.label}</Typography><Stack direction="row" spacing={.75} alignItems="center" mt={.4}>{field.icon}<Typography className={`order-detail-value${field.mono ? " order-detail-mono" : ""}`} fontWeight={700} fontSize={field.mono ? 12 : 14} sx={{ overflowWrap: "anywhere" }}>{field.value}</Typography></Stack></Box>)}
+              </Box></Box>
+
+              <Box><Typography className="order-detail-section-title" variant="overline" fontWeight={800} color="text.secondary" letterSpacing=".08em">KHUYẾN MÃI & THANH TOÁN</Typography><Paper variant="outlined" sx={{ mt: 1, p: { xs: 2, md: 2.5 }, borderRadius: 2.5 }}><Stack spacing={1.1}>
+                <Box className="order-detail-total-row" sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}><Typography className="order-detail-label" color="text.secondary">Tạm tính</Typography><Typography className="order-detail-value" fontWeight={700}>{formatPrice(selectedOrder.subtotalAmount)}</Typography></Box>
+                <Box className="order-detail-total-row" sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}><Typography className="order-detail-label" color="text.secondary">Mã khuyến mãi {selectedOrder.promotionCode && <Chip icon={<LocalOfferOutlinedIcon />} label={selectedOrder.promotionCode} size="small" sx={{ ml: .75, bgcolor: "#fdf1e1", color: "#b6650a", fontFamily: "monospace", fontWeight: 700 }} />}</Typography><Typography className="order-detail-value" fontWeight={800} color={Number(selectedOrder.discountAmount || 0) > 0 ? "warning.dark" : "text.primary"}>{Number(selectedOrder.discountAmount || 0) > 0 ? `-${formatPrice(selectedOrder.discountAmount)}` : formatPrice(0)}</Typography></Box>
+                <Box className="order-detail-total-row order-detail-grand-total" sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", pt: 1.5, mt: .4, borderTop: "1px solid", borderColor: "divider" }}><Typography className="order-detail-value" fontWeight={900}>Tổng thanh toán</Typography><Typography className="order-detail-grand-amount" fontWeight={900} fontSize={22} color="#0a5f5e">{formatPrice(selectedOrder.totalAmount)}</Typography></Box>
+              </Stack></Paper></Box>
+
+              <Box><Typography className="order-detail-section-title" variant="overline" fontWeight={800} color="text.secondary" letterSpacing=".08em">SẢN PHẨM</Typography><TableContainer component={Paper} elevation={0} variant="outlined" sx={{ mt: 1, borderRadius: 2.5 }}>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Product</TableCell>
-                      <TableCell align="right">Price</TableCell>
-                      <TableCell align="right">Quantity</TableCell>
-                      <TableCell align="right">Subtotal</TableCell>
+                      <TableCell>Sản phẩm</TableCell>
+                      <TableCell align="right">Đơn giá</TableCell>
+                      <TableCell align="right">SL</TableCell>
+                      <TableCell align="right">Thành tiền</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {(selectedOrder.items || []).map((item) => (
                       <TableRow key={item.productId}>
                         <TableCell>
-                          <Typography fontWeight={800}>
-                            {item.productName}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {item.productId}
-                          </Typography>
+                          <Stack direction="row" spacing={1.25} alignItems="center"><Box sx={{ width: 40, height: 40, display: "grid", placeItems: "center", borderRadius: 1.5, bgcolor: "#dceeed", color: "#0a5f5e" }}><ReceiptLongOutlinedIcon fontSize="small" /></Box><Box><Typography className="order-detail-value" fontWeight={800}>{item.productName}</Typography><Typography className="order-detail-mono" variant="caption" color="text.secondary">{item.productId}</Typography></Box></Stack>
                         </TableCell>
                         <TableCell align="right">
                           {formatPrice(item.price)}
@@ -622,10 +562,11 @@ export default function Orders() {
                   </TableBody>
                 </Table>
               </TableContainer>
+              </Box>
             </Stack>
           ) : null}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: { xs: 2.5, md: 4 }, py: 2.25, borderTop: "1px solid", borderColor: "divider" }}>
           {selectedOrder && viewMode === "mine" && cancellableStatuses.has(selectedOrder.status) && (
             <Button
               color="error"
@@ -659,7 +600,7 @@ export default function Orders() {
               ))}
             </Select>
           )}
-          <Button onClick={() => setSelectedOrder(null)}>Close</Button>
+          <Button variant="outlined" onClick={() => setSelectedOrder(null)}>Đóng</Button>
         </DialogActions>
       </Dialog>
     </MainLayout>

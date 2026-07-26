@@ -6,6 +6,8 @@ export const API = {
   LOGIN: "/identity/auth/login",
   REFRESH_TOKEN: "/identity/auth/refresh-token",
   LOGOUT: "/identity/auth/logout",
+  PASSWORD_RESET_REQUEST: "/identity/auth/password-reset/request",
+  PASSWORD_RESET_CONFIRM: "/identity/auth/password-reset/confirm",
   REGISTER: "/identity/users",
   MY_PROFILE: "/profile/api/v1/user-profile/me",
 
@@ -16,6 +18,7 @@ export const API = {
   SELLER_SHOP: "/api/v1/sellers/me/shop",
   ADMIN_SELLER_SHOPS: "/api/v1/sellers/admin",
   INVENTORY: "/inventory/api/v1/inventory",
+  MEDIA: "/api/v1/media",
   CART: "/api/v1/cart",
   ORDERS: "/order/api/v1/orders",
   PAYMENTS: "/payment/api/v1/payments",

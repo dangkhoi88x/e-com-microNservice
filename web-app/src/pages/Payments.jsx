@@ -205,11 +205,13 @@ export default function Payments() {
 
     return (
       <>
-        <Tooltip title="Confirm COD payment">
-          <IconButton color="success" onClick={() => handleMarkSuccess(payment)}>
-            <CheckCircleOutlineOutlinedIcon />
-          </IconButton>
-        </Tooltip>
+        {payment.method !== "STRIPE" && (
+          <Tooltip title="Confirm payment">
+            <IconButton color="success" onClick={() => handleMarkSuccess(payment)}>
+              <CheckCircleOutlineOutlinedIcon />
+            </IconButton>
+          </Tooltip>
+        )}
         <Tooltip title="Mark payment failed">
           <IconButton color="error" onClick={() => handleMarkFailed(payment)}>
             <ErrorOutlineOutlinedIcon />

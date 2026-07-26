@@ -34,7 +34,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { hasAnyRole, logout } from "../services/authenticationService";
 
 const adminMenuGroups = [
-  { label: "Workspace", items: [{ label: "Dashboard", path: "/admin", icon: <DashboardOutlinedIcon /> }, { label: "Analytics", path: "/admin/orders", icon: <AnalyticsOutlinedIcon />, badge: "Live" }] },
+  { label: "Workspace", items: [{ label: "Dashboard", path: "/admin", icon: <DashboardOutlinedIcon /> }, { label: "Analytics", path: "/admin/analytics", icon: <AnalyticsOutlinedIcon />, badge: "Live" }] },
   { label: "Store service", items: [{ label: "Products", path: "/admin/products", icon: <Inventory2OutlinedIcon /> }, { label: "Seller approvals", path: "/admin/sellers", icon: <StoreOutlinedIcon /> }, { label: "Categories", path: "/admin/categories", icon: <CategoryOutlinedIcon />, badge: "" }, { label: "Promotions", path: "/admin/promotions", icon: <LocalOfferOutlinedIcon /> }, { label: "Flash Sale", path: "/admin/flash-deals", icon: <LocalFireDepartmentOutlinedIcon /> }, { label: "Search", path: "/admin/search", icon: <SearchOutlinedIcon /> }, { label: "Orders", path: "/admin/orders", icon: <ShoppingBagOutlinedIcon /> }, { label: "Shipments", path: "/admin/shipments", icon: <LocalShippingOutlinedIcon /> }, { label: "Payments", path: "/admin/payments", icon: <PaymentsOutlinedIcon /> }] },
   { label: "Account", items: [{ label: "Notifications", path: "/notifications", icon: <NotificationsNoneOutlinedIcon /> }, { label: "Profile", path: "/profile", icon: <PersonOutlineOutlinedIcon /> }, { label: "Settings", path: "/profile", icon: <SettingsOutlinedIcon /> }] },
 ];

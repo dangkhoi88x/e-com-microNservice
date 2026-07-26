@@ -6,6 +6,7 @@ import com.example.paymentservice.exception.ErrorCode;
 import com.example.paymentservice.exception.PaymentServiceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
@@ -17,6 +18,9 @@ public class OrderClient {
 
     private final WebClient orderWebClient;
 
+    @Value("${services.order.internal-api-key}")
+    private String internalApiKey;
+
     public OrderResponse getOrderDetail(String orderId, String token) {
         return getOrderDetail("/api/v1/orders/{id}", orderId, token);
     }
@@ -27,6 +31,26 @@ public class OrderClient {
      */
     public OrderResponse getOrderDetailForAdmin(String orderId, String token) {
         return getOrderDetail("/api/v1/orders/{id}/admin", orderId, token);
+    }
+
+    public OrderResponse getOrderDetailForPaymentWebhook(String orderId) {
+        try {
+            ApiResponse<OrderResponse> response = orderWebClient.get()
+                    .uri("/internal/orders/{id}/payment-validation", orderId)
+                    .header("X-Internal-Api-Key", internalApiKey)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<OrderResponse>>() {
+                    })
+                    .block();
+
+            return response != null ? response.getData() : null;
+        } catch (WebClientResponseException.NotFound exception) {
+            throw new PaymentServiceException(ErrorCode.ORDER_NOT_FOUND);
+        } catch (WebClientResponseException.Forbidden exception) {
+            throw new PaymentServiceException(ErrorCode.ORDER_ACCESS_DENIED);
+        } catch (WebClientException exception) {
+            throw new PaymentServiceException(ErrorCode.ORDER_SERVICE_UNAVAILABLE);
+        }
     }
 
     private OrderResponse getOrderDetail(String uri, String orderId, String token) {

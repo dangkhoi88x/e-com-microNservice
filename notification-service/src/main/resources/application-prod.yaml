@@ -1,0 +1,2 @@
+security:
+  internal-api-key: ${INTERNAL_NOTIFICATION_API_KEY}

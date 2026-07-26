@@ -21,7 +21,14 @@ jwt:
   secret-key: ${JWT_SECRET}
   audience: ${JWT_AUDIENCE}
 
+services:
+  notification:
+    url: ${NOTIFICATION_INTERNAL_URL:http://notification-service:8083}
+    internal-api-key: ${INTERNAL_NOTIFICATION_API_KEY}
+
 security:
+  password-reset:
+    pepper: ${PASSWORD_RESET_PEPPER}
   refresh-cookie:
     secure: true
     same-site: Lax

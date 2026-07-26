@@ -1,9 +1,11 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Dashboard from "../pages/Dashboard";
+import AdminAnalytics from "../pages/AdminAnalytics";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Products from "../pages/Products";
 import ProductCreate from "../pages/ProductCreate";
+import ProductEdit from "../pages/ProductEdit";
 import SellerProducts from "../pages/SellerProducts";
 import SellerOrders from "../pages/SellerOrders";
 import SellerOrderDetail from "../pages/SellerOrderDetail";
@@ -23,6 +25,7 @@ import FlashDeals from "../pages/FlashDeals";
 import Shop from "../pages/Shop";
 import ShopProductDetail from "../pages/ShopProductDetail";
 import Checkout from "../pages/Checkout";
+import PaymentResult from "../pages/PaymentResult";
 import Cart from "../pages/Cart";
 import ShopCategory from "../pages/ShopCategory";
 import CustomerOrders from "../pages/CustomerOrders";
@@ -83,10 +86,12 @@ export default function AppRoutes() {
         <Route path="/shop/account" element={<PrivateRoute><StorefrontLayout><MyAccount /></StorefrontLayout></PrivateRoute>} />
         <Route path="/shop/account/profile" element={<PrivateRoute><CustomerProfile /></PrivateRoute>} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/shop/payment-result" element={<PrivateRoute><PaymentResult /></PrivateRoute>} />
         <Route path="/cart" element={<Cart />} />
 
         <Route path="/" element={<PrivateRoute><Navigate to={getRoleHomePath()} replace /></PrivateRoute>} />
         <Route path="/admin" element={<RoleRoute roles={["ROLE_ADMIN", "ADMIN", "ROLE_SUPER_ADMIN", "SUPER_ADMIN"]}><Dashboard /></RoleRoute>} />
+        <Route path="/admin/analytics" element={<RoleRoute roles={["ROLE_ADMIN", "ADMIN", "ROLE_SUPER_ADMIN", "SUPER_ADMIN"]}><AdminAnalytics /></RoleRoute>} />
         <Route path="/admin/products" element={<RoleRoute roles={["ROLE_ADMIN", "ADMIN", "ROLE_SUPER_ADMIN", "SUPER_ADMIN"]}><Products /></RoleRoute>} />
         <Route path="/admin/categories" element={<RoleRoute roles={["ROLE_ADMIN", "ADMIN", "ROLE_SUPER_ADMIN", "SUPER_ADMIN"]}><Categories /></RoleRoute>} />
         <Route path="/admin/search" element={<RoleRoute roles={["ROLE_ADMIN", "ADMIN", "ROLE_SUPER_ADMIN", "SUPER_ADMIN"]}><Search /></RoleRoute>} />
@@ -105,6 +110,7 @@ export default function AppRoutes() {
         <Route path="/seller/analytics" element={<RoleRoute roles={["ROLE_SELLER", "SELLER"]}><SellerAnalytics /></RoleRoute>} />
         <Route path="/seller/promotions" element={<RoleRoute roles={["ROLE_SELLER", "SELLER"]}><FlashDeals sellerMode /></RoleRoute>} />
         <Route path="/seller/products/new" element={<RoleRoute roles={["ROLE_SELLER", "SELLER"]}><ProductCreate /></RoleRoute>} />
+        <Route path="/seller/products/:id/edit" element={<RoleRoute roles={["ROLE_SELLER", "SELLER"]}><ProductEdit /></RoleRoute>} />
         <Route path="/seller/shop" element={<RoleRoute roles={["ROLE_SELLER", "SELLER"]}><SellerShop /></RoleRoute>} />
 
         <Route path="/dashboard" element={<Navigate to="/" replace />} />

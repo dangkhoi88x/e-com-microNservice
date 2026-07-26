@@ -86,6 +86,17 @@ public class OrderController {
                 .build();
     }
 
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    public ApiResponse<OrderResponse> searchOrderForAdmin(@RequestParam String query) {
+        OrderResponse data = orderService.searchOrderForAdmin(query);
+        return ApiResponse.<OrderResponse>builder()
+                .status(HttpStatus.OK.value())
+                .message("Order retrieved successfully")
+                .data(data)
+                .build();
+    }
+
     @GetMapping("/my-orders")
     public ApiResponse<PageResponse<OrderResponse>> getMyOrders(
             @AuthenticationPrincipal Jwt jwt,

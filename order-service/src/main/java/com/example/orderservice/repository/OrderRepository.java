@@ -15,6 +15,7 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     Page<Order> findByUserId(String userId, Pageable pageable);
     Page<Order> findBySellerId(String sellerId, Pageable pageable);
     List<Order> findBySellerIdAndCreatedAtBetween(String sellerId, Instant from, Instant to);
+    List<Order> findByCreatedAtBetween(Instant from, Instant to);
 
     Page<Order> findByPromotionCodeIgnoreCase(String promotionCode, Pageable pageable);
 
@@ -23,6 +24,7 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     boolean existsByOrderCode(String orderCode);
 
     Optional<Order> findByOrderCodeAndUserId(String orderCode, String userId);
+    Optional<Order> findByOrderCodeIgnoreCase(String orderCode);
 
 
 }

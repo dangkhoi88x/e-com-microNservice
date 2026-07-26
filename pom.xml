@@ -26,5 +26,6 @@
         <module>wishlist-service</module>
         <module>review-service</module>
         <module>seller-service</module>
+        <module>media-service</module>
     </modules>
 </project>

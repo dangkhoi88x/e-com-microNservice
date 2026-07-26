@@ -21,6 +21,7 @@ public interface ProductService {
     PageResponse<ProductDetailResponse> getAllProducts(int page, int size, SearchRequest request);
     PageResponse<ProductDetailResponse> getMySellerProducts(String sellerId, int page, int size);
     ProductDetailResponse getProductById(String id);
+    ProductDetailResponse getSellerProductById(String id, String sellerId);
     ProductDetailResponse getProductBySlug(String slug);
     ProductDetailResponse updateProduct(String id, String userId, UpdateProductRequest request);
     ProductDetailResponse updateSellerProduct(String id, String sellerId, UpdateSellerProductRequest request);

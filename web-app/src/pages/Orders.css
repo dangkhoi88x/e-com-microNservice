@@ -1,0 +1,62 @@
+/* Scoped styles keep the modal independent from the application's global fonts. */
+.order-detail-modal,
+.order-detail-modal .MuiTypography-root,
+.order-detail-modal .MuiTableCell-root,
+.order-detail-modal .MuiButton-root {
+  font-family: "Inter", sans-serif !important;
+}
+
+.order-detail-modal .order-detail-modal-title,
+.order-detail-modal .order-detail-section-title,
+.order-detail-modal .order-detail-grand-amount {
+  font-family: "Sora", sans-serif !important;
+}
+
+.order-detail-modal .order-detail-modal-title {
+  font-weight: 800 !important;
+  letter-spacing: -0.5px;
+}
+
+.order-detail-modal .order-detail-section-title {
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.1em !important;
+}
+
+.order-detail-modal .order-detail-label {
+  font-family: "Inter", sans-serif !important;
+  font-weight: 400 !important;
+}
+
+.order-detail-modal .order-detail-value {
+  font-family: "Inter", sans-serif !important;
+  font-weight: 600 !important;
+}
+
+.order-detail-modal .order-detail-mono {
+  font-family: "JetBrains Mono", monospace !important;
+  font-weight: 500 !important;
+}
+
+.order-detail-modal .order-detail-total-row {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between !important;
+  width: 100%;
+  gap: 24px;
+}
+
+.order-detail-modal .order-detail-total-row > :first-child {
+  min-width: 0;
+}
+
+.order-detail-modal .order-detail-total-row > :last-child {
+  flex: 0 0 auto;
+  margin-left: auto;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.order-detail-modal .order-detail-grand-amount {
+  font-weight: 800 !important;
+}

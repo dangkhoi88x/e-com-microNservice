@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 
 @Entity
@@ -41,4 +42,18 @@ public class Payment extends BaseEntity {
     private String transactionCode;
 
     private String failureReason;
+
+    @Column(unique = true)
+    private String stripeCheckoutSessionId;
+
+    @Column(length = 2048)
+    private String stripeCheckoutUrl;
+
+    private Instant stripeCheckoutExpiresAt;
+
+    private String stripePaymentIntentId;
+
+    private String stripeEventId;
+
+    private Instant paidAt;
 }
