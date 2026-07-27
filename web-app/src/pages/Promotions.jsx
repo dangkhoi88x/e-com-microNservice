@@ -35,7 +35,7 @@ import FolderSpecialOutlinedIcon from "@mui/icons-material/FolderSpecialOutlined
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import ToggleOffOutlinedIcon from "@mui/icons-material/ToggleOffOutlined";
 import ToggleOnOutlinedIcon from "@mui/icons-material/ToggleOnOutlined";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader, StatCard } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import {
@@ -121,7 +121,7 @@ export default function Promotions() {
 
   const editing = Boolean(form.id);
 
-  const loadCampaigns = async (status = filter) => {
+  const loadCampaigns = useCallback(async (status = filter) => {
     setLoading(true);
     setErrorMessage("");
     try {
@@ -139,9 +139,9 @@ export default function Promotions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
 
-  useEffect(() => { loadCampaigns(); }, []);
+  useEffect(() => { loadCampaigns(); }, [loadCampaigns]);
 
   const metrics = useMemo(() => ({
     active: campaigns.filter((campaign) => campaign.status === "ACTIVE").length,
@@ -241,7 +241,6 @@ export default function Promotions() {
 
   const handleFilter = (value) => {
     setFilter(value);
-    loadCampaigns(value);
   };
 
   return (

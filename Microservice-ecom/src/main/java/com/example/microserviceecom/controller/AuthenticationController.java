@@ -2,13 +2,17 @@ package com.example.microserviceecom.controller;
 
 import com.example.microserviceecom.dto.request.AuthenticationRequest;
 import com.example.microserviceecom.dto.request.IntrospecRequest;
+import com.example.microserviceecom.dto.request.PasswordResetRequest;
+import com.example.microserviceecom.dto.request.PasswordResetConfirmRequest;
 import com.example.microserviceecom.dto.response.ApiResponse;
 import com.example.microserviceecom.dto.response.AuthenticationResponse;
 import com.example.microserviceecom.dto.response.IntrospectResponse;
 import com.example.microserviceecom.exception.AuthenticationException;
 import com.example.microserviceecom.exception.ErrorCode;
 import com.example.microserviceecom.service.AuthenticationService;
+import com.example.microserviceecom.service.PasswordResetService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +31,7 @@ import java.util.stream.Collectors;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
+    private final PasswordResetService passwordResetService;
 
     @org.springframework.beans.factory.annotation.Value("${security.refresh-cookie.secure:false}")
     private boolean refreshCookieSecure;
@@ -51,6 +56,30 @@ public class AuthenticationController {
                 .message("Login success")
                 .data(new AuthenticationResponse(result.userId(), result.accessToken()))
                 .build();
+    }
+
+    @PostMapping("/password-reset/request")
+    public ApiResponse<Void> requestPasswordReset(
+            @RequestBody @Valid PasswordResetRequest request,
+            HttpServletRequest servletRequest
+    ) {
+        passwordResetService.request(request.email(), clientAddress(servletRequest));
+        return ApiResponse.<Void>builder().status(HttpStatus.OK.value())
+                .message("Nếu email tồn tại, mã xác nhận đã được gửi").build();
+    }
+
+    private String clientAddress(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        return forwardedFor == null || forwardedFor.isBlank()
+                ? request.getRemoteAddr()
+                : forwardedFor.split(",", 2)[0].trim();
+    }
+
+    @PostMapping("/password-reset/confirm")
+    public ApiResponse<Void> confirmPasswordReset(@RequestBody @Valid PasswordResetConfirmRequest request) {
+        passwordResetService.confirm(request);
+        return ApiResponse.<Void>builder().status(HttpStatus.OK.value())
+                .message("Đặt lại mật khẩu thành công").build();
     }
 
     @PostMapping("/refresh-token")

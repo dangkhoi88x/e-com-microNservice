@@ -40,6 +40,12 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private String userId;
 
+    @Column(name = "seller_id")
+    private String sellerId;
+
+    @Column(name = "shop_id")
+    private String shopId;
+
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal totalAmount;
 

@@ -11,12 +11,17 @@ import java.util.List;
 
 public interface FlashDealService {
     FlashDealResponse create(CreateFlashDealRequest request);
+    FlashDealResponse createForSeller(String sellerId, CreateFlashDealRequest request);
     List<FlashDealResponse> getAll(String status);
+    List<FlashDealResponse> getAllForSeller(String sellerId);
     List<FlashDealResponse> getByStatusAndType(FlashDealStatus status, SaleType saleType);
     FlashDealResponse getById(String id);
     FlashDealDetailResponse getDetail(String id);
     FlashDealResponse update(String id, CreateFlashDealRequest request);
+    FlashDealResponse updateForSeller(String id, String sellerId, CreateFlashDealRequest request);
     void delete(String id);
+    void deleteForSeller(String id, String sellerId);
+    FlashDealDetailResponse getDetailForSeller(String id, String sellerId);
     List<FlashDealPriceResponse> reserve(ReserveFlashDealRequest request);
     void confirm(String orderId);
     void release(String orderId);

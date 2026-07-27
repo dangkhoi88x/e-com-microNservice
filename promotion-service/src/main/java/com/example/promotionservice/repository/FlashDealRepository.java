@@ -12,6 +12,7 @@ import java.util.UUID;
 
 public interface FlashDealRepository extends JpaRepository<FlashDeal, UUID> {
     List<FlashDeal> findAllByOrderByStartAtDesc();
+    List<FlashDeal> findAllBySellerIdOrderByStartAtDesc(String sellerId);
     List<FlashDeal> findAllByStatusOrderByStartAtAsc(FlashDealStatus status);
 
     @Modifying

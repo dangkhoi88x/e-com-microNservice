@@ -5,7 +5,6 @@ import {
   Button,
   Chip,
   CircularProgress,
-  Divider,
   IconButton,
   LinearProgress,
   Paper,
@@ -21,7 +20,6 @@ import {
 } from "@mui/material";
 import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
-import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
@@ -30,7 +28,6 @@ import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNone
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
-import StarBorderRoundedIcon from "@mui/icons-material/StarBorderRounded";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import TimelineRoundedIcon from "@mui/icons-material/TimelineRounded";
 import { useEffect, useMemo, useState } from "react";
@@ -40,7 +37,7 @@ import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
 import { Button as ShadcnButton } from "../components/ui/button";
 import { getCategories } from "../services/categoryService";
-import { hasAnyRole } from "../services/authenticationService";
+import { hasAdminRole } from "../services/authenticationService";
 import { getMyNotifications } from "../services/notificationService";
 import { getAllOrders, getMyOrders } from "../services/orderService";
 import { getAllPayments, getMyPayments } from "../services/paymentService";
@@ -220,7 +217,7 @@ function TemplateCard({ template, onClick }) {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const isAdmin = hasAnyRole("ROLE_ADMIN", "ADMIN");
+  const isAdmin = hasAdminRole();
   const [metrics, setMetrics] = useState({ products: 0, categories: 0, orders: 0, payments: 0, notifications: 0 });
   const [orders, setOrders] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -232,8 +229,6 @@ export default function Dashboard() {
     result[status] = orders.filter((order) => order.status === status).length;
     return result;
   }, {}), [orders]);
-  const maxStatusCount = Math.max(...Object.values(orderStatusCounts), 1);
-
   const loadDashboard = async () => {
     setLoading(true);
     setErrorMessage("");
@@ -290,7 +285,6 @@ export default function Dashboard() {
           </Box>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} className="intro-actions">
             <ShadcnButton variant="outline" className="date-button"><TimelineRoundedIcon fontSize="small" />{lastUpdated.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</ShadcnButton>
-            <ShadcnButton className="primary-action" onClick={() => navigate("/products/new")}><Inventory2OutlinedIcon fontSize="small" />New product</ShadcnButton>
           </Stack>
         </Stack>
 

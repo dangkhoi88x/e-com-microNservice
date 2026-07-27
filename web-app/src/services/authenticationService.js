@@ -31,6 +31,16 @@ export const register = async ({ email, password, firstName, lastName }) => {
   return response.data;
 };
 
+export const requestPasswordReset = async (email) => {
+  const response = await httpClient.post(API.PASSWORD_RESET_REQUEST, { email });
+  return response.data;
+};
+
+export const confirmPasswordReset = async ({ email, otp, newPassword, confirmPassword }) => {
+  const response = await httpClient.post(API.PASSWORD_RESET_CONFIRM, { email, otp, newPassword, confirmPassword });
+  return response.data;
+};
+
 export const restoreSession = () => {
   if (!restorePromise) {
     restorePromise = httpClient.post(API.REFRESH_TOKEN)
@@ -76,4 +86,15 @@ export const getCurrentUserRoles = () => {
 export const hasAnyRole = (...roles) => {
   const currentRoles = getCurrentUserRoles();
   return roles.some((role) => currentRoles.includes(role));
+};
+
+export const hasAdminRole = () => hasAnyRole("ROLE_ADMIN");
+export const hasSellerRole = () => hasAnyRole("ROLE_SELLER");
+export const hasUserRole = () => hasAnyRole("ROLE_USER");
+
+export const getRoleHomePath = () => {
+  if (hasAdminRole()) return "/admin";
+  if (hasAnyRole("ROLE_SHIPPER")) return "/shipper";
+  if (hasSellerRole()) return "/seller";
+  return "/shop";
 };

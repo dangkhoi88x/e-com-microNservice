@@ -6,6 +6,7 @@ public record SearchRequest(String q,
                             String description,
                             Double minPrice,
                             Double maxPrice,
+                            Double minRating,
                             String status,
                             Boolean inStock) {
 }

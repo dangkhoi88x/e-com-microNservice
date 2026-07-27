@@ -1,30 +1,31 @@
 import { Box, Button, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, Switch, TextField, Typography } from "@mui/material";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
 
-export const emptyOption = () => ({ name: "", displayName: "", displayType: "BUTTON", displayOrder: 0, required: true, values: [] });
-export const emptyOptionValue = () => ({ value: "", displayValue: "", colorHex: "", imageUrl: "", displayOrder: 0, active: true });
+const emptyOption = () => ({ name: "", displayName: "", displayType: "BUTTON", displayOrder: 0, required: true, values: [] });
+const emptyOptionValue = () => ({ value: "", displayValue: "", colorHex: "", imageUrl: "", imageFile: null, imagePreviewUrl: "", displayOrder: 0, active: true });
+const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-export const toOptionsPayload = (options) => options.map((option, optionIndex) => ({
-  name: String(option.name || "").trim().toLowerCase(),
-  displayName: String(option.displayName || "").trim(),
-  displayType: option.displayType,
-  displayOrder: Number(option.displayOrder) || optionIndex,
-  required: option.required,
-  values: option.values.map((value, valueIndex) => ({
-    value: String(value.value || "").trim().toLowerCase(),
-    displayValue: String(value.displayValue || "").trim(),
-    colorHex: String(value.colorHex || "").trim() || null,
-    imageUrl: String(value.imageUrl || "").trim() || null,
-    displayOrder: Number(value.displayOrder) || valueIndex,
-    active: value.active,
-  })),
-}));
-
-export function ProductOptionsEditor({ options, onChange }) {
+export function ProductOptionsEditor({ options, onChange, onError }) {
   const updateOption = (index, field, value) => onChange(options.map((option, i) => i === index ? { ...option, [field]: value } : option));
   const addValue = (index) => updateOption(index, "values", [...options[index].values, emptyOptionValue()]);
   const updateValue = (optionIndex, valueIndex, field, value) => updateOption(optionIndex, "values", options[optionIndex].values.map((item, i) => i === valueIndex ? { ...item, [field]: value } : item));
+  const selectValueImage = (optionIndex, valueIndex) => (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!ALLOWED_IMAGE_TYPES.has(file.type) || file.size > MAX_IMAGE_BYTES) {
+      onError?.("Ảnh option phải là JPEG, PNG hoặc WebP và không quá 6 MB.");
+      return;
+    }
+    const current = options[optionIndex].values[valueIndex];
+    if (current.imagePreviewUrl) URL.revokeObjectURL(current.imagePreviewUrl);
+    updateOption(optionIndex, "values", options[optionIndex].values.map((value, index) => (
+      index === valueIndex ? { ...value, imageFile: file, imagePreviewUrl: URL.createObjectURL(file) } : value
+    )));
+  };
 
   return <Box>
     <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
@@ -46,7 +47,13 @@ export function ProductOptionsEditor({ options, onChange }) {
             <TextField label="Value" value={value.value} onChange={(e) => updateValue(optionIndex, valueIndex, "value", e.target.value)} required />
             <TextField label="Display value" value={value.displayValue} onChange={(e) => updateValue(optionIndex, valueIndex, "displayValue", e.target.value)} required />
             {option.displayType === "COLOR_SWATCH" && <TextField label="Color hex" value={value.colorHex} onChange={(e) => updateValue(optionIndex, valueIndex, "colorHex", e.target.value)} />}
-            <TextField label="Image URL" value={value.imageUrl} onChange={(e) => updateValue(optionIndex, valueIndex, "imageUrl", e.target.value)} />
+            <Stack direction="row" spacing={1} alignItems="center">
+              {(value.imagePreviewUrl || value.imageUrl) && <Box component="img" src={value.imagePreviewUrl || value.imageUrl} alt="Ảnh option" sx={{ width: 42, height: 42, borderRadius: 1, objectFit: "cover" }} />}
+              <Button component="label" size="small" variant="outlined" startIcon={<CloudUploadOutlinedIcon />}>
+                {value.imageFile ? "Đổi ảnh" : value.imageUrl ? "Thay ảnh" : "Ảnh option"}
+                <input hidden type="file" accept="image/jpeg,image/png,image/webp" onChange={selectValueImage(optionIndex, valueIndex)} />
+              </Button>
+            </Stack>
             <IconButton color="error" onClick={() => updateOption(optionIndex, "values", option.values.filter((_, i) => i !== valueIndex))}><DeleteOutlineOutlinedIcon /></IconButton>
           </Stack>)}
           <Button type="button" size="small" startIcon={<AddOutlinedIcon />} onClick={() => addValue(optionIndex)} sx={{ alignSelf: "flex-start" }}>Add value</Button>

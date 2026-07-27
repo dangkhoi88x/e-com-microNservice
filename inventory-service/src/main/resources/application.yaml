@@ -16,7 +16,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     # schema.sql creates the aggregate/variant indexes after Hibernate has
     # updated the table.
     defer-datasource-initialization: true
@@ -24,9 +24,18 @@ spring:
     init:
       mode: always
 
+outbox:
+  publisher:
+    fixed-delay-ms: ${OUTBOX_PUBLISHER_FIXED_DELAY_MS:3000}
+
 eureka:
   instance:
     hostname: localhost
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+security:
+  jwt:
+    issuer: ${JWT_ISSUER:http://localhost:8090}
+    audience: ${JWT_AUDIENCE:novashop-api}
+    jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8090/identity/api/.well-known/jwks.json}

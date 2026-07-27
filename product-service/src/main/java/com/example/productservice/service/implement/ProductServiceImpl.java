@@ -1,13 +1,20 @@
 package com.example.productservice.service.implement;
 
 import com.example.productservice.client.InventoryClient;
+import com.example.productservice.client.SellerClient;
+import com.example.productservice.common.ProductModerationAction;
 import com.example.productservice.common.ProductStatus;
 import com.example.productservice.dto.request.CreateProductRequest;
+import com.example.productservice.dto.request.CreateSellerProductRequest;
+import com.example.productservice.dto.request.ModerateProductRequest;
 import com.example.productservice.dto.request.ProductVariantRequest;
 import com.example.productservice.dto.request.ProductOptionRequest;
 import com.example.productservice.dto.request.ProductOptionValueRequest;
 import com.example.productservice.dto.request.SearchRequest;
 import com.example.productservice.dto.request.UpdateProductRequest;
+import com.example.productservice.dto.request.UpdateSellerProductQuantityRequest;
+import com.example.productservice.dto.request.UpdateSellerProductStatusRequest;
+import com.example.productservice.dto.request.UpdateSellerProductRequest;
 import com.example.productservice.dto.response.CreateProductResponse;
 import com.example.productservice.dto.response.PageResponse;
 import com.example.productservice.dto.response.ProductDetailResponse;
@@ -51,6 +58,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.time.Instant;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,6 +71,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final InventoryClient inventoryClient;
+    private final SellerClient sellerClient;
 
   //  @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
     @Override
@@ -103,6 +112,7 @@ public class ProductServiceImpl implements ProductService {
         sendProductCreatedEvent(productCreatedEvent);
         return CreateProductResponse.builder()
                 .id(product.getId())
+                .shopId(product.getShopId())
                 .name(product.getName())
                 .slug(product.getSlug())
                 .description(product.getDescription())
@@ -117,9 +127,51 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
+    public CreateProductResponse createSellerProduct(
+            String sellerId,
+            String authorization,
+            CreateSellerProductRequest request
+    ) {
+        String shopId = requireApprovedShop(authorization);
+        Category category = categoryRepository.findById(request.categoryId())
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.CATEGORY_NOT_FOUND));
+
+        Product product = Product.builder()
+                .sellerId(sellerId)
+                .shopId(shopId)
+                .name(request.name().trim())
+                .slug(generateUniqueSlug(request.name()))
+                .description(request.description())
+                .price(request.price())
+                .quantity(request.quantity())
+                .images(request.images())
+                .status(ProductStatus.DRAFT)
+                .category(category)
+                .build();
+        replaceOptions(product, request.options());
+        replaceVariants(product, request.variants());
+        product.getVariants().forEach(variant -> variant.setStatus(ProductStatus.DRAFT));
+        Product savedProduct = productRepository.save(product);
+        savedProduct.setQuantity(inventoryClient.setAvailableQuantity(savedProduct.getId(), request.quantity()));
+        sendProductCreatedEvent(toProductCreatedEvent(savedProduct));
+        return toCreateProductResponse(savedProduct);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<ProductDetailResponse> getMySellerProducts(String sellerId, int page, int size) {
+        int currentPage = Math.max(page, 1);
+        Pageable pageable = PageRequest.of(currentPage - 1, Math.min(Math.max(size, 1), 100),
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Product> products = productRepository.findAllBySellerIdOrderByCreatedAtDesc(sellerId, pageable);
+        return toPageResponse(products, products.getContent().stream().map(this::toProductDetailResponse).toList());
+    }
+
+    @Override
     public PageResponse<ProductDetailResponse> getAllProducts(int page, int size, SearchRequest request) {
         int currentPage = Math.max(page, 1);
-        int pageSize = Math.max(size, 1);
+        int pageSize = Math.min(Math.max(size, 1), 100);
 
         // JPA bắt đầu từ 0, còn API dùng page bắt đầu từ 1.
         Pageable pageable = PageRequest.of(currentPage - 1, pageSize, Sort.by(Sort.Direction.ASC, "name"));
@@ -164,13 +216,22 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDetailResponse getProductById(String id) {
         return productRepository.findById(id)
+                .filter(product -> product.getStatus() == ProductStatus.ACTIVE)
                 .map(this::toProductDetailResponseWithFreshInventory)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_NOT_FOUND));
     }
 
     @Override
+    public ProductDetailResponse getSellerProductById(String id, String sellerId) {
+        return productRepository.findByIdAndSellerId(id, sellerId)
+                .map(this::toProductDetailResponseWithFreshInventory)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+    }
+
+    @Override
     public ProductDetailResponse getProductBySlug(String slug) {
         return productRepository.findBySlug(slug)
+                .filter(product -> product.getStatus() == ProductStatus.ACTIVE)
                 .map(this::toProductDetailResponseWithFreshInventory)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_NOT_FOUND));
     }
@@ -235,18 +296,123 @@ public class ProductServiceImpl implements ProductService {
         return toProductDetailResponse(product);
     }
 
-   // @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
     @Override
-    public void deleteProduct(String id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_NOT_FOUND));
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
-            throw new ProductServiceException(ErrorCode.UNAUTHORIZED);
+    @Transactional
+    public ProductDetailResponse updateSellerProduct(String id, String sellerId, String authorization, UpdateSellerProductRequest request) {
+        Product product = productRepository.findByIdAndSellerId(id, sellerId)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+        requireApprovedShopForProduct(authorization, product);
+        if (product.getStatus() != ProductStatus.DRAFT && product.getStatus() != ProductStatus.REJECTED) {
+            throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
         }
 
-        checkProductAccess(product, authentication.getName());
+        applySellerUpdate(product, request);
+        product.getVariants().forEach(variant -> variant.setStatus(product.getStatus()));
+        Product savedProduct = productRepository.save(product);
+        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
+        return toProductDetailResponse(savedProduct);
+    }
+
+    @Override
+    @Transactional
+    public ProductDetailResponse updateSellerProductQuantity(
+            String id,
+            String sellerId,
+            String authorization,
+            UpdateSellerProductQuantityRequest request
+    ) {
+        Product product = productRepository.findByIdAndSellerId(id, sellerId)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+        requireApprovedShopForProduct(authorization, product);
+        if (product.getStatus() == ProductStatus.PENDING_APPROVAL) {
+            throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
+        }
+
+        product.setQuantity(inventoryClient.setAvailableQuantity(product.getId(), request.quantity()));
+        Product savedProduct = productRepository.save(product);
+        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
+        return toProductDetailResponse(savedProduct);
+    }
+
+    @Override
+    @Transactional
+    public ProductDetailResponse updateSellerProductStatus(
+            String id,
+            String sellerId,
+            String authorization,
+            UpdateSellerProductStatusRequest request
+    ) {
+        Product product = productRepository.findByIdAndSellerId(id, sellerId)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+        requireApprovedShopForProduct(authorization, product);
+        ProductStatus currentStatus = product.getStatus();
+        ProductStatus targetStatus = request.status();
+        boolean currentCanBeChanged = currentStatus == ProductStatus.ACTIVE || currentStatus == ProductStatus.INACTIVE;
+        boolean targetCanBeSet = targetStatus == ProductStatus.ACTIVE || targetStatus == ProductStatus.INACTIVE;
+        if (!currentCanBeChanged || !targetCanBeSet) {
+            throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
+        }
+
+        product.setStatus(targetStatus);
+        product.getVariants().forEach(variant -> variant.setStatus(targetStatus));
+        Product savedProduct = productRepository.save(product);
+        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
+        return toProductDetailResponse(savedProduct);
+    }
+
+    @Override
+    @Transactional
+    public ProductDetailResponse submitSellerProduct(String id, String sellerId, String authorization) {
+        Product product = productRepository.findByIdAndSellerId(id, sellerId)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+        String approvedShopId = requireApprovedShop(authorization);
+        if (!approvedShopId.equals(product.getShopId())
+                || (product.getStatus() != ProductStatus.DRAFT && product.getStatus() != ProductStatus.REJECTED)) {
+            throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
+        }
+
+        product.setStatus(ProductStatus.PENDING_APPROVAL);
+        product.getVariants().forEach(variant -> variant.setStatus(ProductStatus.PENDING_APPROVAL));
+        product.setModerationNote(null);
+        product.setModeratedBy(null);
+        product.setModeratedAt(null);
+        Product savedProduct = productRepository.save(product);
+        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
+        return toProductDetailResponse(savedProduct);
+    }
+
+    @Override
+    @Transactional
+    public ProductDetailResponse moderateProduct(String id, String adminUserId, ModerateProductRequest request) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_NOT_FOUND));
+        String note = request.note() == null || request.note().isBlank() ? null : request.note().trim();
+        ProductStatus targetStatus = targetModerationStatus(product.getStatus(), request.action());
+        if ((request.action() == ProductModerationAction.REJECT || request.action() == ProductModerationAction.HIDE)
+                && note == null) {
+            throw new ProductServiceException(ErrorCode.MODERATION_NOTE_REQUIRED);
+        }
+
+        product.setStatus(targetStatus);
+        product.getVariants().forEach(variant -> variant.setStatus(targetStatus));
+        product.setModerationNote(note);
+        product.setModeratedBy(adminUserId);
+        product.setModeratedAt(Instant.now());
+        Product savedProduct = productRepository.save(product);
+        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
+        return toProductDetailResponse(savedProduct);
+    }
+
+   // @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
+    @Override
+    public void deleteProduct(String id, String sellerId, String authorization) {
+        Product product = productRepository.findByIdAndSellerId(id, sellerId)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+        requireApprovedShopForProduct(authorization, product);
+
+        if (product.getStatus() != ProductStatus.DRAFT && product.getStatus() != ProductStatus.REJECTED) {
+            throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
+        }
 
         productRepository.delete(product);
 
@@ -305,6 +471,24 @@ public class ProductServiceImpl implements ProductService {
                 savedProduct.getQuantity());
     }
 
+    @Override
+    @Transactional
+    public void inactivateProductsForSuspendedShop(String shopId) {
+        List<Product> activeProducts = productRepository.findAllByShopIdAndStatus(shopId, ProductStatus.ACTIVE);
+        if (activeProducts.isEmpty()) {
+            log.info("No active products to inactivate for suspended shop: shopId={}", shopId);
+            return;
+        }
+
+        activeProducts.forEach(product -> {
+            product.setStatus(ProductStatus.INACTIVE);
+            product.getVariants().forEach(variant -> variant.setStatus(ProductStatus.INACTIVE));
+        });
+        List<Product> savedProducts = productRepository.saveAll(activeProducts);
+        savedProducts.forEach(product -> sendProductUpdatedEvent(toProductUpdatedEvent(product)));
+        log.info("Inactivated {} active products for suspended shop: shopId={}", savedProducts.size(), shopId);
+    }
+
 
     private String generateUniqueSlug(String name) {
         String baseSlug = SlugUtils.toSlug(name);
@@ -320,6 +504,65 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return slug;
+    }
+
+    private void applySellerUpdate(Product product, UpdateSellerProductRequest request) {
+        if (request.categoryId() != null) {
+            if (request.categoryId().isBlank()) {
+                throw new ProductServiceException(ErrorCode.INVALID_CATEGORY_ID);
+            }
+            product.setCategory(categoryRepository.findById(request.categoryId())
+                    .orElseThrow(() -> new ProductServiceException(ErrorCode.CATEGORY_NOT_FOUND)));
+        }
+        if (request.name() != null) {
+            String name = request.name().trim();
+            product.setSlug(generateUniqueSlugForUpdate(name, product.getId(), product.getSlug()));
+            product.setName(name);
+        }
+        if (request.description() != null) product.setDescription(request.description());
+        if (request.price() != null) product.setPrice(request.price());
+        if (request.quantity() != null) product.setQuantity(request.quantity());
+        if (request.images() != null) product.setImages(request.images());
+        if (request.options() != null) replaceOptions(product, request.options());
+        if (request.variants() != null) {
+            replaceVariants(product, request.variants());
+        } else if (request.options() != null) {
+            validateVariantAttributes(product.getVariants(), product);
+        }
+    }
+
+    private String requireApprovedShop(String authorization) {
+        try {
+            return sellerClient.requireApprovedShop(authorization).shopId();
+        } catch (SellerClient.SellerClientException exception) {
+            if (exception.getFailure() == SellerClient.SellerClientFailure.NOT_ELIGIBLE) {
+                throw new ProductServiceException(ErrorCode.SELLER_SHOP_NOT_APPROVED);
+            }
+            throw new ProductServiceException(ErrorCode.SELLER_SERVICE_UNAVAILABLE);
+        }
+    }
+
+    private ProductStatus targetModerationStatus(ProductStatus currentStatus, ProductModerationAction action) {
+        return switch (action) {
+            case APPROVE -> {
+                if (currentStatus != ProductStatus.PENDING_APPROVAL) {
+                    throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
+                }
+                yield ProductStatus.ACTIVE;
+            }
+            case REJECT -> {
+                if (currentStatus != ProductStatus.PENDING_APPROVAL) {
+                    throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
+                }
+                yield ProductStatus.REJECTED;
+            }
+            case HIDE -> {
+                if (currentStatus != ProductStatus.ACTIVE) {
+                    throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
+                }
+                yield ProductStatus.INACTIVE;
+            }
+        };
     }
 
     private String generateUniqueSlugForUpdate(String name, String productId, String currentSlug) {
@@ -362,6 +605,13 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
+    private void requireApprovedShopForProduct(String authorization, Product product) {
+        String approvedShopId = requireApprovedShop(authorization);
+        if (!approvedShopId.equals(product.getShopId())) {
+            throw new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED);
+        }
+    }
+
     private ProductUpdatedEvent toProductUpdatedEvent(Product product) {
         Category category = product.getCategory();
         return ProductUpdatedEvent.builder()
@@ -375,6 +625,52 @@ public class ProductServiceImpl implements ProductService {
                 .categoryName(category.getName())
                 .thumbnailUrl(getThumbnailUrl(product))
                 .inStock(product.getQuantity() != null && product.getQuantity() > 0)
+                .build();
+    }
+
+    private ProductCreatedEvent toProductCreatedEvent(Product product) {
+        Category category = product.getCategory();
+        return ProductCreatedEvent.builder()
+                .productId(product.getId())
+                .name(product.getName())
+                .description(product.getDescription())
+                .price(product.getPrice().doubleValue())
+                .status(product.getStatus().name())
+                .createdAt(product.getCreatedAt())
+                .categoryId(category.getId())
+                .categoryName(category.getName())
+                .thumbnailUrl(getThumbnailUrl(product))
+                .inStock(product.getQuantity() != null && product.getQuantity() > 0)
+                .build();
+    }
+
+    private CreateProductResponse toCreateProductResponse(Product product) {
+        return CreateProductResponse.builder()
+                .id(product.getId())
+                .shopId(product.getShopId())
+                .name(product.getName())
+                .slug(product.getSlug())
+                .description(product.getDescription())
+                .price(product.getPrice())
+                .quantity(product.getQuantity())
+                .images(product.getImages())
+                .options(toOptionResponses(product.getOptions()))
+                .variants(toVariantResponses(product.getVariants()))
+                .status(product.getStatus())
+                .createdAt(product.getCreatedAt())
+                .build();
+    }
+
+    private PageResponse<ProductDetailResponse> toPageResponse(
+            Page<Product> productPage,
+            List<ProductDetailResponse> content
+    ) {
+        return PageResponse.<ProductDetailResponse>builder()
+                .currentPage(productPage.getNumber() + 1)
+                .pageSize(productPage.getSize())
+                .totalPages(productPage.getTotalPages())
+                .totalElements(productPage.getTotalElements())
+                .content(content)
                 .build();
     }
 
@@ -414,6 +710,8 @@ public class ProductServiceImpl implements ProductService {
     private ProductDetailResponse toProductDetailResponse(Product product, Integer quantity) {
         return ProductDetailResponse.builder()
                 .id(product.getId())
+                .shopId(product.getShopId())
+                .sellerId(product.getSellerId())
                 .name(product.getName())
                 .slug(product.getSlug())
                 .description(product.getDescription())
@@ -425,6 +723,7 @@ public class ProductServiceImpl implements ProductService {
                 .options(toOptionResponses(product.getOptions()))
                 .variants(toVariantResponses(product.getVariants()))
                 .status(product.getStatus())
+                .moderationNote(product.getModerationNote())
                 .createdAt(product.getCreatedAt())
                 .build();
     }

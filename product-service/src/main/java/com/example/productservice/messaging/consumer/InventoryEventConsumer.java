@@ -14,7 +14,11 @@ public class InventoryEventConsumer {
 
     private final ProductService productService;
 
-    @KafkaListener(topics = "inventory-updated", groupId = "product-group")
+    @KafkaListener(
+            topics = "inventory-updated",
+            groupId = "product-group",
+            containerFactory = "inventoryKafkaListenerContainerFactory"
+    )
     public void inventoryUpdated(InventoryUpdatedEvent event) {
         log.info("Received InventoryUpdatedEvent: productId={}, availableQuantity={}",
                 event.getProductId(),

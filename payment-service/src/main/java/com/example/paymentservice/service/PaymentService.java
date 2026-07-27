@@ -3,6 +3,7 @@ package com.example.paymentservice.service;
 import com.example.paymentservice.dto.request.CreatePaymentRequest;
 import com.example.paymentservice.dto.response.PageResponse;
 import com.example.paymentservice.dto.response.PaymentResponse;
+import com.example.paymentservice.dto.response.StripeCheckoutResponse;
 
 public interface PaymentService {
     PaymentResponse createPayment(String userId, String token, CreatePaymentRequest request);
@@ -18,4 +19,10 @@ public interface PaymentService {
     PaymentResponse markPaymentFailed(String userId, String paymentId);
 
     PaymentResponse cancelPayment(String userId, String paymentId);
+
+    StripeCheckoutResponse createStripeCheckout(String userId, String paymentId);
+
+    PaymentResponse reconcileStripePayment(String userId, String paymentId);
+
+    void handleStripeWebhook(String payload, String signature);
 }

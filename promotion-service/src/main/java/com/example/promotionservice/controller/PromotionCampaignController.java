@@ -11,6 +11,7 @@ import com.example.promotionservice.service.PromotionUsageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,11 +32,13 @@ public class PromotionCampaignController {
     private final PromotionUsageService usageService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<PromotionCampaignResponse> create(@Valid @RequestBody CreatePromotionCampaignRequest request) {
         return body(HttpStatus.CREATED, "Promotion campaign created successfully", service.create(request));
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<List<PromotionCampaignResponse>> getAll(@RequestParam(required = false) String status) {
         return body(HttpStatus.OK, "Promotion campaigns retrieved successfully", service.getAll(status));
     }
@@ -46,6 +49,7 @@ public class PromotionCampaignController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<PromotionCampaignResponse> getById(@PathVariable String id) {
         return body(HttpStatus.OK, "Promotion campaign retrieved successfully", service.getById(id));
     }
@@ -57,11 +61,13 @@ public class PromotionCampaignController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<PromotionCampaignResponse> update(@PathVariable String id, @Valid @RequestBody UpdatePromotionCampaignRequest request) {
         return body(HttpStatus.OK, "Promotion campaign updated successfully", service.update(id, request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<Void> delete(@PathVariable String id) {
         service.delete(id);
         return body(HttpStatus.OK, "Promotion campaign deleted successfully", null);

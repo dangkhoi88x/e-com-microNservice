@@ -23,6 +23,10 @@ public enum ErrorCode {
     INVALID_PRODUCT_VARIANT_ATTRIBUTE(400, "Product variant attributes must match the configured product options", HttpStatus.BAD_REQUEST),
     INVALID_CATEGORY_ID(400, "Category id is invalid", HttpStatus.BAD_REQUEST),
     PRODUCT_ACCESS_DENIED(403, "You do not have permission to access this product", HttpStatus.FORBIDDEN),
+    SELLER_SHOP_NOT_APPROVED(403, "Your shop must be approved before managing products", HttpStatus.FORBIDDEN),
+    SELLER_SERVICE_UNAVAILABLE(503, "Seller Service is unavailable", HttpStatus.SERVICE_UNAVAILABLE),
+    INVALID_PRODUCT_TRANSITION(400, "Product status transition is invalid", HttpStatus.BAD_REQUEST),
+    MODERATION_NOTE_REQUIRED(400, "A moderation note is required for this action", HttpStatus.BAD_REQUEST),
 
     ;
 

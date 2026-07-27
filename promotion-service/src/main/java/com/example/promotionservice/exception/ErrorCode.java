@@ -19,6 +19,7 @@ public enum ErrorCode {
     SALE_CAMPAIGN_OVERLAP(409, "This product or variant already has an overlapping campaign of the same sale type", HttpStatus.CONFLICT),
     FLASH_SALE_NOTIFICATION_UNAVAILABLE(400, "Flash Sale is not available for notification", HttpStatus.BAD_REQUEST),
     INVALID_REQUEST(400, "Request validation failed", HttpStatus.BAD_REQUEST),
+    SELLER_PRODUCT_NOT_OWNED(403, "A sale campaign can only contain products owned by your shop", HttpStatus.FORBIDDEN),
     INTERNAL_ERROR(500, "Unexpected error occurred while processing promotion", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;

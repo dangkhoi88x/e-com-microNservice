@@ -46,8 +46,8 @@ public class AuthenticationService {
 
         List<String> roles = grantedAuthorities.stream().map(GrantedAuthority::getAuthority).toList();
 
-        String accessToken = jwtService.generateAccessToken(user.getId(), roles);
-        String refreshToken = tokenService.createRefreshSession(user.getId(), Duration.ofDays(14));
+        String accessToken = jwtService.generateAccessToken(user.getId(), roles, user.getAuthVersion());
+        String refreshToken = tokenService.createRefreshSession(user.getId(), user.getAuthVersion(), Duration.ofDays(14));
 
         return new AuthenticationTokens(user.getId(), accessToken, refreshToken);
     }
@@ -58,20 +58,23 @@ public class AuthenticationService {
         }
 
         try {
-            String userId = tokenService.consumeRefreshSession(refreshToken);
-            if (userId == null) {
+            TokenService.RefreshSession session = tokenService.consumeRefreshSession(refreshToken);
+            if (session == null) {
                 throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
             }
 
-            User user = userRepository.findById(userId)
+            User user = userRepository.findById(session.userId())
                     .orElseThrow(() -> new RuntimeException("User does not exist"));
+            if (user.getAuthVersion() == null || user.getAuthVersion() != session.authVersion()) {
+                throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+            }
 
             List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-            String accessToken = jwtService.generateAccessToken(userId, roles);
-            String nextRefreshToken = tokenService.createRefreshSession(userId, Duration.ofDays(14));
+            String accessToken = jwtService.generateAccessToken(user.getId(), roles, user.getAuthVersion());
+            String nextRefreshToken = tokenService.createRefreshSession(user.getId(), user.getAuthVersion(), Duration.ofDays(14));
 
-            return new AuthenticationTokens(userId, accessToken, nextRefreshToken);
+            return new AuthenticationTokens(user.getId(), accessToken, nextRefreshToken);
         } catch (RuntimeException exception) {
             if (exception instanceof AuthenticationException authenticationException) {
                 throw authenticationException;

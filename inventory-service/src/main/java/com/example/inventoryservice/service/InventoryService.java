@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface InventoryService {
     InventoryResponse createInventory(CreateInventoryRequest request);
+    InventoryResponse setAvailableQuantity(String productId, String variantId, Integer availableQuantity);
 
     InventoryResponse getInventoryByProductId(String productId);
 
@@ -20,6 +21,8 @@ public interface InventoryService {
     void confirmInventory(InventoryOrderRequest request);
 
     void releaseInventory(InventoryOrderRequest request);
+
+    void confirmReturnedInventory(String orderId);
 
     List<ReservationResponse> getReservationsByOrderId(String orderId);
 }

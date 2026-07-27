@@ -43,6 +43,143 @@ services:
       timeout: 5s
       retries: 10
 
+  shipping-postgres:
+    image: postgres:17
+    container_name: shipping-postgres
+    ports:
+      - "5438:5432"
+    environment:
+      POSTGRES_DB: shipping_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - shipping-postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservice_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d shipping_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  review-postgres:
+    image: postgres:17
+    container_name: review-postgres
+    ports:
+      - "5439:5432"
+    environment:
+      POSTGRES_DB: review_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - review-postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservice_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d review_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  seller-postgres:
+    image: postgres:17
+    container_name: seller-postgres
+    ports:
+      - "5440:5432"
+    environment:
+      POSTGRES_DB: seller_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - seller-postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservice_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d seller_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  media-postgres:
+    image: postgres:17
+    container_name: media-postgres
+    ports:
+      - "5441:5432"
+    environment:
+      POSTGRES_DB: media_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - media-postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservice_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d media_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  review-service:
+    build:
+      context: ./review-service
+    container_name: review-service
+    ports:
+      - "8097:8097"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://review-postgres:5432/review_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICES_ORDER_BASE_URL: http://host.docker.internal:8086
+      SERVICES_PROFILE_BASE_URL: http://host.docker.internal:8081
+    depends_on:
+      review-postgres:
+        condition: service_healthy
+    networks:
+      - microservice_network
+
+  shipping-service:
+    build:
+      context: ./shipping-service
+    container_name: shipping-service
+    ports:
+      - "8096:8096"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://shipping-postgres:5432/shipping_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      shipping-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - microservice_network
+
+  seller-service:
+    build:
+      context: ./seller-service
+    container_name: seller-service
+    ports:
+      - "8098:8098"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://seller-postgres:5432/seller_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      IDENTITY_SERVICE_BASE_URL: http://host.docker.internal:8090/identity/api
+    depends_on:
+      seller-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - microservice_network
+
   promotion-service:
     build:
       context: ./promotion-service
@@ -201,5 +338,11 @@ volumes:
   elasticsearch_data:
   inventory_postgres_data:
   promotion-postgres-data:
+  seller-postgres-data:
+  shipping-postgres-data:
+  review-postgres-data:
+  media-postgres-data:
+    external: true
+    name: media-service-local_media-postgres-data
 networks:
   microservice_network:

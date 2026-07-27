@@ -31,7 +31,10 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
             new PublicEndpoint("/identity/users", HttpMethod.POST),
             new PublicEndpoint("/identity/auth/login", HttpMethod.POST),
             new PublicEndpoint("/identity/auth/refresh-token", HttpMethod.POST),
+            new PublicEndpoint("/identity/auth/password-reset/request", HttpMethod.POST),
+            new PublicEndpoint("/identity/auth/password-reset/confirm", HttpMethod.POST),
             new PublicEndpoint("/identity/auth/token/introspect", HttpMethod.POST),
+            new PublicEndpoint("/identity/.well-known/jwks.json", HttpMethod.GET),
             new PublicEndpoint("/identity/search/**", HttpMethod.GET),  // Search API là public
             new PublicEndpoint("/api/v1/search/**", HttpMethod.GET),
             new PublicEndpoint("/search/api/v1/search/**", HttpMethod.GET),
@@ -43,7 +46,10 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
             new PublicEndpoint("/api/v1/flash-deals/live", HttpMethod.GET),
             new PublicEndpoint("/api/v1/flash-deals/active", HttpMethod.GET),
             new PublicEndpoint("/api/v1/flash-deals/long-term/live", HttpMethod.GET),
-            new PublicEndpoint("/api/v1/flash-deals/upcoming", HttpMethod.GET)
+            new PublicEndpoint("/api/v1/flash-deals/upcoming", HttpMethod.GET),
+            new PublicEndpoint("/api/v1/reviews/products/**", HttpMethod.GET),
+            new PublicEndpoint("/api/v1/media/*/content", HttpMethod.GET),
+            new PublicEndpoint("/payment/api/v1/payments/stripe/webhook", HttpMethod.POST)
     );
 
     @Override

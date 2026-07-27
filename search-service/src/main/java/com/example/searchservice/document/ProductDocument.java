@@ -23,5 +23,7 @@ public class ProductDocument {
     private String categoryId;
     private String status;
     private Boolean inStock;
+    private Double averageRating;
+    private Long reviewCount;
     private Instant createdAt;
 }

@@ -32,9 +32,19 @@ httpClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     const status = error.response?.status;
-    const isRefreshRequest = originalRequest?.url?.includes(API.REFRESH_TOKEN);
+    // Authentication endpoints must return their own error (for example an
+    // invalid shipper password). Retrying them through refresh-token masks the
+    // real failure as "Missing refresh token" after logout.
+    const isAuthenticationRequest = [
+      API.LOGIN,
+      API.REFRESH_TOKEN,
+      API.LOGOUT,
+      API.REGISTER,
+      API.PASSWORD_RESET_REQUEST,
+      API.PASSWORD_RESET_CONFIRM,
+    ].some((path) => originalRequest?.url?.includes(path));
 
-    if (status !== 401 || originalRequest?._retry || isRefreshRequest) {
+    if (status !== 401 || originalRequest?._retry || isAuthenticationRequest) {
       return Promise.reject(error);
     }
 

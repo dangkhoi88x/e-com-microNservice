@@ -45,9 +45,9 @@ public class CartServiceImpl implements CartService {
         Cart cart = findActiveCartOrCreate(userId);
         ProductSnapshot snapshot = productClient.getSnapshot(request);
 
-        CartItem item = cartItemRepository
-                .findByCartIdAndProductIdAndVariantId(cart.getId(), request.productId(), request.variantId())
-                .orElse(null);
+        List<CartItem> matchingItems = cartItemRepository
+                .findAllByCartIdAndProductIdAndVariantId(cart.getId(), request.productId(), request.variantId());
+        CartItem item = matchingItems.isEmpty() ? null : matchingItems.getFirst();
 
         if (item == null) {
             item = CartItem.builder()
@@ -63,11 +63,17 @@ public class CartServiceImpl implements CartService {
                     .build();
             cart.getItems().add(item);
         } else {
-            item.setQuantity(item.getQuantity() + request.quantity());
+            int existingQuantity = matchingItems.stream()
+                    .mapToInt(CartItem::getQuantity)
+                    .sum();
+            item.setQuantity(existingQuantity + request.quantity());
             item.setProductName(snapshot.productName());
             item.setVariantName(snapshot.variantName());
             item.setPriceSnapshot(snapshot.price());
             item.setImageUrl(snapshot.imageUrl());
+            matchingItems.stream()
+                    .skip(1)
+                    .forEach(duplicate -> cart.getItems().remove(duplicate));
         }
 
         return toCartResponse(cartRepository.save(cart));

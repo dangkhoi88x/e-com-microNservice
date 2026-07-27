@@ -1,14 +1,17 @@
 package com.example.microserviceecom.service;
 
 import com.example.microserviceecom.common.TokenType;
+import com.example.microserviceecom.configuration.JwtKeyProvider;
 import com.example.microserviceecom.dto.TokenPayload;
 import com.example.microserviceecom.exception.AuthenticationException;
 import com.example.microserviceecom.exception.ErrorCode;
+import com.example.microserviceecom.repository.UserRepository;
 import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -28,13 +30,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class JwtService {
-    @Value("${jwt.secret-key}")
-    private String secretKey;
+    @Value("${jwt.issuer}")
+    private String issuer;
+
+    @Value("${jwt.audience:}")
+    private String audience;
 
     private final TokenService tokenService;
+    private final UserRepository userRepository;
+    private final JwtKeyProvider jwtKeyProvider;
 
-    public String generateAccessToken(String userId, List<String> roles) {
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
+    public String generateAccessToken(String userId, List<String> roles, int authVersion) {
+        JWSHeader header = signingHeader();
         Date now = new Date();
         Date expirationTime = Date.from(now.toInstant().plus(15, ChronoUnit.MINUTES));
 
@@ -42,8 +49,10 @@ public class JwtService {
                 .subject(userId)
                 .issueTime(now)
                 .expirationTime(expirationTime)
-                .issuer("http://localhost:8090")
+                .issuer(issuer)
+                .audience(audience)
                 .claim("roles", roles)
+                .claim("ver", authVersion)
                 .claim("typ", TokenType.ACCESS.name())
                 .jwtID(UUID.randomUUID().toString())
                 .build();
@@ -52,7 +61,7 @@ public class JwtService {
     }
 
     public TokenPayload generateRefreshToken(String userId) {
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
+        JWSHeader header = signingHeader();
         Date now = new Date();
         Instant expiresAt = now.toInstant().plus(14, ChronoUnit.DAYS);
         Date expirationTime = Date.from(expiresAt);
@@ -62,7 +71,8 @@ public class JwtService {
                 .subject(userId)
                 .issueTime(now)
                 .expirationTime(expirationTime)
-                .issuer("http://localhost:8090")
+                .issuer(issuer)
+                .audience(audience)
                 .claim("typ", TokenType.REFRESH.name())
                 .jwtID(jti)
                 .build();
@@ -78,10 +88,7 @@ public class JwtService {
 
     public SignedJWT verifyAccessToken(String token) throws ParseException, JOSEException {
         SignedJWT signedJWT = SignedJWT.parse(token);
-        boolean isValid = signedJWT.verify(new MACVerifier(getSecretKeyBytes()));
-        if (!isValid) {
-            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
-        }
+        verifySignatureAndIssuer(signedJWT);
 
         Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         if (expirationTime == null || expirationTime.before(new Date())) {
@@ -98,15 +105,24 @@ public class JwtService {
             throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
         }
 
+        String userId = signedJWT.getJWTClaimsSet().getSubject();
+        Integer tokenVersion = signedJWT.getJWTClaimsSet().getIntegerClaim("ver");
+        if (tokenVersion == null) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+        }
+        boolean currentVersion = userRepository.findById(userId)
+                .map(user -> user.getAuthVersion() != null && user.getAuthVersion() == tokenVersion)
+                .orElse(false);
+        if (!currentVersion) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+        }
+
         return signedJWT;
     }
 
     public SignedJWT verifyRefreshToken(String token) throws ParseException, JOSEException {
         SignedJWT signedJWT = SignedJWT.parse(token);
-        boolean isValid = signedJWT.verify(new MACVerifier(getSecretKeyBytes()));
-        if (!isValid) {
-            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
-        }
+        verifySignatureAndIssuer(signedJWT);
 
         Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         if (expirationTime == null || expirationTime.before(new Date())) {
@@ -124,15 +140,27 @@ public class JwtService {
     private String signToken(JWSHeader header, JWTClaimsSet jwtClaimsSet) {
         SignedJWT signedJWT = new SignedJWT(header, jwtClaimsSet);
         try {
-            signedJWT.sign(new MACSigner(getSecretKeyBytes()));
+            signedJWT.sign(new RSASSASigner(jwtKeyProvider.signingJwk().toPrivateKey()));
             return signedJWT.serialize();
         } catch (JOSEException exception) {
             throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
         }
     }
 
-    private byte[] getSecretKeyBytes() {
-        return secretKey.getBytes(StandardCharsets.UTF_8);
+    private JWSHeader signingHeader() {
+        return new JWSHeader.Builder(JWSAlgorithm.RS256)
+                .type(JOSEObjectType.JWT)
+                .keyID(jwtKeyProvider.signingJwk().getKeyID())
+                .build();
+    }
+
+    private void verifySignatureAndIssuer(SignedJWT signedJWT) throws JOSEException, ParseException {
+        if (!JWSAlgorithm.RS256.equals(signedJWT.getHeader().getAlgorithm())
+                || !signedJWT.verify(new RSASSAVerifier(jwtKeyProvider.signingJwk().toRSAPublicKey()))
+                || !issuer.equals(signedJWT.getJWTClaimsSet().getIssuer())
+                || (!audience.isBlank() && !signedJWT.getJWTClaimsSet().getAudience().contains(audience))) {
+            throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
+        }
     }
 
 }

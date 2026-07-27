@@ -11,5 +11,7 @@ public record PaymentResponse(String id,
                               String status,
                               String transactionCode,
                               String failureReason,
+                              String stripeCheckoutSessionId,
+                              Instant paidAt,
                               Instant createdAt) {
 }

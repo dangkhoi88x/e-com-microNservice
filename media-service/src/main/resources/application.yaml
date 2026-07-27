@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: media-service
+  config:
+    import: optional:file:.env.dev[.properties],optional:file:../.env.dev[.properties]
+  datasource:
+    # .env.example is shared by all services and contains a generic datasource URL.
+    # Media must use its own Postgres instance on port 5441.
+    url: ${MEDIA_DATASOURCE_URL:jdbc:postgresql://localhost:5441/media_db}
+    username: ${MEDIA_DATASOURCE_USERNAME:root}
+    password: ${MEDIA_DATASOURCE_PASSWORD:123456}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: ${MEDIA_MAX_FILE_SIZE:6MB}
+      max-request-size: ${MEDIA_MAX_REQUEST_SIZE:6MB}
+server:
+  port: ${SERVER_PORT:8099}
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+app:
+  media:
+    public-base-url: ${MEDIA_PUBLIC_BASE_URL:http://localhost:9191/api/v1/media}
+  s3:
+    bucket: ${BUCKET_NAME:}
+    region: ${REGION:ap-southeast-1}
+    access-key: ${AWS_ACCESS_KEY:}
+    secret-key: ${AWS_SECRET_KEY:}
+    max-file-size-bytes: ${MEDIA_MAX_FILE_SIZE_BYTES:6291456}
+    download-url-ttl: ${MEDIA_DOWNLOAD_URL_TTL:PT10M}
+security:
+  jwt:
+    issuer: ${JWT_ISSUER:http://localhost:8090}
+    audience: ${JWT_AUDIENCE:novashop-api}
+    jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8090/identity/api/.well-known/jwks.json}

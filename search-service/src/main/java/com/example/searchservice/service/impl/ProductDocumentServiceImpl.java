@@ -34,7 +34,7 @@ import java.util.Set;
 public class ProductDocumentServiceImpl implements ProductDocumentService {
 
     private static final int MAX_PAGE_SIZE = 100;
-    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("createdAt", "price");
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("createdAt", "price", "averageRating", "reviewCount");
 
     private final ProductDocumentRepository productDocumentRepository;
 
@@ -99,6 +99,18 @@ public class ProductDocumentServiceImpl implements ProductDocumentService {
             return productDocumentRepository.suggestions(query.trim(), Math.min(Math.max(size, 1), 10));
         } catch (IOException exception) {
             log.error("Failed to get product suggestions", exception);
+            throw new SearchServiceException(ErrorCode.ELASTICSEARCH_ERROR);
+        }
+    }
+
+    @Override
+    public void updateReviewSummary(String productId, double averageRating, long reviewCount) {
+        try {
+            productDocumentRepository.updateReviewSummary(productId, averageRating, reviewCount);
+            log.info("Updated review summary: productId={}, rating={}, count={}",
+                    productId, averageRating, reviewCount);
+        } catch (IOException exception) {
+            log.error("Failed to update review summary: productId={}", productId, exception);
             throw new SearchServiceException(ErrorCode.ELASTICSEARCH_ERROR);
         }
     }

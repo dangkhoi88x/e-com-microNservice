@@ -19,10 +19,10 @@ import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import WavingHandOutlinedIcon from "@mui/icons-material/WavingHandOutlined";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
-import { hasAnyRole } from "../services/authenticationService";
+import { hasAdminRole } from "../services/authenticationService";
 import {
   getAdminNotifications,
   getMyNotifications,
@@ -65,7 +65,7 @@ const getNotificationConfig = (type) =>
   };
 
 export default function Notifications() {
-  const isAdmin = hasAnyRole("ROLE_ADMIN", "ADMIN");
+  const isAdmin = hasAdminRole();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -75,7 +75,7 @@ export default function Notifications() {
     [notifications],
   );
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     setLoading(true);
     setErrorMessage("");
 
@@ -89,11 +89,11 @@ export default function Notifications() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAdmin]);
 
   useEffect(() => {
     loadNotifications();
-  }, []);
+  }, [loadNotifications]);
 
   return (
     <MainLayout>

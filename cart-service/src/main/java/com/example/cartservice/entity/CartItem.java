@@ -37,6 +37,7 @@ public class CartItem extends AbstractEntity {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal priceSnapshot;
 
+    @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(nullable = false)

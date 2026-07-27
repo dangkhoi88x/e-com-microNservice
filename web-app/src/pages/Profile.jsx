@@ -23,6 +23,7 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
 import { getMyProfile, updateMyProfile } from "../services/profileService";
+import { deleteMedia, uploadAvatar } from "../services/mediaService";
 
 const emptyProfile = {
   userId: "",
@@ -33,6 +34,8 @@ const emptyProfile = {
   birthDate: "",
 };
 
+const getMediaIdFromUrl = (url) => url?.match(/\/api\/v1\/media\/([0-9a-f-]{36})\/content(?:$|[?#])/i)?.[1] || null;
+
 export default function Profile() {
   const [profile, setProfile] = useState(emptyProfile);
   const [savedProfile, setSavedProfile] = useState(emptyProfile);
@@ -40,6 +43,8 @@ export default function Profile() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
 
   const fullName = [profile.firstName, profile.lastName]
     .filter(Boolean)
@@ -96,15 +101,18 @@ export default function Profile() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setProfile((current) => ({ ...current, avatarUrl: String(reader.result || "") }));
-      setErrorMessage("");
-    };
-    reader.readAsDataURL(file);
+    if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
+    setAvatarFile(file);
+    setAvatarPreviewUrl(URL.createObjectURL(file));
+    setErrorMessage("");
   };
 
-  const clearAvatar = () => setProfile((current) => ({ ...current, avatarUrl: "" }));
+  const clearAvatar = () => {
+    if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
+    setAvatarFile(null);
+    setAvatarPreviewUrl("");
+    setProfile((current) => ({ ...current, avatarUrl: "" }));
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -112,15 +120,17 @@ export default function Profile() {
     setErrorMessage("");
     setSuccessMessage("");
 
-    const payload = {
-      firstName: profile.firstName.trim(),
-      lastName: profile.lastName.trim(),
-      avatarUrl: profile.avatarUrl.trim(),
-      bio: profile.bio.trim(),
-      birthDate: profile.birthDate || null,
-    };
+    let uploadedMedia;
 
     try {
+      const avatarUrl = avatarFile ? (uploadedMedia = await uploadAvatar(avatarFile)).contentUrl : profile.avatarUrl.trim();
+      const payload = {
+        firstName: profile.firstName.trim(),
+        lastName: profile.lastName.trim(),
+        avatarUrl,
+        bio: profile.bio.trim(),
+        birthDate: profile.birthDate || null,
+      };
       const data = await updateMyProfile(payload);
       const nextProfile = {
         userId: data?.userId || profile.userId,
@@ -132,8 +142,14 @@ export default function Profile() {
       };
       setProfile(nextProfile);
       setSavedProfile(nextProfile);
+      if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
+      setAvatarFile(null);
+      setAvatarPreviewUrl("");
+      const oldMediaId = savedProfile.avatarUrl !== avatarUrl && getMediaIdFromUrl(savedProfile.avatarUrl);
+      if (oldMediaId) deleteMedia(oldMediaId).catch(() => {});
       setSuccessMessage("Profile updated successfully.");
     } catch (error) {
+      if (uploadedMedia) deleteMedia(uploadedMedia.id).catch(() => {});
       setErrorMessage(
         error.response?.data?.message || "Could not update profile.",
       );
@@ -189,7 +205,7 @@ export default function Profile() {
               <Stack alignItems="center" spacing={1.5} className="profile-identity">
                 <Avatar
                   className="profile-avatar"
-                  src={profile.avatarUrl || undefined}
+                  src={avatarPreviewUrl || profile.avatarUrl || undefined}
                   sx={{ width: 96, height: 96, bgcolor: "primary.main" }}
                 >
                   <AccountCircleOutlinedIcon sx={{ fontSize: 56 }} />
@@ -274,7 +290,7 @@ export default function Profile() {
                     />
                     <Box className="profile-upload-field">
                       <Box className="profile-upload-preview">
-                        {profile.avatarUrl ? <img src={profile.avatarUrl} alt="Xem trước ảnh đại diện" /> : <ImageOutlinedIcon />}
+                        {avatarPreviewUrl || profile.avatarUrl ? <img src={avatarPreviewUrl || profile.avatarUrl} alt="Xem trước ảnh đại diện" /> : <ImageOutlinedIcon />}
                       </Box>
                       <Box className="profile-upload-copy">
                         <Typography className="profile-upload-title">Ảnh đại diện</Typography>
@@ -284,7 +300,7 @@ export default function Profile() {
                             Tải ảnh lên
                             <input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatarUpload} />
                           </Button>
-                          {profile.avatarUrl && <Button size="small" color="inherit" onClick={clearAvatar} startIcon={<DeleteOutlineOutlinedIcon />}>Xóa</Button>}
+                          {(avatarPreviewUrl || profile.avatarUrl) && <Button size="small" color="inherit" onClick={clearAvatar} startIcon={<DeleteOutlineOutlinedIcon />}>Xóa</Button>}
                         </Stack>
                       </Box>
                     </Box>

@@ -1,0 +1,23 @@
+name: shipping-service-local
+
+services:
+  shipping-postgres:
+    image: postgres:17
+    container_name: shipping-postgres
+    restart: unless-stopped
+    ports:
+      - "5438:5432"
+    environment:
+      POSTGRES_DB: shipping_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - shipping-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d shipping_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  shipping-postgres-data:

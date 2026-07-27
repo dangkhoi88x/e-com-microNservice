@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { getActiveProductSales, getClaimedPromotions, previewPromotion } from "../services/promotionService";
 import { checkoutOrder } from "../services/orderService";
-import { createPayment } from "../services/paymentService";
+import { createPayment, createStripeCheckout } from "../services/paymentService";
 import { isAuthenticated } from "../services/authenticationService";
 import { getMyCart, removeCartItem, updateCartItem } from "../services/cartService";
 import "./Checkout.css";
@@ -29,6 +29,7 @@ const money = (value) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(value || 0);
 
 const paymentMethods = [
+  { value: "STRIPE", title: "Stripe", description: "Thanh toán quốc tế an toàn bằng thẻ", icon: CreditCard, mark: "S" },
   { value: "VNPAY", title: "VNPay", description: "Thanh toán an toàn qua VNPay", icon: CreditCard, mark: "V" },
   { value: "MOMO", title: "Ví MoMo", description: "Mở ứng dụng MoMo để xác nhận", icon: WalletCards, mark: "M" },
   { value: "BANK_TRANSFER", title: "Chuyển khoản ngân hàng", description: "Xác nhận thanh toán nhanh chóng", icon: BadgeCheck, mark: "BK" },
@@ -42,7 +43,7 @@ function CheckoutQuantityEditor({ cart, onChange, priceOf }) {
 export default function Checkout() {
   const navigate = useNavigate();
   const [cart, setCart] = useState([]);
-  const [method, setMethod] = useState("VNPAY");
+  const [method, setMethod] = useState("STRIPE");
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
   const [promotionCalculation, setPromotionCalculation] = useState(null);
@@ -63,18 +64,19 @@ export default function Checkout() {
 
   const flashPrice = (item) => flashDeals.flatMap((deal) => (deal.items || []).map((dealItem) => ({ ...dealItem, saleType: deal.saleType || "FLASH" }))).filter((dealItem) => dealItem.productId === item.productId && (dealItem.variantId || null) === (item.variantId || null)).sort((a, b) => Number(a.salePrice) - Number(b.salePrice) || (a.saleType === "FLASH" ? -1 : 1) - (b.saleType === "FLASH" ? -1 : 1))[0]?.salePrice;
   const itemPrice = (item) => Number(flashPrice(item) ?? item.price ?? 0);
-  const subtotal = useMemo(() => cart.reduce((total, item) => total + itemPrice(item) * (item.quantity || 1), 0), [cart, flashDeals]);
+  const subtotal = cart.reduce(
+    (total, item) => total + itemPrice(item) * (item.quantity || 1),
+    0,
+  );
   const shipping = subtotal > 0 ? 30000 : 0;
   const discount = promotionCalculation?.discountAmount || 0;
   const total = Math.max(0, subtotal - discount + shipping);
-  const selectedPayment = paymentMethods.find((item) => item.value === method);
-
   const update = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
 
   useEffect(() => {
     getMyCart().then((data) => setCart(data.items || [])).catch(() => setNotice("Không thể tải giỏ hàng. Vui lòng đăng nhập lại."));
     getClaimedPromotions().then(setClaimedPromotions).catch(() => setClaimedPromotions([]));
-    getActiveProductSales().then(setFlashDeals).catch(() => setFlashDeals([]));
+    getActiveProductSales().then(setFlashDeals).catch(() => {});
   }, []);
 
   const applyCoupon = async () => {
@@ -132,7 +134,25 @@ export default function Checkout() {
           : "Đơn hàng chưa sẵn sàng để thanh toán. Vui lòng thử lại sau.");
       }
       const payment = await createPayment({ orderId: order.id, method });
-      navigate(`/payments?paymentId=${payment?.id || ""}`, { state: { order, payment, method } });
+      if (method === "STRIPE") {
+        const stripeCheckout = await createStripeCheckout(payment.id);
+        if (!stripeCheckout?.checkoutUrl) {
+          throw new Error("Stripe không trả về đường dẫn thanh toán.");
+        }
+        window.location.assign(stripeCheckout.checkoutUrl);
+        return;
+      }
+
+      if (method === "COD") {
+        // COD is not an online payment. Payment service publishes the COD
+        // event and Order service moves the order to SHIPPING asynchronously.
+        navigate("/shop/orders", { replace: true });
+        return;
+      }
+
+      navigate(`/shop/payment-result?status=pending&paymentId=${payment?.id || ""}`, {
+        state: { order, payment, method },
+      });
     } catch (error) {
       setNotice(error.response?.data?.message || error.response?.data?.error || error.message || "Không thể khởi tạo thanh toán. Vui lòng thử lại sau.");
     } finally {

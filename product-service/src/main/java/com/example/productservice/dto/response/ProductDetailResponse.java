@@ -11,6 +11,8 @@ import java.util.List;
 @Builder
 public record ProductDetailResponse(
         String id,
+        String shopId,
+        String sellerId,
         String name,
         String slug,
         String description,
@@ -22,6 +24,7 @@ public record ProductDetailResponse(
         List<ProductOptionResponse> options,
         List<ProductVariantResponse> variants,
         ProductStatus status,
+        String moderationNote,
         Instant createdAt
 
 ) {

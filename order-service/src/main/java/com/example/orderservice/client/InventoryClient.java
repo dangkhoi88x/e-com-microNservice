@@ -42,6 +42,15 @@ public class InventoryClient {
         postInternal("/release", request);
     }
 
+    public void confirmReturnedInventory(String orderId) {
+        webClientBuilder.build()
+                .post()
+                .uri("http://INVENTORY-SERVICE/internal/inventory/returns/{orderId}/confirm", orderId)
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+    }
+
     private void postInternal(String path, InventoryOrderRequest request) {
         webClientBuilder.build()
                 .post()

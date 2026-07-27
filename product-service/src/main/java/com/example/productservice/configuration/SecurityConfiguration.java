@@ -40,6 +40,7 @@ public class SecurityConfiguration {
                         .accessDeniedHandler(customAccessDeniedHandler))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(PUBLIC_MATCHERS).permitAll()
+                        .requestMatchers("/internal/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET_MATCHERS).permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

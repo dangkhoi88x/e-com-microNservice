@@ -1,4 +1,8 @@
 spring:
+  config:
+    import:
+      - optional:file:.env.dev[.properties]
+      - optional:file:../.env.dev[.properties]
   mongodb:
       uri: mongodb://root:123456@localhost:27017/notification-service?authSource=admin
   kafka:
@@ -22,3 +26,6 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+
+security:
+  internal-api-key: ${INTERNAL_NOTIFICATION_API_KEY:local-reset-mail-key}

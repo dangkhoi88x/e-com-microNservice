@@ -11,6 +11,7 @@ import java.util.List;
 @Table(name = "flash_deals")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @SuperBuilder
 public class FlashDeal extends AbstractEntity {
+    @Column(name = "seller_id") private String sellerId;
     @Column(nullable = false, length = 120) private String name;
     @Column(length = 500) private String description;
     @Enumerated(EnumType.STRING) @Column(name = "sale_type", length = 20) private SaleType saleType;

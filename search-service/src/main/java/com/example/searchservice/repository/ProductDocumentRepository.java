@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 import static com.example.searchservice.configuration.ElasticsearchIndexInitializer.PRODUCT_INDEX;
 
@@ -94,18 +95,33 @@ public class ProductDocumentRepository {
         return response.aggregations();
     }
 
+    public void updateReviewSummary(String productId, double averageRating, long reviewCount) throws IOException {
+        Map<String, Object> partialDocument = new HashMap<>();
+        partialDocument.put("averageRating", averageRating);
+        partialDocument.put("reviewCount", reviewCount);
+        elasticsearchClient.update(update -> update
+                        .index(PRODUCT_INDEX)
+                        .id(productId)
+                        .doc(partialDocument),
+                ProductDocument.class);
+    }
+
     public List<ProductDocument> suggestions(String query, int size) throws IOException {
         SearchResponse<ProductDocument> response = elasticsearchClient.search(s -> s
                         .index(PRODUCT_INDEX)
                         .size(size)
-                        .query(q -> q.matchBoolPrefix(m -> m.field("name").query(query))),
+                        .query(q -> q.bool(b -> b
+                                .must(m -> m.matchBoolPrefix(prefix -> prefix.field("name").query(query)))
+                                .filter(f -> f.term(term -> term.field("status").value(FieldValue.of("ACTIVE")))))),
                 ProductDocument.class);
         return response.hits().hits().stream().map(Hit::source).filter(java.util.Objects::nonNull).toList();
     }
 
     private Query buildSearchQuery(SearchRequest request) {
         if (request == null) {
-            return Query.of(q -> q.matchAll(m -> m));
+            return Query.of(q -> q.term(t -> t
+                    .field("status")
+                    .value(FieldValue.of("ACTIVE"))));
         }
 
         List<Query> mustQueries = new ArrayList<>();
@@ -132,11 +148,10 @@ public class ProductDocumentRepository {
                     .value(FieldValue.of(request.categoryId())))));
         }
 
-        if (StringUtils.hasText(request.status())) {
-            filterQueries.add(Query.of(q -> q.term(t -> t
-                    .field("status")
-                    .value(FieldValue.of(request.status())))));
-        }
+        // Search APIs are public storefront APIs: never expose drafts or rejected products.
+        filterQueries.add(Query.of(q -> q.term(t -> t
+                .field("status")
+                .value(FieldValue.of("ACTIVE")))));
 
         if (request.inStock() != null) {
             filterQueries.add(Query.of(q -> q.term(t -> t
@@ -155,6 +170,12 @@ public class ProductDocumentRepository {
                 }
                 return n;
             }))));
+        }
+
+        if (request.minRating() != null) {
+            filterQueries.add(Query.of(q -> q.range(r -> r.number(n -> n
+                    .field("averageRating")
+                    .gte(request.minRating())))));
         }
 
         if (mustQueries.isEmpty() && filterQueries.isEmpty()) {

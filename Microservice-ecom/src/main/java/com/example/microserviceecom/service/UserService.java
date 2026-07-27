@@ -29,15 +29,20 @@ public class UserService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
 
-@Transactional(rollbackFor = AuthenticationException.class)
+    @Transactional(rollbackFor = AuthenticationException.class)
     public CreateUserResponse createUser(CreateUserRequest request) {
+        return createUserWithRole(request, RoleName.USER);
+    }
+
+    @Transactional(rollbackFor = AuthenticationException.class)
+    public CreateUserResponse createUserWithRole(CreateUserRequest request, RoleName roleName) {
         String email = request.getEmail();
         if(userRepository.existsByEmail(email)) {
             throw new AuthenticationException(ErrorCode.USER_EXISTED);
         }
         User user = UserMapper.INSTANCE.toUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        Role role = roleService.createRole(RoleName.USER);
+        Role role = roleService.createRole(roleName);
         user.addRole(role);
         userRepository.save(user);
     log.info("User created successfully: {}", user.getId());

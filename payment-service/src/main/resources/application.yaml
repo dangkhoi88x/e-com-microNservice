@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: payment-service
+  config:
+    import: optional:file:.env.dev[.properties],optional:file:../.env.dev[.properties]
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
     username: root
@@ -23,8 +25,16 @@ spring:
   kafka:
     bootstrap-servers: localhost:9094
 
-jwt:
-  secret-key: "your-secret-key-here"
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY:}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+  success-url: ${STRIPE_SUCCESS_URL:http://localhost:5173/shop/payment-result?status=success&paymentId={PAYMENT_ID}&session_id={CHECKOUT_SESSION_ID}}
+  cancel-url: ${STRIPE_CANCEL_URL:http://localhost:5173/shop/payment-result?status=cancel&paymentId={PAYMENT_ID}}
+  currency: ${STRIPE_CURRENCY:vnd}
+
+services:
+  order:
+    internal-api-key: ${INTERNAL_PAYMENT_API_KEY:local-payment-internal-key}
 
 eureka:
   instance:
@@ -32,3 +42,8 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+security:
+  jwt:
+    issuer: ${JWT_ISSUER:http://localhost:8090}
+    audience: ${JWT_AUDIENCE:novashop-api}
+    jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8090/identity/api/.well-known/jwks.json}

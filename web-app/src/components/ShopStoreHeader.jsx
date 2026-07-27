@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AddShoppingCartOutlinedIcon from "@mui/icons-material/AddShoppingCartOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
-import AppsOutlinedIcon from "@mui/icons-material/AppsOutlined";
 import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
@@ -14,8 +13,9 @@ import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import { searchProductSuggestions } from "../services/productService";
-import { isAuthenticated, logout } from "../services/authenticationService";
+import { hasAnyRole, isAuthenticated, logout } from "../services/authenticationService";
 import { cartQuantity, getMyCart, removeCartItem, updateCartItem } from "../services/cartService";
 import { getMyNotifications } from "../services/notificationService";
 import "./ShopStoreHeader.css";
@@ -41,6 +41,7 @@ export default function ShopStoreHeader({ showBack = false }) {
   const notificationRef = useRef(null);
   const cartRef = useRef(null);
   const loggedIn = isAuthenticated();
+  const isSeller = hasAnyRole("ROLE_SELLER", "SELLER");
 
   useEffect(() => {
     if (!loggedIn) return;
@@ -82,18 +83,18 @@ export default function ShopStoreHeader({ showBack = false }) {
   return <header className="store-header">
     <div className="store-header-top">
       <Link className="store-header-brand" to="/shop"><span>N</span>NovaShop</Link>
-      <div className="store-header-search-wrap"><label className="store-header-search"><SearchOutlinedIcon /><input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") navigate(`/shop/search?q=${encodeURIComponent(query)}`); }} placeholder="Tìm sản phẩm, thương hiệu..." aria-label="Tìm sản phẩm" /></label>{suggestions.length > 0 && <div className="store-header-results">{suggestions.map((product) => <Link key={product.productId || product.id} to={url(product)} onClick={() => setQuery("")}><img src={image(product)} alt="" /><span>{product.name}</span></Link>)}</div>}</div>
+      <div className="store-header-search-wrap"><label className="store-header-search"><SearchOutlinedIcon /><input value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") navigate(`/shop/categories?q=${encodeURIComponent(query)}`); }} placeholder="Tìm sản phẩm, thương hiệu..." aria-label="Tìm sản phẩm" /></label>{suggestions.length > 0 && <div className="store-header-results">{suggestions.map((product) => <Link key={product.productId || product.id} to={url(product)} onClick={() => setQuery("")}><img src={image(product)} alt="" /><span>{product.name}</span></Link>)}</div>}</div>
       <div className="store-header-actions"><Link aria-label="Sản phẩm yêu thích" to="/shop/wishlist"><FavoriteBorderOutlinedIcon /></Link><div className="store-header-notifications" ref={notificationRef}><button type="button" aria-label="Thông báo" onClick={toggleNotifications}><NotificationsNoneOutlinedIcon />{notifications.filter((item) => !item.read).length > 0 && <b>{Math.min(9, notifications.filter((item) => !item.read).length)}</b>}</button>{notificationOpen && <section className="store-notification-popover"><header><strong>Thông báo</strong><span>{notifications.length}</span></header>{notificationsLoading ? <p className="store-notification-state">Đang tải thông báo…</p> : notificationError ? <p className="store-notification-state is-error">{notificationError}</p> : notifications.length ? <div>{notifications.slice(0, 6).map((item) => <article key={item.id}><span className={item.type === "FLASH_SALE_UPCOMING" ? "flash" : ""}><NotificationsNoneOutlinedIcon /></span><p><b>{item.title}</b><small>{item.message}</small><time>{item.createdAt ? new Date(item.createdAt).toLocaleString("vi-VN") : ""}</time></p></article>)}</div> : <p className="store-notification-state">Chưa có thông báo mới.</p>}<Link to="/shop/account?tab=notifications" onClick={() => setNotificationOpen(false)}>Xem tất cả</Link></section>}</div>{loggedIn ? <button className="store-header-logout" onClick={leave}>Đăng xuất</button> : <Link className="store-header-login" to="/shop/login">Đăng nhập</Link>}</div>
     </div>
     <nav className="store-header-nav" aria-label="Điều hướng cửa hàng">
       <Link to="/shop"><HomeOutlinedIcon />Trang chủ</Link>
-      <Link to="/shop"><CategoryOutlinedIcon />Danh mục</Link>
+      <Link to="/shop/categories"><CategoryOutlinedIcon />Danh mục</Link>
       <Link to="/shop/hot-deals"><LocalOfferOutlinedIcon />Ưu đãi</Link>
-      <Link to="/shop"><AppsOutlinedIcon />Hàng mới</Link>
       <Link to="/shop/orders"><ShoppingBagOutlinedIcon />Đơn hàng</Link>
       <Link to="/shop/wishlist"><FavoriteBorderOutlinedIcon />Yêu thích</Link>
       <Link to="/shop/account"><PersonOutlineOutlinedIcon />Tài khoản</Link>
       <div className="store-header-mini-cart" ref={cartRef}><button className="store-header-cart" type="button" onClick={toggleCart} aria-label="Mở giỏ hàng"><AddShoppingCartOutlinedIcon />{cartCount > 0 && <b>{cartCount}</b>}</button>{cartOpen && <section className="store-cart-popover"><header><strong>Giỏ hàng của bạn</strong><span>{cartCount} sản phẩm</span></header>{cartLoading ? <p>Đang tải giỏ hàng…</p> : cartItems.length ? <><div className="store-cart-popover-items">{cartItems.slice(0, 4).map((item) => <article key={item.id}><img src={item.imageUrl || "https://placehold.co/80x80/e7f2f8/3b82c4?text=Nova"} alt="" /><div><b>{item.productName}</b><small>{new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(Number(item.price || 0))}</small><section className="store-mini-cart-quantity"><button type="button" onClick={() => changeMiniCartQuantity(item, -1)} aria-label="Giảm số lượng"><RemoveOutlinedIcon /></button><span>{item.quantity}</span><button type="button" onClick={() => changeMiniCartQuantity(item, 1)} aria-label="Tăng số lượng"><AddOutlinedIcon /></button></section></div><button type="button" className="store-mini-cart-remove" onClick={() => removeMiniCartItem(item.id)} aria-label="Xóa sản phẩm"><DeleteOutlineOutlinedIcon /></button></article>)}</div><footer><p><span>Tạm tính</span><b>{new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(miniCartTotal)}</b></p><Link to="/cart" onClick={() => setCartOpen(false)}>Xem tất cả giỏ hàng</Link></footer></> : <p>Giỏ hàng đang trống.</p>}</section>}</div>
+      {isSeller && <Link to="/seller"><StorefrontOutlinedIcon />Cửa hàng của tôi</Link>}
       {showBack && <button className="store-header-back" type="button" onClick={() => navigate(-1)}><ArrowBackOutlinedIcon />Quay lại</button>}
     </nav>
   </header>;

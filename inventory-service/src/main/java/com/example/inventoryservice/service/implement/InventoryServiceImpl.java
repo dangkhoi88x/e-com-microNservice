@@ -13,6 +13,7 @@ import com.example.inventoryservice.enums.ReservationStatus;
 import com.example.inventoryservice.exception.ErrorCode;
 import com.example.inventoryservice.exception.InventoryServiceException;
 import com.example.inventoryservice.mapper.InventoryMapper;
+import com.example.inventoryservice.messaging.OutboxPublisher;
 import com.example.inventoryservice.repository.InventoryRepository;
 import com.example.inventoryservice.repository.InventoryReservationRepository;
 import com.example.inventoryservice.service.InventoryService;
@@ -20,7 +21,6 @@ import event.InventoryUpdatedEvent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -36,7 +36,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryRepository inventoryRepository;
     private final InventoryReservationRepository inventoryReservationRepository;
     private final InventoryMapper inventoryMapper;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final OutboxPublisher outboxPublisher;
 
     @Override
     public InventoryResponse createInventory(CreateInventoryRequest request) {
@@ -65,6 +65,34 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory savedInventory = inventoryRepository.save(inventory);
         publishInventoryUpdatedEvent(savedInventory);
 
+        return inventoryMapper.toResponse(savedInventory);
+    }
+
+    @Override
+    @Transactional
+    public InventoryResponse setAvailableQuantity(String productId, String variantId, Integer availableQuantity) {
+        String normalizedVariantId = normalizeVariantId(variantId);
+        Inventory inventory = normalizedVariantId == null
+                ? inventoryRepository.findByProductIdAndVariantIdIsNull(productId).orElse(null)
+                : inventoryRepository.findByVariantId(normalizedVariantId).orElse(null);
+
+        if (inventory == null) {
+            inventory = Inventory.builder()
+                    .productId(productId)
+                    .variantId(normalizedVariantId)
+                    .availableQuantity(availableQuantity)
+                    .reservedQuantity(0)
+                    .soldQuantity(0)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build();
+        } else {
+            inventory.setAvailableQuantity(availableQuantity);
+            inventory.setUpdatedAt(Instant.now());
+        }
+
+        Inventory savedInventory = inventoryRepository.save(inventory);
+        publishInventoryUpdatedEvent(savedInventory);
         return inventoryMapper.toResponse(savedInventory);
     }
 
@@ -126,7 +154,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     @Transactional
     public void confirmInventory(InventoryOrderRequest request) {
-        List<InventoryReservation> reservations = getReservationsOrThrow(request.orderId());
+        List<InventoryReservation> reservations = getReservationsForUpdateOrThrow(request.orderId());
         List<InventoryReservation> pendingReservations = filterPendingReservations(reservations);
 
         if (pendingReservations.isEmpty()) {
@@ -134,7 +162,7 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         for (InventoryReservation reservation : pendingReservations) {
-            Inventory inventory = findInventory(reservation.getProductId(), reservation.getVariantId());
+            Inventory inventory = findInventoryForUpdate(reservation.getProductId(), reservation.getVariantId());
 
             ensureReservedQuantityEnough(inventory, reservation);
             inventory.setReservedQuantity(inventory.getReservedQuantity() - reservation.getQuantity());
@@ -151,7 +179,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     @Transactional
     public void releaseInventory(InventoryOrderRequest request) {
-        List<InventoryReservation> reservations = getReservationsOrThrow(request.orderId());
+        List<InventoryReservation> reservations = getReservationsForUpdateOrThrow(request.orderId());
         List<InventoryReservation> pendingReservations = filterPendingReservations(reservations);
 
         if (pendingReservations.isEmpty()) {
@@ -159,7 +187,7 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         for (InventoryReservation reservation : pendingReservations) {
-            Inventory inventory = findInventory(reservation.getProductId(), reservation.getVariantId());
+            Inventory inventory = findInventoryForUpdate(reservation.getProductId(), reservation.getVariantId());
 
             ensureReservedQuantityEnough(inventory, reservation);
             inventory.setReservedQuantity(inventory.getReservedQuantity() - reservation.getQuantity());
@@ -174,6 +202,50 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    @Transactional
+    public void confirmReturnedInventory(String orderId) {
+        List<InventoryReservation> reservations = inventoryReservationRepository.findByOrderIdForUpdate(orderId);
+        if (reservations.isEmpty()) {
+            throw new InventoryServiceException(ErrorCode.RESERVATION_NOT_FOUND);
+        }
+
+        for (InventoryReservation reservation : reservations) {
+            if (reservation.getStatus() == ReservationStatus.RETURNED
+                    || reservation.getStatus() == ReservationStatus.RELEASED) {
+                continue;
+            }
+
+            Inventory inventory = findInventoryForUpdate(
+                    reservation.getProductId(),
+                    reservation.getVariantId()
+            );
+
+            if (reservation.getStatus() == ReservationStatus.CONFIRMED) {
+                if (inventory.getSoldQuantity() < reservation.getQuantity()) {
+                    throw new InventoryServiceException(ErrorCode.INVALID_INVENTORY_REQUEST);
+                }
+                inventory.setSoldQuantity(inventory.getSoldQuantity() - reservation.getQuantity());
+                inventory.setAvailableQuantity(inventory.getAvailableQuantity() + reservation.getQuantity());
+            } else if (reservation.getStatus() == ReservationStatus.PENDING) {
+                ensureReservedQuantityEnough(inventory, reservation);
+                inventory.setReservedQuantity(inventory.getReservedQuantity() - reservation.getQuantity());
+                inventory.setAvailableQuantity(inventory.getAvailableQuantity() + reservation.getQuantity());
+            } else {
+                throw new InventoryServiceException(ErrorCode.INVALID_INVENTORY_REQUEST);
+            }
+
+            validateNonNegativeQuantities(inventory);
+            reservation.setStatus(ReservationStatus.RETURNED);
+            inventoryRepository.save(inventory);
+            inventoryReservationRepository.save(reservation);
+            publishInventoryUpdatedEvent(inventory);
+        }
+
+        log.info("Confirmed returned inventory: orderId={}, reservationCount={}",
+                orderId, reservations.size());
+    }
+
+    @Override
     public List<ReservationResponse> getReservationsByOrderId(String orderId) {
         return getReservationsOrThrow(orderId)
                 .stream()
@@ -183,6 +255,16 @@ public class InventoryServiceImpl implements InventoryService {
 
     private List<InventoryReservation> getReservationsOrThrow(String orderId) {
         List<InventoryReservation> reservations = inventoryReservationRepository.findByOrderId(orderId);
+
+        if (reservations.isEmpty()) {
+            throw new InventoryServiceException(ErrorCode.RESERVATION_NOT_FOUND);
+        }
+
+        return reservations;
+    }
+
+    private List<InventoryReservation> getReservationsForUpdateOrThrow(String orderId) {
+        List<InventoryReservation> reservations = inventoryReservationRepository.findByOrderIdForUpdate(orderId);
 
         if (reservations.isEmpty()) {
             throw new InventoryServiceException(ErrorCode.RESERVATION_NOT_FOUND);
@@ -252,18 +334,6 @@ public class InventoryServiceImpl implements InventoryService {
                 .updatedAt(Instant.now())
                 .build();
 
-        kafkaTemplate.send(INVENTORY_UPDATED_TOPIC, inventory.getProductId(), event)
-                .whenComplete((result, throwable) -> {
-                    if (throwable != null) {
-                        log.error("Failed to publish InventoryUpdatedEvent: productId={}",
-                                inventory.getProductId(),
-                                throwable);
-                        return;
-                    }
-
-                    log.info("Published InventoryUpdatedEvent: productId={}, availableQuantity={}",
-                            inventory.getProductId(),
-                            inventory.getAvailableQuantity());
-                });
+        outboxPublisher.enqueue(INVENTORY_UPDATED_TOPIC, inventory.getProductId(), event);
     }
 }

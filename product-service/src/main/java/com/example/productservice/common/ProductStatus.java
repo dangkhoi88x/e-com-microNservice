@@ -1,5 +1,9 @@
 package com.example.productservice.common;
 
 public enum ProductStatus {
-    ACTIVE,INACTIVE
+    DRAFT,
+    PENDING_APPROVAL,
+    ACTIVE,
+    REJECTED,
+    INACTIVE
 }

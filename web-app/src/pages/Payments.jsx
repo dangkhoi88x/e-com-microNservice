@@ -9,10 +9,8 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-  MenuItem,
   Pagination,
   Paper,
-  Select,
   Stack,
   Tab,
   Tabs,
@@ -34,7 +32,7 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { useEffect, useState } from "react";
 import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
-import { hasAnyRole } from "../services/authenticationService";
+import { hasAdminRole } from "../services/authenticationService";
 import {
   cancelPayment,
   getAllPayments,
@@ -72,7 +70,7 @@ const formatPrice = (value) => {
 };
 
 export default function Payments() {
-  const isAdmin = hasAnyRole("ROLE_ADMIN", "ADMIN");
+  const isAdmin = hasAdminRole();
   const [payments, setPayments] = useState([]);
   const [viewMode, setViewMode] = useState("mine");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -207,11 +205,13 @@ export default function Payments() {
 
     return (
       <>
-        <Tooltip title="Confirm COD payment">
-          <IconButton color="success" onClick={() => handleMarkSuccess(payment)}>
-            <CheckCircleOutlineOutlinedIcon />
-          </IconButton>
-        </Tooltip>
+        {payment.method !== "STRIPE" && (
+          <Tooltip title="Confirm payment">
+            <IconButton color="success" onClick={() => handleMarkSuccess(payment)}>
+              <CheckCircleOutlineOutlinedIcon />
+            </IconButton>
+          </Tooltip>
+        )}
         <Tooltip title="Mark payment failed">
           <IconButton color="error" onClick={() => handleMarkFailed(payment)}>
             <ErrorOutlineOutlinedIcon />
