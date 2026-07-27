@@ -253,50 +253,41 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public SellerAnalyticsResponse getSellerAnalytics(String sellerId, Instant from, Instant to) {
-        List<Order> orders = orderRepository.findBySellerIdAndCreatedAtBetween(sellerId, from, to);
-        List<Order> completed = orders.stream().filter(order -> order.getStatus() == OrderStatus.COMPLETED).toList();
-        BigDecimal revenue = completed.stream().map(Order::getTotalAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        Map<String, Long> statuses = new HashMap<>();
-        orders.forEach(order -> statuses.merge(order.getStatus().name(), 1L, Long::sum));
-        Map<String, SellerAnalyticsResponse.TopProduct> products = new HashMap<>();
-        completed.forEach(order -> order.getItems().forEach(item -> products.merge(item.getProductId(), new SellerAnalyticsResponse.TopProduct(item.getProductId(), item.getProductName(), item.getQuantity(), item.getSubtotal()), (left, right) -> new SellerAnalyticsResponse.TopProduct(left.productId(), left.name(), left.quantitySold() + right.quantitySold(), left.revenue().add(right.revenue())))));
-        List<SellerAnalyticsResponse.TopProduct> topProducts = products.values().stream().sorted((left, right) -> right.revenue().compareTo(left.revenue())).limit(5).toList();
-        return new SellerAnalyticsResponse(revenue, completed.size(), orders.size(), completed.isEmpty() ? BigDecimal.ZERO : revenue.divide(BigDecimal.valueOf(completed.size()), 0, java.math.RoundingMode.HALF_UP), statuses, topProducts);
+        OrderRepository.AnalyticsSummary summary = orderRepository.getSellerAnalyticsSummary(sellerId, from, to);
+        BigDecimal revenue = summary.getRevenue();
+        long completedOrders = summary.getCompletedOrders();
+        Map<String, Long> statuses = orderRepository.countSellerByStatus(sellerId, from, to).stream()
+                .collect(java.util.stream.Collectors.toMap(OrderRepository.StatusCount::getStatus, OrderRepository.StatusCount::getTotal));
+        List<SellerAnalyticsResponse.TopProduct> topProducts = orderRepository.getSellerTopProducts(sellerId, from, to).stream()
+                .map(product -> new SellerAnalyticsResponse.TopProduct(product.getProductId(), product.getName(), product.getQuantitySold(), product.getRevenue()))
+                .toList();
+        BigDecimal averageOrderValue = completedOrders == 0 ? BigDecimal.ZERO
+                : revenue.divide(BigDecimal.valueOf(completedOrders), 0, java.math.RoundingMode.HALF_UP);
+        return new SellerAnalyticsResponse(revenue, completedOrders, summary.getTotalOrders(), averageOrderValue, statuses, topProducts);
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Transactional(readOnly = true)
     public AdminAnalyticsResponse getAdminAnalytics(Instant from, Instant to) {
-        List<Order> orders = orderRepository.findByCreatedAtBetween(from, to);
-        List<Order> completed = orders.stream().filter(order -> order.getStatus() == OrderStatus.COMPLETED).toList();
-        BigDecimal revenue = completed.stream().map(Order::getTotalAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        Map<String, Long> statuses = new HashMap<>();
-        orders.forEach(order -> statuses.merge(order.getStatus().name(), 1L, Long::sum));
-
-        Map<LocalDate, AdminAnalyticsResponse.RevenuePoint> daily = new TreeMap<>();
-        completed.forEach(order -> {
-            LocalDate date = order.getCreatedAt().atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate();
-            daily.merge(date, new AdminAnalyticsResponse.RevenuePoint(date.toString(), order.getTotalAmount(), 1),
-                    (left, right) -> new AdminAnalyticsResponse.RevenuePoint(left.date(), left.revenue().add(right.revenue()), left.orders() + right.orders()));
-        });
-
-        Map<String, AdminAnalyticsResponse.TopProduct> products = new HashMap<>();
-        completed.forEach(order -> order.getItems().forEach(item -> products.merge(item.getProductId(),
-                new AdminAnalyticsResponse.TopProduct(item.getProductId(), item.getProductName(), item.getQuantity(), item.getSubtotal()),
-                (left, right) -> new AdminAnalyticsResponse.TopProduct(left.productId(), left.name(), left.quantitySold() + right.quantitySold(), left.revenue().add(right.revenue())))));
-        List<AdminAnalyticsResponse.TopProduct> topProducts = products.values().stream()
-                .sorted((left, right) -> right.revenue().compareTo(left.revenue())).limit(5).toList();
-
-        BigDecimal averageOrderValue = completed.isEmpty() ? BigDecimal.ZERO
-                : revenue.divide(BigDecimal.valueOf(completed.size()), 0, java.math.RoundingMode.HALF_UP);
-        return new AdminAnalyticsResponse(revenue, orders.size(), completed.size(), averageOrderValue, statuses,
-                List.copyOf(daily.values()), topProducts);
+        OrderRepository.AnalyticsSummary summary = orderRepository.getAnalyticsSummary(from, to);
+        BigDecimal revenue = summary.getRevenue();
+        long completedOrders = summary.getCompletedOrders();
+        Map<String, Long> statuses = orderRepository.countByStatus(from, to).stream()
+                .collect(java.util.stream.Collectors.toMap(OrderRepository.StatusCount::getStatus, OrderRepository.StatusCount::getTotal));
+        List<AdminAnalyticsResponse.RevenuePoint> daily = orderRepository.getDailyRevenue(from, to).stream()
+                .map(point -> new AdminAnalyticsResponse.RevenuePoint(point.getDate(), point.getRevenue(), point.getTotal()))
+                .toList();
+        List<AdminAnalyticsResponse.TopProduct> topProducts = orderRepository.getTopProducts(from, to).stream()
+                .map(product -> new AdminAnalyticsResponse.TopProduct(product.getProductId(), product.getName(), product.getQuantitySold(), product.getRevenue()))
+                .toList();
+        BigDecimal averageOrderValue = completedOrders == 0 ? BigDecimal.ZERO
+                : revenue.divide(BigDecimal.valueOf(completedOrders), 0, java.math.RoundingMode.HALF_UP);
+        return new AdminAnalyticsResponse(revenue, summary.getTotalOrders(), completedOrders, averageOrderValue, statuses, daily, topProducts);
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Transactional(readOnly = true)
     public PageResponse<OrderResponse> getAllOrders(int page, int size) {
         Pageable pageable = createOrderPageable(page, size);
@@ -311,7 +302,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Transactional(readOnly = true)
     public PageResponse<OrderResponse> getOrdersByPromotionCode(String promotionCode, int page, int size) {
         if (promotionCode == null || promotionCode.isBlank()) {
@@ -336,7 +327,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Transactional(readOnly = true)
     public OrderResponse getOrderDetailForAdmin(String orderId) {
         return getOrderForPaymentValidation(orderId);
@@ -352,7 +343,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Transactional(readOnly = true)
     public OrderResponse searchOrderForAdmin(String query) {
         String value = query == null ? "" : query.trim();
@@ -363,7 +354,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public OrderResponse updateOrderStatus(String orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
@@ -633,7 +624,7 @@ public class OrderServiceImpl implements OrderService {
 
     private Pageable createOrderPageable(int page, int size) {
         int currentPage = Math.max(page, 1);
-        int pageSize = Math.max(size, 1);
+        int pageSize = Math.min(Math.max(size, 1), 100);
         return PageRequest.of(currentPage - 1, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 

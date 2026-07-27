@@ -6,7 +6,7 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { hasAnyRole, logout } from "../services/authenticationService";
+import { hasAdminRole, hasAnyRole, logout } from "../services/authenticationService";
 import { searchProductSuggestions } from "../services/productService";
 
 const looksLikeOrderCode = (value) => /^(ORD[-\s]|[a-f0-9]{8}-[a-f0-9-]{27}$)/i.test(value.trim());
@@ -17,7 +17,7 @@ export default function Header({ drawerWidth, onMenuClick, showMenuButton }) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [searchOpen, setSearchOpen] = useState(false);
-  const canRegisterSeller = !hasAnyRole("ROLE_SELLER", "SELLER", "ROLE_ADMIN", "ADMIN", "ROLE_SUPER_ADMIN", "SUPER_ADMIN");
+  const canRegisterSeller = !hasAnyRole("ROLE_SELLER", "SELLER") && !hasAdminRole();
   const handleLogout = async () => { setAnchorEl(null); await logout(); navigate("/login", { replace: true }); };
 
   useEffect(() => {

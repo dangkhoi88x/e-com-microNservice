@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import java.time.Instant;
 
-@RestController @RequiredArgsConstructor @RequestMapping("/api/v1/orders/seller/analytics") @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'SELLER')")
+@RestController @RequiredArgsConstructor @RequestMapping("/api/v1/orders/seller/analytics") @PreAuthorize("hasAuthority('ROLE_SELLER')")
 public class SellerAnalyticsController {
     private final OrderService service;
     @GetMapping public ApiResponse<SellerAnalyticsResponse> get(@AuthenticationPrincipal Jwt jwt, @RequestParam Instant from, @RequestParam Instant to) { return ApiResponse.<SellerAnalyticsResponse>builder().status(HttpStatus.OK.value()).message("Seller analytics retrieved successfully").data(service.getSellerAnalytics(jwt.getSubject(), from, to)).build(); }

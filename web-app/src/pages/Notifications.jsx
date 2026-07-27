@@ -22,7 +22,7 @@ import WavingHandOutlinedIcon from "@mui/icons-material/WavingHandOutlined";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
-import { hasAnyRole } from "../services/authenticationService";
+import { hasAdminRole } from "../services/authenticationService";
 import {
   getAdminNotifications,
   getMyNotifications,
@@ -65,7 +65,7 @@ const getNotificationConfig = (type) =>
   };
 
 export default function Notifications() {
-  const isAdmin = hasAnyRole("ROLE_ADMIN", "ADMIN");
+  const isAdmin = hasAdminRole();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");

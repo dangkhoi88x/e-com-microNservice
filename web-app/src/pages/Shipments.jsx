@@ -37,6 +37,7 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageHeader, StatCard } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
+import { hasAdminRole } from "../services/authenticationService";
 import {
   assignShipmentCarrier,
   getShipments,
@@ -93,7 +94,7 @@ const shortId = (value) => value ? `${value.slice(0, 8)}…${value.slice(-4)}` :
 const formatDate = (value) => value ? formatDateTime(value) : "Not scheduled";
 const localDateTime = (value) => value ? new Date(value).toISOString().slice(0, 16) : "";
 
-export default function Shipments() {
+export default function Shipments({ shipperMode = false }) {
   const [shipments, setShipments] = useState([]);
   const [status, setStatus] = useState("ALL");
   const [page, setPage] = useState(0);
@@ -105,6 +106,8 @@ export default function Shipments() {
   const [carrierOpen, setCarrierOpen] = useState(false);
   const [carrierForm, setCarrierForm] = useState(carrierInitial);
   const [saving, setSaving] = useState(false);
+  const isAdmin = hasAdminRole();
+  const canManageOperations = isAdmin && !shipperMode;
 
   const load = useCallback(async (nextPage = page, nextStatus = status) => {
     setLoading(true);
@@ -202,9 +205,9 @@ export default function Shipments() {
   return (
     <MainLayout>
       <PageHeader
-        eyebrow="Fulfillment · Shipping service"
+        eyebrow={shipperMode ? "Delivery · Shipper workspace" : "Fulfillment · Shipping service"}
         title="Shipments"
-        description="Coordinate packing, carrier handoff, delivery attempts and returns from one operational view."
+        description={shipperMode ? "View all shipments and confirm orders that have been delivered." : "Coordinate packing, carrier handoff, delivery attempts and returns from one operational view."}
         actions={<Button variant="outlined" startIcon={<RefreshOutlinedIcon />} onClick={() => load(page, status)} disabled={loading}>Refresh</Button>}
       />
 
@@ -248,7 +251,7 @@ export default function Shipments() {
                   <TableCell><Typography className="table-primary">{formatDate(shipment.estimatedDeliveryAt)}</Typography><Typography className="table-secondary">{shipment.deliveredAt ? `Delivered ${formatDate(shipment.deliveredAt)}` : shipment.shippedAt ? `Shipped ${formatDate(shipment.shippedAt)}` : "Awaiting handoff"}</Typography></TableCell>
                   <TableCell><Chip size="small" color={meta.color} label={meta.label} /></TableCell>
                   <TableCell align="right"><Stack direction="row" justifyContent="flex-end" className="row-actions">
-                    {carrierEditable.has(shipment.status) && <Tooltip title="Assign carrier"><IconButton onClick={() => openCarrier(shipment)}><SettingsSuggestOutlinedIcon /></IconButton></Tooltip>}
+                    {canManageOperations && carrierEditable.has(shipment.status) && <Tooltip title="Assign carrier"><IconButton onClick={() => openCarrier(shipment)}><SettingsSuggestOutlinedIcon /></IconButton></Tooltip>}
                     <Tooltip title="View and manage"><IconButton onClick={() => setSelected(shipment)}><VisibilityOutlinedIcon /></IconButton></Tooltip>
                   </Stack></TableCell>
                 </TableRow>;
@@ -274,9 +277,9 @@ export default function Shipments() {
           </DialogContent>
           <DialogActions className="shipment-dialog-actions">
             <Button onClick={() => setSelected(null)} disabled={saving}>Close</Button>
-            {carrierEditable.has(selected.status) && <Button variant="outlined" onClick={() => openCarrier(selected)} disabled={saving}>Carrier details</Button>}
-            {cancellable.has(selected.status) && <Button color="error" onClick={() => runTransition({ action: "cancel", label: "Cancel shipment" })} disabled={saving}>Cancel shipment</Button>}
-            {(transitions[selected.status] || []).map((transition) => <Button key={transition.action} variant="contained" color={transition.tone || "primary"} onClick={() => runTransition(transition)} disabled={saving}>{transition.label}</Button>)}
+            {canManageOperations && carrierEditable.has(selected.status) && <Button variant="outlined" onClick={() => openCarrier(selected)} disabled={saving}>Carrier details</Button>}
+            {canManageOperations && cancellable.has(selected.status) && <Button color="error" onClick={() => runTransition({ action: "cancel", label: "Cancel shipment" })} disabled={saving}>Cancel shipment</Button>}
+            {(shipperMode ? (selected.status === "IN_TRANSIT" ? [{ action: "deliver", label: "Mark delivered", tone: "success" }] : []) : (transitions[selected.status] || [])).map((transition) => <Button key={transition.action} variant="contained" color={transition.tone || "primary"} onClick={() => runTransition(transition)} disabled={saving}>{transition.label}</Button>)}
           </DialogActions>
         </>}
       </Dialog>

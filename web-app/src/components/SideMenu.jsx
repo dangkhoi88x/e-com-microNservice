@@ -31,11 +31,11 @@ import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import StoreOutlinedIcon from "@mui/icons-material/StoreOutlined";
 import { useLocation, useNavigate } from "react-router-dom";
-import { hasAnyRole, logout } from "../services/authenticationService";
+import { hasAdminRole, hasAnyRole, hasSellerRole, logout } from "../services/authenticationService";
 
 const adminMenuGroups = [
   { label: "Workspace", items: [{ label: "Dashboard", path: "/admin", icon: <DashboardOutlinedIcon /> }, { label: "Analytics", path: "/admin/analytics", icon: <AnalyticsOutlinedIcon />, badge: "Live" }] },
-  { label: "Store service", items: [{ label: "Products", path: "/admin/products", icon: <Inventory2OutlinedIcon /> }, { label: "Seller approvals", path: "/admin/sellers", icon: <StoreOutlinedIcon /> }, { label: "Categories", path: "/admin/categories", icon: <CategoryOutlinedIcon />, badge: "" }, { label: "Promotions", path: "/admin/promotions", icon: <LocalOfferOutlinedIcon /> }, { label: "Flash Sale", path: "/admin/flash-deals", icon: <LocalFireDepartmentOutlinedIcon /> }, { label: "Search", path: "/admin/search", icon: <SearchOutlinedIcon /> }, { label: "Orders", path: "/admin/orders", icon: <ShoppingBagOutlinedIcon /> }, { label: "Shipments", path: "/admin/shipments", icon: <LocalShippingOutlinedIcon /> }, { label: "Payments", path: "/admin/payments", icon: <PaymentsOutlinedIcon /> }] },
+  { label: "Store service", items: [{ label: "Products", path: "/admin/products", icon: <Inventory2OutlinedIcon /> }, { label: "Seller approvals", path: "/admin/sellers", icon: <StoreOutlinedIcon /> }, { label: "Shippers", path: "/admin/shippers", icon: <LocalShippingOutlinedIcon /> }, { label: "Categories", path: "/admin/categories", icon: <CategoryOutlinedIcon />, badge: "" }, { label: "Promotions", path: "/admin/promotions", icon: <LocalOfferOutlinedIcon /> }, { label: "Flash Sale", path: "/admin/flash-deals", icon: <LocalFireDepartmentOutlinedIcon /> }, { label: "Search", path: "/admin/search", icon: <SearchOutlinedIcon /> }, { label: "Orders", path: "/admin/orders", icon: <ShoppingBagOutlinedIcon /> }, { label: "Shipments", path: "/admin/shipments", icon: <LocalShippingOutlinedIcon /> }, { label: "Payments", path: "/admin/payments", icon: <PaymentsOutlinedIcon /> }] },
   { label: "Account", items: [{ label: "Notifications", path: "/notifications", icon: <NotificationsNoneOutlinedIcon /> }, { label: "Profile", path: "/profile", icon: <PersonOutlineOutlinedIcon /> }, { label: "Settings", path: "/profile", icon: <SettingsOutlinedIcon /> }] },
 ];
 
@@ -44,13 +44,19 @@ const sellerMenuGroups = [
   { label: "Account", items: [{ label: "Notifications", path: "/notifications", icon: <NotificationsNoneOutlinedIcon /> }, { label: "Profile", path: "/profile", icon: <PersonOutlineOutlinedIcon /> }] },
 ];
 
+const shipperMenuGroups = [
+  { label: "Delivery", items: [{ label: "Shipments", path: "/shipper", icon: <LocalShippingOutlinedIcon /> }] },
+  { label: "Account", items: [{ label: "Notifications", path: "/notifications", icon: <NotificationsNoneOutlinedIcon /> }, { label: "Profile", path: "/profile", icon: <PersonOutlineOutlinedIcon /> }] },
+];
+
 export default function SideMenu({ drawerWidth, collapsed, mobileOpen, onClose, onToggle }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const isAdmin = hasAnyRole("ROLE_ADMIN", "ADMIN", "ROLE_SUPER_ADMIN", "SUPER_ADMIN");
-  const isSeller = hasAnyRole("ROLE_SELLER", "SELLER");
-  const menuGroups = isAdmin ? adminMenuGroups : isSeller ? sellerMenuGroups : [];
-  const workspaceLabel = isAdmin ? "Admin workspace" : isSeller ? "Seller center" : "Workspace";
+  const isAdmin = hasAdminRole();
+  const isSeller = hasSellerRole();
+  const isShipper = hasAnyRole("ROLE_SHIPPER");
+  const menuGroups = isAdmin ? adminMenuGroups : isShipper ? shipperMenuGroups : isSeller ? sellerMenuGroups : [];
+  const workspaceLabel = isAdmin ? "Admin workspace" : isShipper ? "Shipper center" : isSeller ? "Seller center" : "Workspace";
   const handleLogout = async () => { await logout(); onClose?.(); navigate("/login", { replace: true }); };
   const handleNavigate = (path) => { navigate(path); onClose?.(); };
 

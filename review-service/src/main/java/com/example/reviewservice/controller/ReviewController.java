@@ -40,6 +40,7 @@ public class ReviewController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ApiResponse<ProductReviewResponse> create(
             @AuthenticationPrincipal Jwt jwt,
             @RequestHeader("Authorization") String authorization,
@@ -50,6 +51,7 @@ public class ReviewController {
     }
 
     @PutMapping("/{reviewId}")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ApiResponse<ProductReviewResponse> update(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID reviewId,
@@ -61,6 +63,7 @@ public class ReviewController {
 
     @DeleteMapping("/{reviewId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID reviewId) {
         reviewService.deleteReview(jwt.getSubject(), reviewId);
     }
@@ -82,6 +85,7 @@ public class ReviewController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ApiResponse<PageResponse<ProductReviewResponse>> getMyReviews(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(defaultValue = "1") int page,
@@ -92,6 +96,7 @@ public class ReviewController {
     }
 
     @GetMapping("/order-items/{orderItemId}")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ApiResponse<ProductReviewResponse> getMyReviewByOrderItem(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable String orderItemId
@@ -101,7 +106,7 @@ public class ReviewController {
     }
 
     @GetMapping("/admin")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<PageResponse<ProductReviewResponse>> getAdminReviews(
             @RequestParam(required = false) ReviewStatus status,
             @RequestParam(required = false) Integer rating,
@@ -118,14 +123,14 @@ public class ReviewController {
     }
 
     @GetMapping("/{reviewId}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<ProductReviewResponse> getReview(@PathVariable UUID reviewId) {
         return response(HttpStatus.OK, "Review retrieved successfully",
                 reviewService.getReview(reviewId));
     }
 
     @PutMapping("/{reviewId}/moderation")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<ProductReviewResponse> moderate(
             @PathVariable UUID reviewId,
             @Valid @RequestBody ModerateReviewRequest request
@@ -135,7 +140,7 @@ public class ReviewController {
     }
 
     @PostMapping("/{reviewId}/reply")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<ProductReviewResponse> reply(
             @PathVariable UUID reviewId,
             @Valid @RequestBody SellerReplyRequest request

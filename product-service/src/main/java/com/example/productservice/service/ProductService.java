@@ -24,12 +24,12 @@ public interface ProductService {
     ProductDetailResponse getSellerProductById(String id, String sellerId);
     ProductDetailResponse getProductBySlug(String slug);
     ProductDetailResponse updateProduct(String id, String userId, UpdateProductRequest request);
-    ProductDetailResponse updateSellerProduct(String id, String sellerId, UpdateSellerProductRequest request);
-    ProductDetailResponse updateSellerProductQuantity(String id, String sellerId, UpdateSellerProductQuantityRequest request);
-    ProductDetailResponse updateSellerProductStatus(String id, String sellerId, UpdateSellerProductStatusRequest request);
+    ProductDetailResponse updateSellerProduct(String id, String sellerId, String authorization, UpdateSellerProductRequest request);
+    ProductDetailResponse updateSellerProductQuantity(String id, String sellerId, String authorization, UpdateSellerProductQuantityRequest request);
+    ProductDetailResponse updateSellerProductStatus(String id, String sellerId, String authorization, UpdateSellerProductStatusRequest request);
     ProductDetailResponse submitSellerProduct(String id, String sellerId, String authorization);
     ProductDetailResponse moderateProduct(String id, String adminUserId, ModerateProductRequest request);
-    void deleteProduct(String id);
+    void deleteProduct(String id, String sellerId, String authorization);
     void syncStockFromInventoryEvent(InventoryUpdatedEvent event);
     void inactivateProductsForSuspendedShop(String shopId);
 

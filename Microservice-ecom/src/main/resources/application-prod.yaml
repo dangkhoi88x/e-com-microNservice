@@ -18,8 +18,11 @@ spring:
     bootstrap-servers: localhost:9092
 
 jwt:
-  secret-key: ${JWT_SECRET}
+  issuer: ${JWT_ISSUER}
   audience: ${JWT_AUDIENCE}
+  rsa:
+    private-key: ${JWT_RSA_PRIVATE_KEY}
+    key-id: ${JWT_RSA_KEY_ID:identity-rs256-v1}
 
 services:
   notification:

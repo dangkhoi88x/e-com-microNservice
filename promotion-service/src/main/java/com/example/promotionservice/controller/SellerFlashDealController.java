@@ -25,7 +25,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/flash-deals/seller")
-@PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'SELLER')")
+@PreAuthorize("hasAuthority('ROLE_SELLER')")
 public class SellerFlashDealController {
     private final FlashDealService service;
 

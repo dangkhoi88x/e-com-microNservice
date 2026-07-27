@@ -37,7 +37,7 @@ import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
 import { Button as ShadcnButton } from "../components/ui/button";
 import { getCategories } from "../services/categoryService";
-import { hasAnyRole } from "../services/authenticationService";
+import { hasAdminRole } from "../services/authenticationService";
 import { getMyNotifications } from "../services/notificationService";
 import { getAllOrders, getMyOrders } from "../services/orderService";
 import { getAllPayments, getMyPayments } from "../services/paymentService";
@@ -217,7 +217,7 @@ function TemplateCard({ template, onClick }) {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const isAdmin = hasAnyRole("ROLE_ADMIN", "ADMIN");
+  const isAdmin = hasAdminRole();
   const [metrics, setMetrics] = useState({ products: 0, categories: 0, orders: 0, payments: 0, notifications: 0 });
   const [orders, setOrders] = useState([]);
   const [notifications, setNotifications] = useState([]);

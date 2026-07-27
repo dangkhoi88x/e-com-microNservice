@@ -17,9 +17,6 @@ spring:
     show-sql: true
   kafka:
     bootstrap-servers: localhost:9094
-jwt:
-  secret-key: "your-secret-key-here"
-
 services:
   payment:
     internal-api-key: ${INTERNAL_PAYMENT_API_KEY:local-payment-internal-key}
@@ -30,3 +27,8 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+security:
+  jwt:
+    issuer: ${JWT_ISSUER:http://localhost:8090}
+    audience: ${JWT_AUDIENCE:novashop-api}
+    jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8090/identity/api/.well-known/jwks.json}

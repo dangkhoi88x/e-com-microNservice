@@ -27,5 +27,6 @@
         <module>review-service</module>
         <module>seller-service</module>
         <module>media-service</module>
+        <module>promotion-service</module>
     </modules>
 </project>

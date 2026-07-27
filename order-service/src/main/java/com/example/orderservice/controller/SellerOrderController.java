@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/orders/seller")
-@PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'SELLER')")
+@PreAuthorize("hasAuthority('ROLE_SELLER')")
 public class SellerOrderController {
     private final OrderService orderService;
     @GetMapping public ApiResponse<PageResponse<OrderResponse>> getMine(@AuthenticationPrincipal Jwt jwt, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "50") int size) { return body(HttpStatus.OK, orderService.getSellerOrders(jwt.getSubject(), page, size)); }

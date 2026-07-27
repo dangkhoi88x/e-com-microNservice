@@ -40,7 +40,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PageHeader } from "../components/admin";
 import MainLayout from "../layouts/MainLayout";
-import { hasAnyRole } from "../services/authenticationService";
+import { hasAdminRole } from "../services/authenticationService";
 import { confirmInventory } from "../services/inventoryService";
 import {
   cancelOrder,
@@ -134,7 +134,7 @@ const statusLabel = (status) => ({
 
 export default function Orders() {
   const [searchParams] = useSearchParams();
-  const isAdmin = hasAnyRole("ROLE_ADMIN", "ADMIN");
+  const isAdmin = hasAdminRole();
   const [orders, setOrders] = useState([]);
   const [viewMode, setViewMode] = useState("mine");
   const [statusFilter, setStatusFilter] = useState("ALL");

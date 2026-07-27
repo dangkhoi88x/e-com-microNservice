@@ -8,6 +8,7 @@ import com.example.cartservice.service.CartService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,11 +32,13 @@ public class CartController {
     private final CartService cartService;
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ApiResponse<CartResponse> getMyCart(@AuthenticationPrincipal Jwt jwt) {
         return response(HttpStatus.OK, "Cart retrieved successfully", cartService.getMyCart(jwt.getSubject()));
     }
 
     @PostMapping("/items")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ApiResponse<CartResponse> addItem(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid AddCartItemRequest request
@@ -44,6 +47,7 @@ public class CartController {
     }
 
     @PutMapping("/items/{itemId}")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ApiResponse<CartResponse> updateItem(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable String itemId,
@@ -53,6 +57,7 @@ public class CartController {
     }
 
     @DeleteMapping("/items/{itemId}")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ApiResponse<Void> removeItem(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable String itemId
@@ -62,6 +67,7 @@ public class CartController {
     }
 
     @DeleteMapping("/items")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ApiResponse<Void> clearMyCart(@AuthenticationPrincipal Jwt jwt) {
         cartService.clearMyCart(jwt.getSubject());
         return response(HttpStatus.OK, "Cart cleared successfully", null);

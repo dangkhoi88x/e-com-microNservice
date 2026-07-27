@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Bell, Check, CloudUpload, LogOut, Pencil, Save, Settings, Star, Store, Trash2, UserRound } from "lucide-react";
-import { hasAnyRole, logout } from "../services/authenticationService";
+import { hasAdminRole, hasAnyRole, logout } from "../services/authenticationService";
 import { getMyProfile, updateMyProfile } from "../services/profileService";
 import { getMyNotifications } from "../services/notificationService";
 import { deleteMedia, uploadAvatar } from "../services/mediaService";
@@ -20,7 +20,7 @@ export default function MyAccount() {
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
   const activeTab = searchParams.get("tab") === "notifications" ? "notifications" : "profile";
-  const canRegisterSeller = !hasAnyRole("ROLE_SELLER", "SELLER", "ROLE_ADMIN", "ADMIN", "ROLE_SUPER_ADMIN", "SUPER_ADMIN");
+  const canRegisterSeller = !hasAnyRole("ROLE_SELLER", "SELLER") && !hasAdminRole();
 
   useEffect(() => {
     getMyProfile()

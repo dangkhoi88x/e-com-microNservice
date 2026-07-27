@@ -42,3 +42,8 @@ app:
     secret-key: ${AWS_SECRET_KEY:}
     max-file-size-bytes: ${MEDIA_MAX_FILE_SIZE_BYTES:6291456}
     download-url-ttl: ${MEDIA_DOWNLOAD_URL_TTL:PT10M}
+security:
+  jwt:
+    issuer: ${JWT_ISSUER:http://localhost:8090}
+    audience: ${JWT_AUDIENCE:novashop-api}
+    jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8090/identity/api/.well-known/jwks.json}

@@ -17,6 +17,7 @@ export const API = {
   SELLER_PRODUCTS: "/api/v1/seller/products",
   SELLER_SHOP: "/api/v1/sellers/me/shop",
   ADMIN_SELLER_SHOPS: "/api/v1/sellers/admin",
+  ADMIN_SHIPPERS: "/identity/admin/users/shippers",
   INVENTORY: "/inventory/api/v1/inventory",
   MEDIA: "/api/v1/media",
   CART: "/api/v1/cart",

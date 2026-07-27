@@ -34,6 +34,7 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
             new PublicEndpoint("/identity/auth/password-reset/request", HttpMethod.POST),
             new PublicEndpoint("/identity/auth/password-reset/confirm", HttpMethod.POST),
             new PublicEndpoint("/identity/auth/token/introspect", HttpMethod.POST),
+            new PublicEndpoint("/identity/.well-known/jwks.json", HttpMethod.GET),
             new PublicEndpoint("/identity/search/**", HttpMethod.GET),  // Search API là public
             new PublicEndpoint("/api/v1/search/**", HttpMethod.GET),
             new PublicEndpoint("/search/api/v1/search/**", HttpMethod.GET),

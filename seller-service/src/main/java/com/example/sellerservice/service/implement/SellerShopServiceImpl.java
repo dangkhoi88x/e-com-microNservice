@@ -63,6 +63,9 @@ public class SellerShopServiceImpl implements SellerShopService {
     @Transactional
     public SellerShopResponse updateMyShop(String ownerUserId, UpdateSellerShopRequest request) {
         SellerShop shop = findByOwnerUserId(ownerUserId);
+        if (shop.getStatus() != SellerStatus.PENDING && shop.getStatus() != SellerStatus.REJECTED) {
+            throw new SellerServiceException(ErrorCode.INVALID_SELLER_TRANSITION);
+        }
         shop.setShopName(request.shopName().trim());
         shop.setDescription(trimToNull(request.description()));
         shop.setPhone(request.phone().trim());

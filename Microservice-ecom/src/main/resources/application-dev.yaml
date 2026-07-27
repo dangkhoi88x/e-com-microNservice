@@ -1,6 +1,8 @@
 spring:
   config:
     import:
+      - optional:file:.env.example[.properties]
+      - optional:file:../.env.example[.properties]
       - optional:file:.env.dev[.properties]
       - optional:file:../.env.dev[.properties]
   datasource:
@@ -26,8 +28,11 @@ grpc:
     port: 9090
 
 jwt:
-  secret-key: ${JWT_SECRET}
-  audience: ${JWT_AUDIENCE}
+  issuer: ${JWT_ISSUER:http://localhost:8090}
+  audience: ${JWT_AUDIENCE:novashop-api}
+  rsa:
+    private-key: ${JWT_RSA_PRIVATE_KEY}
+    key-id: ${JWT_RSA_KEY_ID:identity-rs256-v1}
 
 services:
   user-profile:
@@ -38,7 +43,7 @@ services:
 
 security:
   password-reset:
-    pepper: ${PASSWORD_RESET_PEPPER:${JWT_SECRET}}
+    pepper: ${PASSWORD_RESET_PEPPER}
   refresh-cookie:
     secure: false
     same-site: Lax

@@ -34,7 +34,7 @@ public class NotificationController {
     }
 
     @GetMapping("/admin")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<List<NotificationResponse>> adminNotifications() {
         List<NotificationResponse> data = notificationService.allNotifications();
 

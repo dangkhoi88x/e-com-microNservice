@@ -30,7 +30,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/sellers/admin")
-@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminSellerShopController {
     private final SellerShopService sellerShopService;
 

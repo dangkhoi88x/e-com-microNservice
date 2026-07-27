@@ -124,7 +124,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Transactional(readOnly = true)
     public PageResponse<PaymentResponse> getAllPayments(int page, int size) {
         Pageable pageable = createPaymentPageable(page, size);
@@ -147,7 +147,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public PaymentResponse markPaymentSuccess(String userId, String token, String paymentId) {
         Payment payment = getPaymentForAdmin(paymentId);
 
@@ -180,7 +180,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public PaymentResponse markPaymentFailed(String userId, String paymentId) {
         Payment payment = getPaymentForAdmin(paymentId);
 
@@ -204,7 +204,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public PaymentResponse cancelPayment(String userId, String paymentId) {
         Payment payment = getPaymentForAdmin(paymentId);
 
@@ -580,7 +580,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     private Pageable createPaymentPageable(int page, int size) {
         int currentPage = Math.max(page, 1);
-        int pageSize = Math.max(size, 1);
+        int pageSize = Math.min(Math.max(size, 1), 100);
         return PageRequest.of(currentPage - 1, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 

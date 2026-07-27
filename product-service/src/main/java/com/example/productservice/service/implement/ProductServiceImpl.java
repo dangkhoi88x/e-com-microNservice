@@ -171,7 +171,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public PageResponse<ProductDetailResponse> getAllProducts(int page, int size, SearchRequest request) {
         int currentPage = Math.max(page, 1);
-        int pageSize = Math.max(size, 1);
+        int pageSize = Math.min(Math.max(size, 1), 100);
 
         // JPA bắt đầu từ 0, còn API dùng page bắt đầu từ 1.
         Pageable pageable = PageRequest.of(currentPage - 1, pageSize, Sort.by(Sort.Direction.ASC, "name"));
@@ -298,9 +298,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public ProductDetailResponse updateSellerProduct(String id, String sellerId, UpdateSellerProductRequest request) {
+    public ProductDetailResponse updateSellerProduct(String id, String sellerId, String authorization, UpdateSellerProductRequest request) {
         Product product = productRepository.findByIdAndSellerId(id, sellerId)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+        requireApprovedShopForProduct(authorization, product);
         if (product.getStatus() != ProductStatus.DRAFT && product.getStatus() != ProductStatus.REJECTED) {
             throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
         }
@@ -317,10 +318,12 @@ public class ProductServiceImpl implements ProductService {
     public ProductDetailResponse updateSellerProductQuantity(
             String id,
             String sellerId,
+            String authorization,
             UpdateSellerProductQuantityRequest request
     ) {
         Product product = productRepository.findByIdAndSellerId(id, sellerId)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+        requireApprovedShopForProduct(authorization, product);
         if (product.getStatus() == ProductStatus.PENDING_APPROVAL) {
             throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
         }
@@ -336,10 +339,12 @@ public class ProductServiceImpl implements ProductService {
     public ProductDetailResponse updateSellerProductStatus(
             String id,
             String sellerId,
+            String authorization,
             UpdateSellerProductStatusRequest request
     ) {
         Product product = productRepository.findByIdAndSellerId(id, sellerId)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+        requireApprovedShopForProduct(authorization, product);
         ProductStatus currentStatus = product.getStatus();
         ProductStatus targetStatus = request.status();
         boolean currentCanBeChanged = currentStatus == ProductStatus.ACTIVE || currentStatus == ProductStatus.INACTIVE;
@@ -400,16 +405,10 @@ public class ProductServiceImpl implements ProductService {
 
    // @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
     @Override
-    public void deleteProduct(String id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_NOT_FOUND));
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
-            throw new ProductServiceException(ErrorCode.UNAUTHORIZED);
-        }
-
-        checkProductAccess(product, authentication.getName());
+    public void deleteProduct(String id, String sellerId, String authorization) {
+        Product product = productRepository.findByIdAndSellerId(id, sellerId)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+        requireApprovedShopForProduct(authorization, product);
 
         if (product.getStatus() != ProductStatus.DRAFT && product.getStatus() != ProductStatus.REJECTED) {
             throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
@@ -602,6 +601,13 @@ public class ProductServiceImpl implements ProductService {
                 .collect(Collectors.toSet());
 
         if (!authorities.contains("ROLE_ADMIN")) {
+            throw new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED);
+        }
+    }
+
+    private void requireApprovedShopForProduct(String authorization, Product product) {
+        String approvedShopId = requireApprovedShop(authorization);
+        if (!approvedShopId.equals(product.getShopId())) {
             throw new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED);
         }
     }

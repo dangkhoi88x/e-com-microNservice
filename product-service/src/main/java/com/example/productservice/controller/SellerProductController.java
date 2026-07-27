@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/seller/products")
-@PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'SELLER')")
+@PreAuthorize("hasAuthority('ROLE_SELLER')")
 public class SellerProductController {
     private final ProductService productService;
 
@@ -68,30 +68,33 @@ public class SellerProductController {
     public ApiResponse<ProductDetailResponse> update(
             @PathVariable String id,
             @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @Valid @RequestBody UpdateSellerProductRequest request
     ) {
         return response(HttpStatus.OK, "Product draft updated successfully",
-                productService.updateSellerProduct(id, jwt.getSubject(), request));
+                productService.updateSellerProduct(id, jwt.getSubject(), authorization, request));
     }
 
     @PatchMapping("/{id}/quantity")
     public ApiResponse<ProductDetailResponse> updateQuantity(
             @PathVariable String id,
             @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @Valid @RequestBody UpdateSellerProductQuantityRequest request
     ) {
         return response(HttpStatus.OK, "Product quantity updated successfully",
-                productService.updateSellerProductQuantity(id, jwt.getSubject(), request));
+                productService.updateSellerProductQuantity(id, jwt.getSubject(), authorization, request));
     }
 
     @PatchMapping("/{id}/status")
     public ApiResponse<ProductDetailResponse> updateStatus(
             @PathVariable String id,
             @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @Valid @RequestBody UpdateSellerProductStatusRequest request
     ) {
         return response(HttpStatus.OK, "Product status updated successfully",
-                productService.updateSellerProductStatus(id, jwt.getSubject(), request));
+                productService.updateSellerProductStatus(id, jwt.getSubject(), authorization, request));
     }
 
     @PostMapping("/{id}/submit")
@@ -105,8 +108,12 @@ public class SellerProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> delete(@PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
-        productService.deleteProduct(id);
+    public ApiResponse<Void> delete(
+            @PathVariable String id,
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization
+    ) {
+        productService.deleteProduct(id, jwt.getSubject(), authorization);
         return response(HttpStatus.OK, "Product deleted successfully", null);
     }
 

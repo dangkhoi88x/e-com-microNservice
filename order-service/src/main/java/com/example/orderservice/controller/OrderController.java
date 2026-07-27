@@ -32,6 +32,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
             @AuthenticationPrincipal Jwt jwt,
             @RequestHeader("Authorization") String authorization,
@@ -52,12 +53,14 @@ public class OrderController {
     }
 
     @PostMapping("/checkout")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<ApiResponse<OrderResponse>> checkout(@AuthenticationPrincipal Jwt jwt, @RequestHeader("Authorization") String authorization, @RequestBody @Valid CheckoutOrderRequest request) {
         OrderResponse data = orderService.checkout(jwt.getSubject(), request, authorization.replace("Bearer ", ""));
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.<OrderResponse>builder().status(HttpStatus.CREATED.value()).message("Checkout created successfully").data(data).build());
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<PageResponse<OrderResponse>> getAllOrders(
             @RequestParam(required = false, defaultValue = "1") int page,
             @RequestParam(required = false, defaultValue = "10") int size
@@ -72,7 +75,7 @@ public class OrderController {
     }
 
     @GetMapping("/by-promotion")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<PageResponse<OrderResponse>> getOrdersByPromotion(
             @RequestParam String promotionCode,
             @RequestParam(required = false, defaultValue = "1") int page,
@@ -87,7 +90,7 @@ public class OrderController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<OrderResponse> searchOrderForAdmin(@RequestParam String query) {
         OrderResponse data = orderService.searchOrderForAdmin(query);
         return ApiResponse.<OrderResponse>builder()
@@ -98,6 +101,7 @@ public class OrderController {
     }
 
     @GetMapping("/my-orders")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ApiResponse<PageResponse<OrderResponse>> getMyOrders(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(required = false, defaultValue = "1") int page,
@@ -113,6 +117,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ApiResponse<OrderResponse> getOrderDetail(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable String id
@@ -127,7 +132,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}/admin")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<OrderResponse> getOrderDetailForAdmin(@PathVariable String id) {
         OrderResponse data = orderService.getOrderDetailForAdmin(id);
 
@@ -139,6 +144,7 @@ public class OrderController {
     }
 
     @PutMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ApiResponse<OrderResponse> updateOrderStatus(
             @PathVariable String id,
             @RequestParam OrderStatus status
@@ -153,6 +159,7 @@ public class OrderController {
     }
 
     @PutMapping("/{id}/cancel")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     public ApiResponse<OrderResponse> cancelOrder(
             @AuthenticationPrincipal Jwt jwt,
             @RequestHeader("Authorization") String authorization,

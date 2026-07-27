@@ -4,5 +4,6 @@ public enum RoleName {
     USER,
     ADMIN,
     SELLER,
+    SHIPPER,
     SUPER_ADMIN
 }

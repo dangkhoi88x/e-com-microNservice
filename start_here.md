@@ -176,8 +176,11 @@ Không đưa secret thật vào tài liệu, Git hoặc ảnh chụp màn hình.
 
 ```dotenv
 SPRING_PROFILES_ACTIVE=dev
-JWT_SECRET=<secret đủ dài>
-JWT_AUDIENCE=identity-service
+JWT_RSA_PRIVATE_KEY=<Base64 PKCS#8 RSA private key>
+JWT_RSA_KEY_ID=identity-rs256-v1
+JWT_ISSUER=http://localhost:8090
+JWT_AUDIENCE=novashop-api
+JWT_JWK_SET_URI=http://localhost:8090/identity/api/.well-known/jwks.json
 SECURITY_REFRESH_ALLOWED_ORIGINS=http://localhost:5173
 APP_CORS_ALLOWED_ORIGINS=http://localhost:5173
 EMAIL_USERNAME=<smtp username>
@@ -185,6 +188,17 @@ EMAIL_PASSWORD=<smtp app password>
 ELASTICSEARCH_API_KEY=<api key nếu Elasticsearch bật security>
 KAFKA_BOOTSTRAP_SERVERS=localhost:9094
 ```
+
+Tạo private key cho local (không commit file/key sinh ra):
+
+```powershell
+$keyPath = Join-Path $env:TEMP "novashop-jwt-private.pem"
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out $keyPath
+[Convert]::ToBase64String([IO.File]::ReadAllBytes($keyPath))
+Remove-Item -LiteralPath $keyPath
+```
+
+Lưu giá trị in ra vào `JWT_RSA_PRIVATE_KEY` trong secret manager hoặc `.env.dev`. Identity chỉ phát JWKS public tại `/.well-known/jwks.json`; các service khác không nhận private key.
 
 Lưu ý bảo mật:
 

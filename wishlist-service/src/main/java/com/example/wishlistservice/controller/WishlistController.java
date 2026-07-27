@@ -6,12 +6,13 @@ import com.example.wishlistservice.service.WishlistService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@RestController @RequiredArgsConstructor @RequestMapping("/api/v1/wishlist")
+@RestController @RequiredArgsConstructor @RequestMapping("/api/v1/wishlist") @PreAuthorize("hasAuthority('ROLE_USER')")
 public class WishlistController {
     private final WishlistService service;
     @GetMapping public ApiResponse<List<WishlistItemResponse>> getMyWishlist(@AuthenticationPrincipal Jwt jwt) { return response(HttpStatus.OK, "Wishlist retrieved successfully", service.getMyWishlist(jwt.getSubject())); }

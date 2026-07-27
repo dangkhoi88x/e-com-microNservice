@@ -16,7 +16,7 @@ import java.time.Instant;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/orders/admin/analytics")
-@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminAnalyticsController {
     private final OrderService service;
 
