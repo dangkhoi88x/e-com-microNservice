@@ -413,6 +413,10 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
 
         if (order.getStatus() == OrderStatus.SHIPPING) {
+            // COD checkout is complete from the buyer's perspective once the
+            // order has entered shipping. This operation is idempotent, so a
+            // replayed Kafka event also repairs an earlier failed cart cleanup.
+            cartClient.finalize(order.getId());
             publishShipmentRequestedEvent(order);
             log.info("Shipment already requested for COD order: orderId={}, paymentId={}",
                     event.getOrderId(), event.getPaymentId());
@@ -434,6 +438,7 @@ public class OrderServiceImpl implements OrderService {
         OrderStatus oldStatus = order.getStatus();
         order.setStatus(OrderStatus.SHIPPING);
         Order savedOrder = orderRepository.save(order);
+        cartClient.finalize(savedOrder.getId());
         publishOrderStatusUpdatedEvent(savedOrder, oldStatus);
         publishShipmentRequestedEvent(savedOrder);
 

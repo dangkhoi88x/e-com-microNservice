@@ -100,6 +100,25 @@ services:
       timeout: 5s
       retries: 10
 
+  media-postgres:
+    image: postgres:17
+    container_name: media-postgres
+    ports:
+      - "5441:5432"
+    environment:
+      POSTGRES_DB: media_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - media-postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservice_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d media_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   review-service:
     build:
       context: ./review-service
@@ -322,5 +341,8 @@ volumes:
   seller-postgres-data:
   shipping-postgres-data:
   review-postgres-data:
+  media-postgres-data:
+    external: true
+    name: media-service-local_media-postgres-data
 networks:
   microservice_network:

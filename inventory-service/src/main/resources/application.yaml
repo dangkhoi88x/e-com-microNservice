@@ -16,13 +16,17 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     # schema.sql creates the aggregate/variant indexes after Hibernate has
     # updated the table.
     defer-datasource-initialization: true
   sql:
     init:
       mode: always
+
+outbox:
+  publisher:
+    fixed-delay-ms: ${OUTBOX_PUBLISHER_FIXED_DELAY_MS:3000}
 
 eureka:
   instance:

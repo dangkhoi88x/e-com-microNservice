@@ -76,7 +76,7 @@ export default function ShopProductDetail() {
       .catch(() => {});
     getActiveProductSales()
       .then(setActiveSales)
-      .catch(() => setActiveSales([]));
+      .catch(() => {});
   }, []);
   useEffect(() => {
     if (!product?.categoryId) return;
@@ -162,7 +162,7 @@ export default function ShopProductDetail() {
       image?.url && list.findIndex((item) => item.url === image.url) === index,
   );
   const originalPrice = variant?.price ?? product.price;
-  const activeSale = activeSales
+  const availableSales = activeSales
     .flatMap((deal) =>
       (deal.items || []).map((item) => ({
         ...item,
@@ -172,14 +172,28 @@ export default function ShopProductDetail() {
     .filter(
       (item) =>
         item.productId === product.id &&
-        (item.variantId || null) === (variant?.id || null) &&
         (item.quotaLimited === false || Number(item.quota || 0) > 0),
-    )
+    );
+  const selectedVariantSale = availableSales
+    .filter((item) => (item.variantId || null) === (variant?.id || null))
     .sort(
       (a, b) =>
         Number(a.salePrice) - Number(b.salePrice) ||
         (a.saleType === "FLASH" ? -1 : 1) - (b.saleType === "FLASH" ? -1 : 1),
     )[0];
+  const hasSelectedOptions = Object.keys(selected).length > 0;
+  const fallbackSale = !hasSelectedOptions
+    ? [...availableSales]
+        .sort(
+          (a, b) =>
+            Number(a.salePrice) - Number(b.salePrice) ||
+            (a.saleType === "FLASH" ? -1 : 1) -
+              (b.saleType === "FLASH" ? -1 : 1),
+        )[0]
+    : null;
+  const activeSale = selectedVariantSale || fallbackSale;
+  const saleRequiresVariantSelection =
+    !selectedVariantSale && Boolean(activeSale?.variantId);
   const price = activeSale?.salePrice ?? originalPrice;
   const stock = variant?.quantity ?? product.quantity ?? 0;
   const add = async (goToCheckout = false) => {
@@ -357,6 +371,7 @@ export default function ShopProductDetail() {
               : "Chọn phiên bản phù hợp với bạn"}
           </div>
           <div className="detail-price-row">
+            {saleRequiresVariantSelection && <small>Giá từ</small>}
             <strong className="detail-price">{money(price)}</strong>
             {activeSale && (
               <>
@@ -377,6 +392,11 @@ export default function ShopProductDetail() {
               </>
             )}
           </div>
+          {saleRequiresVariantSelection && (
+            <small className="detail-sale-note">
+              Chọn phiên bản để áp dụng đúng giá ưu đãi.
+            </small>
+          )}
           <small className={stock > 0 ? "detail-stock" : "detail-stock out"}>
             {stock > 0 ? `Còn ${stock} sản phẩm` : "Tạm hết hàng"}
           </small>

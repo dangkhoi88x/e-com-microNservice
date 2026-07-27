@@ -55,6 +55,25 @@ const resultContent = {
   },
 };
 
+const codResultContent = {
+  PENDING: {
+    icon: CircleCheckBig,
+    tone: "success",
+    eyebrow: "Đặt hàng thành công",
+    title: "Đơn hàng COD đã được xác nhận",
+    description: "Bạn sẽ thanh toán bằng tiền mặt khi nhận hàng.",
+  },
+  SUCCESS: {
+    icon: CircleCheckBig,
+    tone: "success",
+    eyebrow: "Thanh toán COD hoàn tất",
+    title: "Cảm ơn bạn đã thanh toán",
+    description: "Đơn hàng của bạn đã hoàn tất thanh toán khi nhận hàng.",
+  },
+  CANCELLED: resultContent.CANCELLED,
+  FAILED: resultContent.FAILED,
+};
+
 export default function PaymentResult() {
   const [searchParams] = useSearchParams();
   const paymentId = searchParams.get("paymentId") || "";
@@ -117,7 +136,9 @@ export default function PaymentResult() {
     redirectStatus === "cancel" && (!payment || payment.status === "PENDING")
       ? "CANCELLED"
       : payment?.status || "PENDING";
-  const content = resultContent[displayedStatus] || resultContent.PENDING;
+  const isCod = payment?.method === "COD";
+  const content = (isCod ? codResultContent : resultContent)[displayedStatus]
+    || (isCod ? codResultContent.PENDING : resultContent.PENDING);
   const Icon = content.icon;
   const canRetryStripe =
     payment?.method === "STRIPE" &&
@@ -149,7 +170,7 @@ export default function PaymentResult() {
         <div className="payment-result-brand">
           <span>N</span>
           <strong>NovaShop</strong>
-          <em><ShieldCheck size={15} /> Stripe Checkout</em>
+          <em><ShieldCheck size={15} /> {isCod ? "Thanh toán khi nhận hàng" : "Stripe Checkout"}</em>
         </div>
 
         <div className="payment-result-icon">
@@ -203,7 +224,11 @@ export default function PaymentResult() {
           <Link to="/shop" className="payment-result-secondary">Tiếp tục mua sắm</Link>
         </div>
 
-        <small>Trạng thái thanh toán được xác nhận trực tiếp từ webhook Stripe.</small>
+        <small>
+          {isCod
+            ? "Bạn thanh toán bằng tiền mặt khi đơn hàng được giao."
+            : "Trạng thái thanh toán được xác nhận trực tiếp từ webhook Stripe."}
+        </small>
       </section>
     </main>
   );

@@ -98,7 +98,7 @@ export default function Shop() {
   const [wishlistNotice, setWishlistNotice] = useState("");
 
   useEffect(() => { Promise.all([getProducts({ page: 1, size: 100 }), getCategories()]).then(([productData, categoryData]) => { setProducts(productData.content || []); setCategories(categoryData || []); }).catch(() => {}); }, []);
-  useEffect(() => { getLiveFlashDeals().then(setFlashDeals).catch(() => setFlashDeals([])); getActiveProductSales().then(setActiveSales).catch(() => setActiveSales([])); getUpcomingFlashDeals().then(setUpcomingFlashDeals).catch(() => setUpcomingFlashDeals([])); }, []);
+  useEffect(() => { getLiveFlashDeals().then(setFlashDeals).catch(() => {}); getActiveProductSales().then(setActiveSales).catch(() => {}); getUpcomingFlashDeals().then(setUpcomingFlashDeals).catch(() => {}); }, []);
   useEffect(() => { if (isAuthenticated()) getFlashDealNotificationSubscriptions().then((ids) => setFlashNotificationIds(new Set(ids))).catch(() => {}); }, []);
   const notifyFlashSale = async (flashDealId) => { if (!isAuthenticated()) return navigate("/shop/login?redirect=/shop"); try { await subscribeFlashDealNotification(flashDealId); setFlashNotificationIds((ids) => new Set(ids).add(flashDealId)); } catch (error) { setWishlistNotice(error.response?.data?.message || "Không thể đăng ký thông báo Flash Sale."); } };
   useEffect(() => {

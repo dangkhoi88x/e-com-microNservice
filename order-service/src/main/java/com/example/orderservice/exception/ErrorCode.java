@@ -17,7 +17,7 @@ public enum ErrorCode {
     SELLER_ORDER_TRANSITION_INVALID(400, "Seller cannot perform this order transition", HttpStatus.BAD_REQUEST),
     INVENTORY_RESERVATION_FAILED(409, "Inventory reservation failed", HttpStatus.CONFLICT),
     ORDER_CANNOT_BE_CANCELLED(400, "Order cannot be cancelled", HttpStatus.BAD_REQUEST),
-    CART_CHECKOUT_EMPTY(400, "No selected cart items available for checkout", HttpStatus.BAD_REQUEST),
+    CART_CHECKOUT_EMPTY(400, "No cart items are available for checkout. You may already have an order pending payment; complete or cancel it in My Orders before checking out again", HttpStatus.BAD_REQUEST),
     PROMOTION_NOT_APPLICABLE(400, "Promotion is invalid or not applicable", HttpStatus.BAD_REQUEST),
     PROMOTION_SERVICE_UNAVAILABLE(503, "Promotion Service Unavailable", HttpStatus.SERVICE_UNAVAILABLE),
     PROMOTION_RESERVATION_FAILED(409, "Promotion reservation failed", HttpStatus.CONFLICT),

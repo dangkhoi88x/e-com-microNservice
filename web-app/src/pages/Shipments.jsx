@@ -141,21 +141,21 @@ export default function Shipments({ shipperMode = false }) {
     setShipments((items) => items.map((item) => item.id === updated.id ? updated : item));
   };
 
-  const runTransition = async (transition) => {
-    if (!selected || saving) return;
-    if (transition.action === "ship" && (!selected.carrier || !selected.trackingNumber)) {
+  const runTransition = async (transition, shipment = selected) => {
+    if (!shipment || saving) return;
+    if (transition.action === "ship" && (!shipment.carrier || !shipment.trackingNumber)) {
       setError("Assign a carrier and tracking number before handing this shipment to the carrier.");
-      openCarrier(selected);
+      openCarrier(shipment);
       return;
     }
     if (["delivery-failed", "returning", "cancel"].includes(transition.action)
-      && !window.confirm(`${transition.label} for order ${shortId(selected.orderId)}?`)) return;
+      && !window.confirm(`${transition.label} for order ${shortId(shipment.orderId)}?`)) return;
 
     setSaving(true);
     setError("");
     setSuccess("");
     try {
-      const updated = await updateShipmentState(selected.id, transition.action, {
+      const updated = await updateShipmentState(shipment.id, transition.action, {
         description: transition.label,
         location: "",
       });
@@ -251,6 +251,16 @@ export default function Shipments({ shipperMode = false }) {
                   <TableCell><Typography className="table-primary">{formatDate(shipment.estimatedDeliveryAt)}</Typography><Typography className="table-secondary">{shipment.deliveredAt ? `Delivered ${formatDate(shipment.deliveredAt)}` : shipment.shippedAt ? `Shipped ${formatDate(shipment.shippedAt)}` : "Awaiting handoff"}</Typography></TableCell>
                   <TableCell><Chip size="small" color={meta.color} label={meta.label} /></TableCell>
                   <TableCell align="right"><Stack direction="row" justifyContent="flex-end" className="row-actions">
+                    {shipperMode && ["CREATED", "PACKING", "READY_TO_SHIP", "IN_TRANSIT"].includes(shipment.status) && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="success"
+                        onClick={() => runTransition({ action: "deliver", label: "Mark delivered" }, shipment)}
+                      >
+                        Đã giao đơn
+                      </Button>
+                    )}
                     {canManageOperations && carrierEditable.has(shipment.status) && <Tooltip title="Assign carrier"><IconButton onClick={() => openCarrier(shipment)}><SettingsSuggestOutlinedIcon /></IconButton></Tooltip>}
                     <Tooltip title="View and manage"><IconButton onClick={() => setSelected(shipment)}><VisibilityOutlinedIcon /></IconButton></Tooltip>
                   </Stack></TableCell>
@@ -265,21 +275,21 @@ export default function Shipments({ shipperMode = false }) {
 
       <Dialog open={Boolean(selected) && !carrierOpen} onClose={() => !saving && setSelected(null)} fullWidth maxWidth="md">
         {selected && <>
-          <DialogTitle><Stack direction="row" alignItems="center" justifyContent="space-between" gap={2}><Box><Typography variant="overline" color="primary">Shipment detail</Typography><Typography variant="h6" fontWeight={850}>Order {shortId(selected.orderId)}</Typography></Box><Chip color={statusMeta[selected.status]?.color || "default"} label={statusMeta[selected.status]?.label || selected.status} /></Stack></DialogTitle>
+          <DialogTitle><Stack direction="row" alignItems="center" justifyContent="space-between" gap={2}><Box><Typography variant="overline" color="primary">Chi tiết giao hàng</Typography><Typography variant="h6" fontWeight={850}>Đơn hàng {shortId(selected.orderId)}</Typography></Box><Chip color={statusMeta[selected.status]?.color || "default"} label={statusMeta[selected.status]?.label || selected.status} /></Stack></DialogTitle>
           <DialogContent dividers>
             <Box className="shipment-detail-grid">
-              <Box className="shipment-detail-card"><Typography variant="overline">Destination</Typography><Stack direction="row" spacing={1} sx={{ mt: 1 }}><LocationOnOutlinedIcon color="primary" /><Typography>{selected.shippingAddress}</Typography></Stack></Box>
-              <Box className="shipment-detail-card"><Typography variant="overline">Carrier</Typography><Typography fontWeight={850} sx={{ mt: 1 }}>{selected.carrier || "Not assigned"}</Typography><Typography className="shipment-tracking">{selected.trackingNumber || "Add carrier details before shipping"}</Typography></Box>
+              <Box className="shipment-detail-card"><Typography variant="overline">Địa chỉ giao</Typography><Stack direction="row" spacing={1} sx={{ mt: 1 }}><LocationOnOutlinedIcon color="primary" /><Typography>{selected.shippingAddress}</Typography></Stack></Box>
+              <Box className="shipment-detail-card"><Typography variant="overline">Đơn vị vận chuyển</Typography><Typography fontWeight={850} sx={{ mt: 1 }}>{selected.carrier || "Chưa phân công"}</Typography><Typography className="shipment-tracking">{selected.trackingNumber || "Chưa có mã vận đơn"}</Typography></Box>
             </Box>
 
-            <Typography className="shipment-timeline-title">Shipment timeline</Typography>
+            <Typography className="shipment-timeline-title">Lịch sử giao hàng</Typography>
             <Box className="shipment-timeline">{(selected.timeline || []).map((event, index) => <Box className="shipment-timeline-item" key={event.id || `${event.status}-${index}`}><Box className="shipment-timeline-dot" /><Box><Stack direction="row" spacing={1} alignItems="center"><Typography fontWeight={850}>{statusMeta[event.status]?.label || event.status}</Typography><Typography variant="caption" color="text.secondary">{formatDate(event.occurredAt)}</Typography></Stack><Typography variant="body2" color="text.secondary">{event.description || "Status updated"}{event.location ? ` · ${event.location}` : ""}</Typography></Box></Box>)}</Box>
           </DialogContent>
           <DialogActions className="shipment-dialog-actions">
-            <Button onClick={() => setSelected(null)} disabled={saving}>Close</Button>
+            <Button onClick={() => setSelected(null)} disabled={saving}>Đóng</Button>
             {canManageOperations && carrierEditable.has(selected.status) && <Button variant="outlined" onClick={() => openCarrier(selected)} disabled={saving}>Carrier details</Button>}
             {canManageOperations && cancellable.has(selected.status) && <Button color="error" onClick={() => runTransition({ action: "cancel", label: "Cancel shipment" })} disabled={saving}>Cancel shipment</Button>}
-            {(shipperMode ? (selected.status === "IN_TRANSIT" ? [{ action: "deliver", label: "Mark delivered", tone: "success" }] : []) : (transitions[selected.status] || [])).map((transition) => <Button key={transition.action} variant="contained" color={transition.tone || "primary"} onClick={() => runTransition(transition)} disabled={saving}>{transition.label}</Button>)}
+            {(shipperMode ? (["CREATED", "PACKING", "READY_TO_SHIP", "IN_TRANSIT"].includes(selected.status) ? [{ action: "deliver", label: "Đã giao đơn", tone: "success" }] : []) : (transitions[selected.status] || [])).map((transition) => <Button key={transition.action} variant="contained" color={transition.tone || "primary"} onClick={() => runTransition(transition)} disabled={saving}>{transition.label}</Button>)}
           </DialogActions>
         </>}
       </Dialog>

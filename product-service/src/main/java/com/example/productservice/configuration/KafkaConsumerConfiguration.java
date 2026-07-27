@@ -1,5 +1,6 @@
 package com.example.productservice.configuration;
 
+import event.InventoryUpdatedEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,31 @@ public class KafkaConsumerConfiguration {
             ConsumerFactory<String, Object> kafkaConsumerFactory) {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, Object>();
         factory.setConsumerFactory(kafkaConsumerFactory);
+        return factory;
+    }
+
+    @Bean
+    ConsumerFactory<String, InventoryUpdatedEvent> inventoryKafkaConsumerFactory() {
+        var config = new HashMap<String, Object>();
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "product-group");
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        config.put(JacksonJsonDeserializer.TRUSTED_PACKAGES, "event");
+
+        return new DefaultKafkaConsumerFactory<>(
+                config,
+                new StringDeserializer(),
+                new JacksonJsonDeserializer<>(InventoryUpdatedEvent.class, false)
+        );
+    }
+
+    @Bean
+    ConcurrentKafkaListenerContainerFactory<String, InventoryUpdatedEvent> inventoryKafkaListenerContainerFactory(
+            ConsumerFactory<String, InventoryUpdatedEvent> inventoryKafkaConsumerFactory) {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, InventoryUpdatedEvent>();
+        factory.setConsumerFactory(inventoryKafkaConsumerFactory);
         return factory;
     }
 }

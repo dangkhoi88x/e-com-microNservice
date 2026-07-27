@@ -147,7 +147,15 @@ public class ShipmentServiceImpl implements ShipmentService {
         if (shipment.getStatus() == ShipmentStatus.DELIVERED) {
             return toResponse(shipment);
         }
-        if (shipment.getStatus() != ShipmentStatus.IN_TRANSIT) {
+        // The current workflow does not persist an assignee. A shipper can
+        // therefore confirm a delivery directly from the operational queue
+        // without first recording packing/carrier hand-off transitions.
+        if (!Set.of(
+                ShipmentStatus.CREATED,
+                ShipmentStatus.PACKING,
+                ShipmentStatus.READY_TO_SHIP,
+                ShipmentStatus.IN_TRANSIT
+        ).contains(shipment.getStatus())) {
             throw new ShippingServiceException(ErrorCode.INVALID_SHIPMENT_TRANSITION);
         }
 

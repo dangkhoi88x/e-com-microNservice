@@ -76,7 +76,7 @@ export default function Checkout() {
   useEffect(() => {
     getMyCart().then((data) => setCart(data.items || [])).catch(() => setNotice("Không thể tải giỏ hàng. Vui lòng đăng nhập lại."));
     getClaimedPromotions().then(setClaimedPromotions).catch(() => setClaimedPromotions([]));
-    getActiveProductSales().then(setFlashDeals).catch(() => setFlashDeals([]));
+    getActiveProductSales().then(setFlashDeals).catch(() => {});
   }, []);
 
   const applyCoupon = async () => {
@@ -140,6 +140,13 @@ export default function Checkout() {
           throw new Error("Stripe không trả về đường dẫn thanh toán.");
         }
         window.location.assign(stripeCheckout.checkoutUrl);
+        return;
+      }
+
+      if (method === "COD") {
+        // COD is not an online payment. Payment service publishes the COD
+        // event and Order service moves the order to SHIPPING asynchronously.
+        navigate("/shop/orders", { replace: true });
         return;
       }
 

@@ -36,4 +36,5 @@ public class S3Configuration {
         }
         return DefaultCredentialsProvider.create();
     }
+
 }

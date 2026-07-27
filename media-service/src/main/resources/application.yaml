@@ -4,9 +4,11 @@ spring:
   config:
     import: optional:file:.env.dev[.properties],optional:file:../.env.dev[.properties]
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5441/media_db}
-    username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:123456}
+    # .env.example is shared by all services and contains a generic datasource URL.
+    # Media must use its own Postgres instance on port 5441.
+    url: ${MEDIA_DATASOURCE_URL:jdbc:postgresql://localhost:5441/media_db}
+    username: ${MEDIA_DATASOURCE_USERNAME:root}
+    password: ${MEDIA_DATASOURCE_PASSWORD:123456}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
