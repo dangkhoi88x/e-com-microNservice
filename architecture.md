@@ -27,6 +27,10 @@ Mục tiêu chính của hệ thống:
 | Order Service | Tạo order, giữ trạng thái order | REST tới product/inventory, Kafka payment event |
 | Payment Service | Tạo payment và đổi trạng thái payment | REST tới order, Kafka payment event |
 | Promotion Service | Campaign và reservation khuyến mãi | REST từ Order Service |
+| Shipping Service | Tạo shipment và theo dõi trạng thái giao hàng | Kafka order/shipment event, REST nội bộ |
+| Review Service | Review, moderation và seller reply | REST tới Order/Profile, Kafka review summary |
+| Seller Service | Seller shop, eligibility và xét duyệt | REST, Kafka seller-shop event |
+| Media Service | Metadata media, upload/download URL S3 | REST qua Gateway |
 
 ## 2. Nguyên Tắc Ownership Dữ Liệu
 
@@ -65,15 +69,19 @@ Field `inStock` trong Search Service là dữ liệu denormalized, phục vụ l
 ```mermaid
 flowchart LR
     Client["Client / Frontend"] --> Gateway["API Gateway"]
-    Gateway --> Identity["Identity Service"]
-    Gateway --> Product["Product Service"]
     Gateway --> Cart["Cart Service"]
     Gateway --> Wishlist["Wishlist Service"]
     Gateway --> Promotion["Promotion Service"]
+    Gateway --> Media["Media Service"]
     Gateway --> Search["Search Service"]
-    Gateway --> Order["Order Service"]
-    Gateway --> Payment["Payment Service"]
-    Gateway --> Inventory["Inventory Service"]
+    Client -. "direct local API" .-> Identity["Identity Service"]
+    Client -. "direct local API" .-> Product["Product Service"]
+    Client -. "direct local API" .-> Order["Order Service"]
+    Client -. "direct local API" .-> Payment["Payment Service"]
+    Client -. "direct local API" .-> Inventory["Inventory Service"]
+    Client -. "direct local API" .-> Shipping["Shipping Service"]
+    Client -. "direct local API" .-> Review["Review Service"]
+    Client -. "direct local API" .-> Seller["Seller Service"]
 
     Order --> Product
     Order --> Inventory
@@ -92,6 +100,7 @@ flowchart LR
     Kafka --> Order
     Kafka --> Inventory
     Kafka --> Notification["Notification Service"]
+    Kafka --> Shipping
 ```
 
 ## 4. API Gateway Routes
@@ -106,8 +115,11 @@ Các route chính hiện tại:
 | `/api/v1/cart/**` | `CART-SERVICE` |
 | `/api/v1/wishlist/**` | `WISHLIST-SERVICE` |
 | `/api/v1/promotions/**` | `PROMOTION-SERVICE` |
+| `/api/v1/flash-deals/**` | `PROMOTION-SERVICE` |
+| `/api/v1/media/**` | `MEDIA-SERVICE` |
+| `/order/**` | `ORDER-SERVICE` (không khớp controller `/api/v1/orders/**`) |
 
-Gateway cũng xử lý JWT security trước khi request đi vào service cần bảo vệ. Hiện các API Identity, Profile, Product, Inventory, Order, Payment và Notification **chưa có route trong Gateway YAML**, nên client local gọi trực tiếp vào port service hoặc phải bổ sung route trước.
+Gateway cũng xử lý JWT security trước khi request đi vào service cần bảo vệ. Route `/order/**` hiện không proxy các endpoint Order vì controller dùng `/api/v1/orders/**`. Identity, Profile, Product, Inventory, Payment, Notification, Shipping, Review và Seller **chưa có route trong Gateway YAML**, nên client local gọi trực tiếp vào port service hoặc phải bổ sung route trước.
 
 ## 5. Flow Product Và Inventory
 
@@ -356,7 +368,22 @@ Chỉ các trạng thái được hủy:
 
 Nếu order đang `PENDING_PAYMENT`, nghĩa là đã reserve hàng, nên phải release inventory trước khi chuyển sang `CANCELLED`.
 
-## 9. Kafka Topics
+## 9. Flow Shipping
+
+Khi đơn đã sẵn sàng cho fulfillment, Order Service phát event để tách việc tạo và vận hành shipment ra khỏi checkout/payment flow:
+
+```text
+Order chuyển sang trạng thái cần giao
+-> Kafka topic: shipment-requested
+-> Shipping Service tạo shipment
+-> Shipping cập nhật packing / ready-to-ship / shipped / delivered
+-> Kafka topic: shipment-status-updated
+-> Order Service đồng bộ trạng thái đơn
+```
+
+Shipping Service cũng consume `order-cancelled` để xử lý shipment liên quan. Khi seller xem chi tiết đơn, Order Service gọi internal Shipping API để lấy shipment theo order ID.
+
+## 10. Kafka Topics
 
 ### Product Topics
 
@@ -390,7 +417,16 @@ Product Service không còn consume `order-created` để trừ stock.
 | `payment-failed` | Payment Service | Inventory Service | Release inventory |
 | `payment-cancelled` | Payment Service | Inventory Service | Release inventory |
 
-## 10. Use Case Tổng Hợp
+### Shipping, Review Và Seller Topics
+
+| Topic | Producer | Consumer | Mục đích |
+| --- | --- | --- | --- |
+| `shipment-requested` | Order Service | Shipping Service | Tạo shipment khi đơn sẵn sàng giao |
+| `shipment-status-updated` | Shipping Service | Order Service | Đồng bộ trạng thái giao hàng vào order |
+| `review-summary-changed` | Review Service | Read model tích hợp khi được cấu hình | Đồng bộ tổng hợp rating/review của product |
+| `seller-shop-status-changed` | Seller Service | Read model tích hợp khi được cấu hình | Phát thay đổi trạng thái shop |
+
+## 11. Use Case Tổng Hợp
 
 ### Use Case 1: User mua hàng thành công
 
@@ -447,7 +483,17 @@ Product Service không còn consume `order-created` để trừ stock.
 4. Order Service publish order-cancelled.
 ```
 
-## 11. Tại Sao Không Bị Loop Service
+### Use Case 5: Giao hàng
+
+```text
+1. Order phát shipment-requested.
+2. Shipping Service tạo shipment.
+3. Nhân viên cập nhật shipment sang PACKING, READY_TO_SHIP, SHIPPED hoặc DELIVERED.
+4. Shipping phát shipment-status-updated.
+5. Order Service consume event và đồng bộ trạng thái đơn.
+```
+
+## 12. Tại Sao Không Bị Loop Service
 
 Flow hiện tại không có vòng gọi trực tiếp nguy hiểm kiểu:
 
@@ -465,6 +511,8 @@ Payment -> Kafka: publish payment result
 Kafka -> Order/Inventory: cập nhật trạng thái sau payment
 Inventory -> Kafka: publish stock changed
 Kafka -> Product/Search: sync read model
+Order -> Kafka: yêu cầu tạo shipment
+Kafka -> Shipping -> Kafka -> Order: đồng bộ trạng thái giao hàng
 ```
 
 Điểm quan trọng:
@@ -473,7 +521,7 @@ Kafka -> Product/Search: sync read model
 - Inventory Service là nơi duy nhất quyết định stock thật.
 - Product/Search chỉ giữ bản sao để đọc nhanh.
 
-## 12. Ghi Chú Local Config
+## 13. Ghi Chú Local Config
 
 Các service chính hiện đã được cấu hình port không trùng nhau:
 
@@ -490,10 +538,14 @@ Các service chính hiện đã được cấu hình port không trùng nhau:
 | Wishlist Service | `8092` |
 | Search Service | `8093` |
 | Promotion Service | `8095` |
+| Shipping Service | `8096` |
+| Review Service | `8097` |
+| Seller Service | `8098` |
+| Media Service | `8099` mặc định |
 | Discovery Server | `8761` |
 | API Gateway | `9191` |
 
-## 13. Những Điểm Có Thể Cải Thiện Sau
+## 14. Những Điểm Có Thể Cải Thiện Sau
 
 Các điểm này chưa bắt buộc cho demo, nhưng nên biết để trả lời khi phỏng vấn:
 
@@ -503,3 +555,4 @@ Các điểm này chưa bắt buộc cho demo, nhưng nên biết để trả l�
 4. Đổi tên `product.quantity` thành `cachedAvailableQuantity` hoặc `availableQuantity`.
 5. Thêm migration bằng Flyway/Liquibase thay vì `ddl-auto: update`.
 6. Thêm distributed tracing để trace flow order-payment-inventory.
+7. Đồng bộ Gateway route `/order/**` với controller `/api/v1/orders/**` và thêm route cho các public API còn lại.

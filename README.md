@@ -23,12 +23,16 @@ flowchart LR
     GW --> Cart[Cart]
     GW --> Wish[Wishlist]
     GW --> Promo[Promotion]
+    GW --> Media[Media]
     GW --> Search[Search]
 
     UI --> Identity[Identity]
     UI --> Product[Product]
     UI --> Order[Order]
     UI --> Payment[Payment]
+    UI --> Shipping[Shipping]
+    UI --> Review[Review]
+    UI --> Seller[Seller]
 
     Order --> Product
     Order --> Cart
@@ -45,11 +49,12 @@ flowchart LR
     Kafka --> Order
     Kafka --> Inventory
     Kafka --> Notification[Notification]
+    Kafka --> Shipping
 
     Services[Business services] --> Eureka[Eureka :8761]
 ```
 
-> Gateway hiện chỉ route Cart, Wishlist, Promotion và Search. Các API Identity, Product, Inventory, Order, Payment, Profile và Notification cần gọi trực tiếp vào port service tương ứng, hoặc bổ sung route trong Gateway trước khi dùng qua `:9191`.
+> Gateway hiện route Cart, Wishlist, Promotion, Flash Deal, Media và Search. Route `/order/**` cũng đã được cấu hình nhưng **không khớp** controller Order hiện dùng `/api/v1/orders/**`, nên Order vẫn cần gọi trực tiếp qua `:8086` cho đến khi predicate được sửa. Identity, Product, Inventory, Payment, Profile, Notification, Shipping, Review và Seller chưa có route Gateway.
 
 ### Cách các service giao tiếp
 
@@ -75,6 +80,10 @@ flowchart LR
 | Wishlist Service | `wishlist-service` | 8092 | Wishlist của user |
 | Search Service | `search-service` | 8093 | Tìm kiếm Elasticsearch |
 | Promotion Service | `promotion-service` | 8095 | Campaign, validate/reserve/confirm/release khuyến mãi |
+| Shipping Service | `shipping-service` | 8096 | Shipment và trạng thái giao hàng |
+| Review Service | `review-service` | 8097 | Review sản phẩm và moderation |
+| Seller Service | `seller-service` | 8098 | Đăng ký, xét duyệt và quản lý shop |
+| Media Service | `media-service` | 8099 mặc định | Upload và phân phối media qua S3-compatible storage |
 | Discovery Server | `discovery-server` | 8761 | Eureka service registry |
 | API Gateway | `api-gateway-service` | 9191 | Entry point cho các route đã khai báo |
 | Web app | `web-app` | Vite mặc định 5173 | React 19 frontend |
@@ -86,7 +95,10 @@ flowchart LR
 | `/api/v1/cart/**` | `lb://cart-service` |
 | `/api/v1/wishlist/**` | `lb://wishlist-service` |
 | `/api/v1/promotions/**` | `lb://promotion-service` |
+| `/api/v1/flash-deals/**` | `lb://promotion-service` |
+| `/api/v1/media/**` | `lb://media-service` |
 | `/api/v1/search/**` | `lb://search-service` |
+| `/order/**` | `lb://order-service` — không khớp `/api/v1/orders/**` |
 
 ## Quyền sở hữu dữ liệu
 
@@ -216,7 +228,7 @@ Xem request mẫu cho Promotion tại [bruno/promotion-service](bruno/promotion-
 docker compose up -d
 ```
 
-Compose chạy PostgreSQL cho product/identity/inventory/promotion, Redis, MongoDB, Kafka, Kafka UI, Elasticsearch, Kibana và container Promotion Service.
+Compose chạy PostgreSQL cho product/identity/inventory/promotion/shipping/review/seller/media, Redis, MongoDB, Kafka, Kafka UI, Elasticsearch, Kibana; đồng thời build/chạy Promotion, Shipping, Review, Seller và Wishlist Service.
 
 Các URL hữu ích:
 
@@ -261,6 +273,8 @@ cd search-service && ./mvnw spring-boot:run
 cd api-gateway-service && ./mvnw spring-boot:run
 ```
 
+Các service Shipping, Review, Seller và Media chạy tương tự từ thư mục module tương ứng. `Microservice-ecom` không có Maven Wrapper nên dùng `mvn spring-boot:run`.
+
 Compose map Promotion Service ra host port `8094` (container port `8095`). Khi cần debug local ở `8095`, nên chọn một cách chạy để tránh có hai instance `promotion-service` cùng đăng ký Eureka và cùng dùng dữ liệu demo.
 
 ### 4. Khởi động frontend
@@ -293,6 +307,10 @@ npm run build
 ├── profile-service/          # User profile
 ├── promotion-service/        # Campaign và promotion reservation
 ├── search-service/           # Elasticsearch search
+├── shipping-service/         # Shipment và trạng thái giao hàng
+├── review-service/           # Product review và moderation
+├── seller-service/           # Seller shop và eligibility
+├── media-service/            # Media metadata + S3 upload/download URL
 ├── wishlist-service/         # Wishlist
 ├── web-app/                  # React 19 + Vite frontend
 ├── database/                 # SQL seed data
@@ -306,7 +324,7 @@ npm run build
 
 ### Build
 
-Root `pom.xml` là aggregator cho các module Spring Boot chính; `promotion-service` hiện có `pom.xml` riêng nhưng chưa nằm trong danh sách module root. Build từng service bằng wrapper của chính module, ví dụ:
+Root `pom.xml` là aggregator cho toàn bộ service Spring Boot, bao gồm Promotion, Shipping, Review, Seller và Media. Build từng service bằng wrapper của chính module (hoặc `mvn` với `Microservice-ecom`), ví dụ:
 
 ```bash
 cd payment-service && ./mvnw -DskipTests compile
