@@ -19,6 +19,7 @@ public class UserProfileService {
     private final UserProfileRepository userProfileRepository;
 
     public boolean createFromEvent(UserCreatedEvent event) {
+        validateUserCreatedEvent(event);
         if (userProfileRepository.existsByUserId(event.getUserId())) {
             log.info("User profile already exists for userId={}", event.getUserId());
             return false;
@@ -34,6 +35,19 @@ public class UserProfileService {
 
         log.info("Created user profile successfully: userId={}", event.getUserId());
         return true;
+    }
+
+    private void validateUserCreatedEvent(UserCreatedEvent event) {
+        if (event == null
+                || isBlank(event.getUserId())
+                || isBlank(event.getFirstName())
+                || isBlank(event.getLastName())) {
+            throw new ProfileServiceException(ErrorCode.INVALID_USER_CREATED_EVENT);
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     public UserProfileResponse myInfo(String userId) {

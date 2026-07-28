@@ -191,11 +191,16 @@ public class ProductServiceImpl implements ProductService {
 
         // 4. Lấy content (danh sách products của trang hiện tại)
         List<Product> products = productPage.getContent();
-        Map<String, Integer> availableQuantities = inventoryClient.getAvailableQuantities(
-                products.stream()
-                        .map(Product::getId)
-                        .toList()
-        );
+        Map<String, Integer> availableQuantities;
+        try {
+            availableQuantities = inventoryClient.getAvailableQuantities(
+                    products.stream()
+                            .map(Product::getId)
+                            .toList()
+            );
+        } catch (InventoryClient.InventoryClientException exception) {
+            throw new ProductServiceException(ErrorCode.INVENTORY_SERVICE_UNAVAILABLE);
+        }
 
         // 5. Map Entity sang DTO
         List<ProductDetailResponse> responses = products.stream()
@@ -701,8 +706,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductDetailResponse toProductDetailResponseWithFreshInventory(Product product) {
-        Integer availableQuantity = inventoryClient.getAvailableQuantity(product.getId())
-                .orElse(product.getQuantity());
+        Integer availableQuantity;
+        try {
+            availableQuantity = inventoryClient.getAvailableQuantity(product.getId())
+                    .orElse(product.getQuantity());
+        } catch (InventoryClient.InventoryClientException exception) {
+            throw new ProductServiceException(ErrorCode.INVENTORY_SERVICE_UNAVAILABLE);
+        }
 
         return toProductDetailResponse(product, availableQuantity);
     }
