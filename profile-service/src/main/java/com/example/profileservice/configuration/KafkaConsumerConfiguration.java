@@ -10,6 +10,8 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 
 import java.util.HashMap;
@@ -43,5 +45,13 @@ public class KafkaConsumerConfiguration {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, UserCreatedEvent>();
         factory.setConsumerFactory(kafkaConsumerFactory);
         return factory;
+    }
+
+    @Bean
+    TaskScheduler kafkaRetryTaskScheduler() {
+        var scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix("kafka-retry-");
+        return scheduler;
     }
 }
