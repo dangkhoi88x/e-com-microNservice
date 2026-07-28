@@ -39,6 +39,7 @@ public class SecurityConfiguration {
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers(PUBLIC_MATCHERS).permitAll()
                         .requestMatchers("/internal/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET_MATCHERS).permitAll()

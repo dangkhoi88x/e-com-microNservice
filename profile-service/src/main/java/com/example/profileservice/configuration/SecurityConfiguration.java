@@ -27,6 +27,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers(PUBLIC_MATCHERS).permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

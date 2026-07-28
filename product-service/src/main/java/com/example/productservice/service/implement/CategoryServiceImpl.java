@@ -14,6 +14,8 @@ import com.example.productservice.service.CategoryService;
 import com.example.productservice.utils.SlugUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,6 +30,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final ProductRepository productRepository;
     //    @PreAuthorize("hasAuthority('ADMIN')")
     @Override
+    @CacheEvict(cacheNames = "categoryList", allEntries = true)
     public CreateCategoryResponse createCategory(CreateCategoryRequest request) {
        String name = request.name().trim();
        if(categoryRepository.existsByNameIgnoreCase(name))
@@ -51,6 +54,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Cacheable(cacheNames = "categoryList", key = "'all'")
     public List<CategoryDetailResponse> getAllCategories() {
         return categoryRepository.findAll()
                 .stream()
@@ -76,6 +80,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     //    @PreAuthorize("hasAuthority('ADMIN')")
     @Override
+    @CacheEvict(cacheNames = "categoryList", allEntries = true)
     public UpdateCategoryResponse updateCategory(String id, UpdateCategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -104,6 +109,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     //    @PreAuthorize("hasAuthority('ADMIN')")
     @Override
+    @CacheEvict(cacheNames = "categoryList", allEntries = true)
     public void deleteCategory(String id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.CATEGORY_NOT_FOUND));

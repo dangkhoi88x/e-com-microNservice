@@ -3,6 +3,7 @@ package com.example.promotionservice.service.implement;
 import com.example.promotionservice.dto.request.CreatePromotionCampaignRequest;
 import com.example.promotionservice.dto.request.UpdatePromotionCampaignRequest;
 import com.example.promotionservice.dto.response.PromotionCampaignResponse;
+import com.example.promotionservice.configuration.PromotionRedisCacheConfiguration;
 import com.example.promotionservice.entity.PromotionCampaign;
 import com.example.promotionservice.entity.PromotionStatus;
 import com.example.promotionservice.exception.ErrorCode;
@@ -11,6 +12,8 @@ import com.example.promotionservice.mapper.PromotionCampaignMapper;
 import com.example.promotionservice.repository.PromotionCampaignRepository;
 import com.example.promotionservice.service.PromotionCampaignService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +29,7 @@ public class PromotionCampaignServiceImpl implements PromotionCampaignService {
     private final PromotionCampaignMapper mapper;
 
     @Override
+    @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.ACTIVE_PROMOTIONS_CACHE, allEntries = true)
     public PromotionCampaignResponse create(CreatePromotionCampaignRequest request) {
         validateDates(request.startAt(), request.endAt());
         String code = normalizeCode(request.code());
@@ -43,6 +47,11 @@ public class PromotionCampaignServiceImpl implements PromotionCampaignService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(
+            cacheNames = PromotionRedisCacheConfiguration.ACTIVE_PROMOTIONS_CACHE,
+            key = "'all'",
+            condition = "#status != null && #status.equalsIgnoreCase('ACTIVE')"
+    )
     public List<PromotionCampaignResponse> getAll(String status) {
         List<PromotionCampaign> campaigns = status == null || status.isBlank()
                 ? repository.findAll()
@@ -57,6 +66,7 @@ public class PromotionCampaignServiceImpl implements PromotionCampaignService {
     }
 
     @Override
+    @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.ACTIVE_PROMOTIONS_CACHE, allEntries = true)
     public PromotionCampaignResponse update(String id, UpdatePromotionCampaignRequest request) {
         validateDates(request.startAt(), request.endAt());
         PromotionCampaign campaign = find(id);
@@ -66,6 +76,7 @@ public class PromotionCampaignServiceImpl implements PromotionCampaignService {
     }
 
     @Override
+    @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.ACTIVE_PROMOTIONS_CACHE, allEntries = true)
     public void delete(String id) {
         PromotionCampaign campaign = find(id);
         if (campaign.getUsedCount() > 0) {

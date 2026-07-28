@@ -14,6 +14,8 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.io.UnsupportedEncodingException;
 
+import static com.example.notificationservice.configuration.NotificationAsyncConfiguration.MAIL_EXECUTOR;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -24,7 +26,7 @@ public class MailService {
     private final JavaMailSender mailSender;
     private final SpringTemplateEngine springTemplateEngine;
 
-    @Async
+    @Async(MAIL_EXECUTOR)
     public void sendEmailWithTemplate(String to, String fullName, String subject, String templateName) {
         MimeMessage message = mailSender.createMimeMessage();
 
@@ -48,7 +50,7 @@ public class MailService {
         }
     }
 
-    @Async
+    @Async(MAIL_EXECUTOR)
     public void sendPasswordResetOtp(String to, String otp, long expiresInMinutes) {
         MimeMessage message = mailSender.createMimeMessage();
         try {

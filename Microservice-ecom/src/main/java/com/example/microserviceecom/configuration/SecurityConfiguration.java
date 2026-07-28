@@ -37,6 +37,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users", "/users/", "/identity/api/users", "/identity/api/users/").permitAll()
                         .requestMatchers(PUBLIC_MATCHERS).permitAll()
                         .anyRequest().authenticated())

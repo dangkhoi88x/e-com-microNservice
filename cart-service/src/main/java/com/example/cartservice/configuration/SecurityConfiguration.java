@@ -18,6 +18,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers("/api/v1/cart/internal/carts/**").permitAll()
                         .requestMatchers("/internal/cart/**").permitAll()
                         .anyRequest().authenticated())

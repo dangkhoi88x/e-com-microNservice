@@ -4,29 +4,71 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="aws s3, flow check out cod fixed">
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_20_7_26,_21_16_[Changes]/shelved.patch" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_20_7_26__21_16__Changes_.xml" beforeDir="false" />
+    <list default="true" id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="healthcheck,devops">
+      <change afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/controller/InventoryDltAdminController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/messaging/dlt/DltTopicStatus.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/messaging/dlt/InventoryDltOperations.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/notification-service/src/main/java/com/example/notificationservice/configuration/NotificationAsyncConfiguration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/ProductRedisCacheConfiguration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/controller/ProfileDltAdminController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/messaging/dlt/DltTopicStatus.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/messaging/dlt/ProfileDltOperations.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/configuration/PromotionRedisCacheConfiguration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/configuration/SearchRedisCacheConfiguration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/controller/ShippingDltAdminController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/dlt/DltTopicStatus.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/dlt/ShippingDltOperations.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/InventoryServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/InventoryServiceApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/messaging/consumer/PaymentEventConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/messaging/consumer/PaymentEventConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservice-ecom/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Microservice-ecom/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/Microservice-ecom/src/main/java/com/example/microserviceecom/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Microservice-ecom/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Microservice-ecom/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway-service/src/main/java/com/example/apigatewayservice/configuration/GatewayAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway-service/src/main/java/com/example/apigatewayservice/configuration/GatewayAuthenticationFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cart-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/cart-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cart-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/cart-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discovery-server/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/discovery-server/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/media-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/media-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notification-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/notification-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notification-service/src/main/java/com/example/notificationservice/NotificationServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/notification-service/src/main/java/com/example/notificationservice/NotificationServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notification-service/src/main/java/com/example/notificationservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/notification-service/src/main/java/com/example/notificationservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notification-service/src/main/java/com/example/notificationservice/service/MailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/notification-service/src/main/java/com/example/notificationservice/service/MailService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notification-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/notification-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/resources/application.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/product-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/client/InventoryClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/client/InventoryClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/client/SellerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/client/SellerClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/exception/ErrorCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/exception/ErrorCode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/service/implement/ProductServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/service/implement/ProductServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/ProductServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/ProductServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/service/implement/CategoryServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/service/implement/CategoryServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/product-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/ProfileServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/ProfileServiceApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/exception/ErrorCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/exception/ErrorCode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/messaing/consumer/UserProfileConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/messaing/consumer/UserProfileConsumer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/service/UserProfileService.java" beforeDir="false" afterPath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/service/UserProfileService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/profile-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/profile-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/profile-service/src/main/java/com/example/profileservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/profile-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/profile-service/src/main/resources/application.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/promotion-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/client/SellerProductOwnershipClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/client/SellerProductOwnershipClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/exception/ErrorCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/exception/ErrorCode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/PromotionServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/PromotionServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/FlashDealServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/FlashDealServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/PromotionCampaignServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/PromotionCampaignServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/promotion-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/ShippingServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/ShippingServiceApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/OrderCancelledConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/OrderCancelledConsumer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/ShipmentRequestedConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/ShipmentRequestedConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/review-service/src/main/java/com/example/reviewservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/review-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/review-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/search-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/search-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/SearchServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/SearchServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/service/impl/ProductDocumentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/search-service/src/main/java/com/example/searchservice/service/impl/ProductDocumentServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/search-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/search-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/seller-service/src/main/java/com/example/sellerservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/seller-service/src/main/java/com/example/sellerservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/seller-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/seller-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wishlist-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/wishlist-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wishlist-service/src/main/java/com/example/wishlistservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/wishlist-service/src/main/java/com/example/wishlistservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wishlist-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/wishlist-service/src/main/resources/application.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -392,7 +434,7 @@
       <workItem from="1784722963141" duration="572000" />
       <workItem from="1785125125487" duration="13227000" />
       <workItem from="1785157250183" duration="41000" />
-      <workItem from="1785211526006" duration="1199000" />
+      <workItem from="1785211526006" duration="2966000" />
     </task>
     <task id="LOCAL-00001" summary="lazy-load các trang Admin/Seller/Shipper.phan trang">
       <option name="closed" value="true" />
@@ -418,7 +460,15 @@
       <option name="project" value="LOCAL" />
       <updated>1785157264478</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="retry, circuit breaker">
+      <option name="closed" value="true" />
+      <created>1785215161203</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1785215161203</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -439,6 +489,8 @@
     <MESSAGE value="backend - promotion service 9/10" />
     <MESSAGE value="lazy-load các trang Admin/Seller/Shipper.phan trang" />
     <MESSAGE value="aws s3, flow check out cod fixed" />
-    <option name="LAST_COMMIT_MESSAGE" value="aws s3, flow check out cod fixed" />
+    <MESSAGE value="retry, circuit breaker" />
+    <MESSAGE value="healthcheck,devops" />
+    <option name="LAST_COMMIT_MESSAGE" value="healthcheck,devops" />
   </component>
 </project>

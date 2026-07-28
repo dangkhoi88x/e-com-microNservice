@@ -28,6 +28,8 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
     private final JsonMapper jsonMapper;
     // Public endpoints không cần authentication
     private static final List<PublicEndpoint> PUBLIC_ENDPOINTS = List.of(
+            new PublicEndpoint("/actuator/health/**", HttpMethod.GET),
+            new PublicEndpoint("/actuator/info", HttpMethod.GET),
             new PublicEndpoint("/identity/users", HttpMethod.POST),
             new PublicEndpoint("/identity/auth/login", HttpMethod.POST),
             new PublicEndpoint("/identity/auth/refresh-token", HttpMethod.POST),

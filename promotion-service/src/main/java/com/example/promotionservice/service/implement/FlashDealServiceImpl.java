@@ -10,10 +10,13 @@ import com.example.promotionservice.repository.FlashDealNotificationSubscription
 import com.example.promotionservice.repository.FlashDealItemMetricProjection;
 import com.example.promotionservice.repository.FlashDealCampaignMetricProjection;
 import com.example.promotionservice.client.SellerProductOwnershipClient;
+import com.example.promotionservice.configuration.PromotionRedisCacheConfiguration;
 import com.example.promotionservice.exception.PromotionServiceException;
 import com.example.promotionservice.exception.ErrorCode;
 import com.example.promotionservice.service.FlashDealService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -32,8 +35,8 @@ public class FlashDealServiceImpl implements FlashDealService {
     private final FlashDealNotificationSubscriptionRepository notificationSubscriptionRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final SellerProductOwnershipClient sellerProductOwnershipClient;
-    @Override @Transactional public FlashDealResponse create(CreateFlashDealRequest request) { return save(new FlashDeal(), request); }
-    @Override @Transactional public FlashDealResponse createForSeller(String sellerId, CreateFlashDealRequest request) {
+    @Override @Transactional @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.FLASH_DEALS_CACHE, allEntries = true) public FlashDealResponse create(CreateFlashDealRequest request) { return save(new FlashDeal(), request); }
+    @Override @Transactional @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.FLASH_DEALS_CACHE, allEntries = true) public FlashDealResponse createForSeller(String sellerId, CreateFlashDealRequest request) {
         FlashDeal deal = new FlashDeal();
         deal.setSellerId(sellerId);
         return save(deal, request);
@@ -47,7 +50,7 @@ public class FlashDealServiceImpl implements FlashDealService {
         synchronizeStatuses();
         return repository.findAllBySellerIdOrderByStartAtDesc(sellerId).stream().map(this::response).toList();
     }
-    @Override @Transactional public List<FlashDealResponse> getByStatusAndType(FlashDealStatus status, SaleType saleType) {
+    @Override @Transactional @Cacheable(cacheNames = PromotionRedisCacheConfiguration.FLASH_DEALS_CACHE, key = "#status.name() + ':' + (#saleType == null ? 'ALL' : #saleType.name())") public List<FlashDealResponse> getByStatusAndType(FlashDealStatus status, SaleType saleType) {
         synchronizeStatuses();
         return repository.findAllByStatusOrderByStartAtAsc(status).stream()
                 .filter(deal -> saleType == null || deal.effectiveSaleType() == saleType)
@@ -77,11 +80,11 @@ public class FlashDealServiceImpl implements FlashDealService {
     @Override @Transactional public FlashDealDetailResponse getDetailForSeller(String id, String sellerId) {
         return getDetail(ownedDeal(id, sellerId).getId().toString());
     }
-    @Override @Transactional public FlashDealResponse update(String id, CreateFlashDealRequest request) { return save(find(id), request); }
-    @Override @Transactional public FlashDealResponse updateForSeller(String id, String sellerId, CreateFlashDealRequest request) { return save(ownedDeal(id, sellerId), request); }
-    @Override @Transactional public void delete(String id) { repository.delete(find(id)); }
-    @Override @Transactional public void deleteForSeller(String id, String sellerId) { repository.delete(ownedDeal(id, sellerId)); }
-    @Override @Transactional public List<FlashDealPriceResponse> reserve(ReserveFlashDealRequest request) {
+    @Override @Transactional @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.FLASH_DEALS_CACHE, allEntries = true) public FlashDealResponse update(String id, CreateFlashDealRequest request) { return save(find(id), request); }
+    @Override @Transactional @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.FLASH_DEALS_CACHE, allEntries = true) public FlashDealResponse updateForSeller(String id, String sellerId, CreateFlashDealRequest request) { return save(ownedDeal(id, sellerId), request); }
+    @Override @Transactional @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.FLASH_DEALS_CACHE, allEntries = true) public void delete(String id) { repository.delete(find(id)); }
+    @Override @Transactional @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.FLASH_DEALS_CACHE, allEntries = true) public void deleteForSeller(String id, String sellerId) { repository.delete(ownedDeal(id, sellerId)); }
+    @Override @Transactional @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.FLASH_DEALS_CACHE, allEntries = true) public List<FlashDealPriceResponse> reserve(ReserveFlashDealRequest request) {
         synchronizeStatuses();
         List<FlashDealPriceResponse> result = new ArrayList<>();
         Instant now = Instant.now();
@@ -104,9 +107,10 @@ public class FlashDealServiceImpl implements FlashDealService {
         return result;
     }
     @Override @Transactional public void confirm(String orderId) { reservationRepository.findAllByOrderId(orderId).stream().filter(r -> r.getStatus() == FlashDealReservationStatus.RESERVED).forEach(r -> r.setStatus(FlashDealReservationStatus.CONFIRMED)); }
-    @Override @Transactional public void release(String orderId) { reservationRepository.findAllByOrderId(orderId).stream().filter(r -> r.getStatus() == FlashDealReservationStatus.RESERVED).forEach(r -> { if (r.getFlashDealItem().isQuotaLimited()) { itemRepository.release(r.getFlashDealItem().getId(), r.getQuantity()); if (r.getFlashDealItem().getFlashDeal().getStatus() == FlashDealStatus.SOLD_OUT) r.getFlashDealItem().getFlashDeal().setStatus(FlashDealStatus.LIVE); } r.setStatus(FlashDealReservationStatus.RELEASED); }); }
+    @Override @Transactional @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.FLASH_DEALS_CACHE, allEntries = true) public void release(String orderId) { reservationRepository.findAllByOrderId(orderId).stream().filter(r -> r.getStatus() == FlashDealReservationStatus.RESERVED).forEach(r -> { if (r.getFlashDealItem().isQuotaLimited()) { itemRepository.release(r.getFlashDealItem().getId(), r.getQuantity()); if (r.getFlashDealItem().getFlashDeal().getStatus() == FlashDealStatus.SOLD_OUT) r.getFlashDealItem().getFlashDeal().setStatus(FlashDealStatus.LIVE); } r.setStatus(FlashDealReservationStatus.RELEASED); }); }
     @Scheduled(fixedDelayString = "${flash-deal.status-refresh-ms:60000}")
     @Transactional
+    @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.FLASH_DEALS_CACHE, allEntries = true)
     public void refreshStatuses() { synchronizeStatuses(); notifyUpcomingSubscribers(); }
     private void synchronizeStatuses() { Instant now = Instant.now(); repository.markEnded(now); repository.markLive(now); }
     @Override @Transactional public void subscribeForNotification(String flashDealId, String userId) {

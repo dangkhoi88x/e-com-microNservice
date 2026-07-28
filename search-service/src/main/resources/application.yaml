@@ -5,6 +5,10 @@ spring:
     name: search-service
   kafka:
     bootstrap-servers: localhost:9094
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 elasticsearch:
   server-url: http://localhost:9200
   api-key: VlNsUUpwOEJsSGNOemV3bTg2UnA6LTNnemVDdmE3RXg4SU92R2JTbnoyQQ
@@ -14,3 +18,13 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info
