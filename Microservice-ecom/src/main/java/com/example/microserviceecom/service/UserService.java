@@ -42,8 +42,12 @@ public class UserService {
         }
         User user = UserMapper.INSTANCE.toUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        Role role = roleService.createRole(roleName);
-        user.addRole(role);
+        // Operational accounts are still customer identities. Keeping ROLE_USER
+        // ensures their profile and shared authenticated endpoints remain available.
+        user.addRole(roleService.createRole(RoleName.USER));
+        if (roleName != RoleName.USER) {
+            user.addRole(roleService.createRole(roleName));
+        }
         userRepository.save(user);
     log.info("User created successfully: {}", user.getId());
         UserCreatedEvent userCreatedEvent = UserCreatedEvent.builder()

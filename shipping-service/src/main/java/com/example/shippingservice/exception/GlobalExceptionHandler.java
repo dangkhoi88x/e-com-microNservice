@@ -7,10 +7,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 
 @RestControllerAdvice
+@Slf4j(topic = "SHIPPING-ERROR")
 public class GlobalExceptionHandler {
     @ExceptionHandler(ShippingServiceException.class)
     ResponseEntity<ErrorResponse> handleShipping(
@@ -36,7 +38,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    ResponseEntity<ErrorResponse> handleUnexpected(HttpServletRequest request) {
+    ResponseEntity<ErrorResponse> handleUnexpected(Exception exception, HttpServletRequest request) {
+        log.error("Unexpected shipping failure: method={}, path={}", request.getMethod(), request.getRequestURI(), exception);
         return response(ErrorCode.INTERNAL_ERROR, request);
     }
 

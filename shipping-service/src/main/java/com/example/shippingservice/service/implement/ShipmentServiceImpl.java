@@ -171,7 +171,12 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Override
     @Transactional
     public ShipmentResponse markDeliveryFailed(UUID shipmentId, UpdateShipmentStatusRequest request) {
-        return transition(shipmentId, ShipmentStatus.DELIVERY_FAILED, Set.of(ShipmentStatus.IN_TRANSIT), request);
+        return transition(shipmentId, ShipmentStatus.DELIVERY_FAILED, Set.of(
+                ShipmentStatus.CREATED,
+                ShipmentStatus.PACKING,
+                ShipmentStatus.READY_TO_SHIP,
+                ShipmentStatus.IN_TRANSIT
+        ), request);
     }
 
     @Override

@@ -73,6 +73,11 @@ export const updateSellerProduct = async (id, payload) => {
   return response.data?.data;
 };
 
+export const addSellerProductVariant = async (id, payload) => {
+  const response = await httpClient.post(`${API.SELLER_PRODUCTS}/${id}/variants`, payload);
+  return response.data?.data;
+};
+
 export const submitSellerProduct = async (id) => {
   const response = await httpClient.post(`${API.SELLER_PRODUCTS}/${id}/submit`);
   return response.data?.data;

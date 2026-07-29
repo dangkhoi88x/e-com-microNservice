@@ -1,6 +1,7 @@
 package com.example.productservice.controller;
 
 import com.example.productservice.dto.request.CreateSellerProductRequest;
+import com.example.productservice.dto.request.CreateSellerProductVariantRequest;
 import com.example.productservice.dto.request.UpdateSellerProductRequest;
 import com.example.productservice.dto.request.UpdateSellerProductQuantityRequest;
 import com.example.productservice.dto.request.UpdateSellerProductStatusRequest;
@@ -73,6 +74,17 @@ public class SellerProductController {
     ) {
         return response(HttpStatus.OK, "Product draft updated successfully",
                 productService.updateSellerProduct(id, jwt.getSubject(), authorization, request));
+    }
+
+    @PostMapping("/{id}/variants")
+    public ApiResponse<ProductDetailResponse> addVariant(
+            @PathVariable String id,
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+            @Valid @RequestBody CreateSellerProductVariantRequest request
+    ) {
+        return response(HttpStatus.CREATED, "Product variant added successfully",
+                productService.addSellerProductVariant(id, jwt.getSubject(), authorization, request));
     }
 
     @PatchMapping("/{id}/quantity")

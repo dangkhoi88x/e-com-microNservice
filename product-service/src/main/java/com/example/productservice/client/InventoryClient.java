@@ -78,6 +78,20 @@ public class InventoryClient {
         }
     }
 
+    public int setVariantAvailableQuantity(String productId, String variantId, int quantity) {
+        try {
+            InventoryResponse response = restClient.put()
+                    .uri(inventoryServiceBaseUrl + "/internal/inventory/products/{productId}/variants/{variantId}/quantity", productId, variantId)
+                    .body(Map.of("availableQuantity", quantity))
+                    .retrieve()
+                    .body(InventoryResponse.class);
+            if (response == null || response.availableQuantity() == null) throw new IllegalStateException("Inventory update returned no quantity");
+            return response.availableQuantity();
+        } catch (RestClientException exception) {
+            throw new IllegalStateException("Inventory Service is unavailable", exception);
+        }
+    }
+
     private Optional<Integer> fetchAvailableQuantity(String productId) {
         try {
             InventoryResponse response = RetryingRestClient.execute("Fetch inventory for product " + productId, () -> restClient

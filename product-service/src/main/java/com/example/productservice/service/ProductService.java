@@ -2,6 +2,7 @@ package com.example.productservice.service;
 
 import com.example.productservice.dto.request.CreateProductRequest;
 import com.example.productservice.dto.request.CreateSellerProductRequest;
+import com.example.productservice.dto.request.CreateSellerProductVariantRequest;
 import com.example.productservice.dto.request.ModerateProductRequest;
 import com.example.productservice.dto.request.SearchRequest;
 import com.example.productservice.dto.request.UpdateProductRequest;
@@ -25,6 +26,7 @@ public interface ProductService {
     ProductDetailResponse getProductBySlug(String slug);
     ProductDetailResponse updateProduct(String id, String userId, UpdateProductRequest request);
     ProductDetailResponse updateSellerProduct(String id, String sellerId, String authorization, UpdateSellerProductRequest request);
+    ProductDetailResponse addSellerProductVariant(String id, String sellerId, String authorization, CreateSellerProductVariantRequest request);
     ProductDetailResponse updateSellerProductQuantity(String id, String sellerId, String authorization, UpdateSellerProductQuantityRequest request);
     ProductDetailResponse updateSellerProductStatus(String id, String sellerId, String authorization, UpdateSellerProductStatusRequest request);
     ProductDetailResponse submitSellerProduct(String id, String sellerId, String authorization);

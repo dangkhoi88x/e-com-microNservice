@@ -217,8 +217,15 @@ export default function ProductCreate() {
       navigate("/seller/products");
     } catch (error) {
       uploadedMedia.forEach((media) => deleteMedia(media.id).catch(() => {}));
+      const responseMessage = error.response?.data?.message;
+      const isUnauthorized = error.response?.status === 401;
+      const transportMessage = error.code === "ECONNABORTED"
+        ? "Yêu cầu tạo sản phẩm đã hết thời gian chờ. Hãy kiểm tra lại kết nối service rồi thử lại."
+        : error.message;
       setErrorMessage(
-        error.response?.data?.message || "Could not create product.",
+        isUnauthorized
+          ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại rồi thử lưu sản phẩm."
+          : responseMessage || transportMessage || "Could not create product.",
       );
     } finally {
       setSubmitting(false);

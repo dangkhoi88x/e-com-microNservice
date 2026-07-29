@@ -6,6 +6,7 @@ import com.example.productservice.common.ProductModerationAction;
 import com.example.productservice.common.ProductStatus;
 import com.example.productservice.dto.request.CreateProductRequest;
 import com.example.productservice.dto.request.CreateSellerProductRequest;
+import com.example.productservice.dto.request.CreateSellerProductVariantRequest;
 import com.example.productservice.dto.request.ModerateProductRequest;
 import com.example.productservice.dto.request.ProductVariantRequest;
 import com.example.productservice.dto.request.ProductOptionRequest;
@@ -316,6 +317,40 @@ public class ProductServiceImpl implements ProductService {
         Product savedProduct = productRepository.save(product);
         sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
         return toProductDetailResponse(savedProduct);
+    }
+
+    @Override
+    @Transactional
+    public ProductDetailResponse addSellerProductVariant(
+            String id,
+            String sellerId,
+            String authorization,
+            CreateSellerProductVariantRequest request
+    ) {
+        Product product = productRepository.findByIdAndSellerId(id, sellerId)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+        requireApprovedShopForProduct(authorization, product);
+        if (product.getStatus() != ProductStatus.ACTIVE) {
+            throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
+        }
+
+        validateVariantAttributes(request.attributes(), product);
+        ProductVariant variant = toVariant(product, new ProductVariantRequest(
+                null,
+                request.sku(),
+                request.attributes(),
+                request.price(),
+                request.quantity(),
+                request.imageUrl(),
+                ProductStatus.ACTIVE
+        ), product.getVariants().stream().map(ProductVariant::getSku).collect(Collectors.toSet()));
+        product.getVariants().add(variant);
+
+        ProductVariant savedVariant = productVariantRepository.saveAndFlush(variant);
+        savedVariant.setQuantity(inventoryClient.setVariantAvailableQuantity(product.getId(), savedVariant.getId(), request.quantity()));
+        productVariantRepository.save(savedVariant);
+        sendProductUpdatedEvent(toProductUpdatedEvent(product));
+        return toProductDetailResponse(product);
     }
 
     @Override

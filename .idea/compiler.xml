@@ -126,7 +126,6 @@
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
         </processorPath>
         <module name="Microservice-ecom" />
-        <module name="review-service" />
         <module name="promotion-service" />
         <module name="shipping-service" />
       </profile>

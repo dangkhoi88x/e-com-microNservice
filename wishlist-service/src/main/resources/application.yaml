@@ -4,7 +4,7 @@ spring:
   application:
     name: wishlist-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://localhost:5442/wishlist_db
     username: root
     password: 123456
     driver-class-name: org.postgresql.Driver
@@ -26,7 +26,7 @@ services:
     base-url: http://localhost:8084
 security:
   jwt:
-    issuer: ${JWT_ISSUER:http://localhost:8090}
+    issuer: ${JWT_ISSUER:identity-service}
     audience: ${JWT_AUDIENCE:novashop-api}
     jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8090/identity/api/.well-known/jwks.json}
 

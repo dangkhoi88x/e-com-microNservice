@@ -133,6 +133,8 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SERVICES_ORDER_BASE_URL: http://host.docker.internal:8086
       SERVICES_PROFILE_BASE_URL: http://host.docker.internal:8081
+      JWT_ISSUER: identity-service
+      JWT_JWK_SET_URI: http://host.docker.internal:8090/identity/api/.well-known/jwks.json
     depends_on:
       review-postgres:
         condition: service_healthy
@@ -151,6 +153,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123456
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_ISSUER: identity-service
+      JWT_JWK_SET_URI: http://host.docker.internal:8090/identity/api/.well-known/jwks.json
     depends_on:
       shipping-postgres:
         condition: service_healthy
@@ -172,6 +176,8 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       IDENTITY_SERVICE_BASE_URL: http://host.docker.internal:8090/identity/api
+      JWT_ISSUER: identity-service
+      JWT_JWK_SET_URI: http://host.docker.internal:8090/identity/api/.well-known/jwks.json
     depends_on:
       seller-postgres:
         condition: service_healthy
@@ -191,6 +197,8 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 123456
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
+      JWT_ISSUER: identity-service
+      JWT_JWK_SET_URI: http://host.docker.internal:8090/identity/api/.well-known/jwks.json
     depends_on:
       promotion-postgres:
         condition: service_healthy
@@ -210,6 +218,25 @@ services:
     networks:
       - microservice_network
 
+  wishlist-postgres:
+    image: postgres:17
+    container_name: wishlist-postgres
+    ports:
+      - "5442:5432"
+    environment:
+      POSTGRES_DB: wishlist_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - wishlist-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d wishlist_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - microservice_network
+
   wishlist-service:
     build:
       context: ./wishlist-service
@@ -217,13 +244,16 @@ services:
     ports:
       - "8092:8092"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://product-postgres:5432/postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://wishlist-postgres:5432/wishlist_db
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 123456
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
       SERVICES_PRODUCT_BASE_URL: http://host.docker.internal:8084
+      JWT_ISSUER: identity-service
+      JWT_JWK_SET_URI: http://host.docker.internal:8090/identity/api/.well-known/jwks.json
     depends_on:
-      - product-postgres
+      wishlist-postgres:
+        condition: service_healthy
     networks:
       - microservice_network
 
@@ -341,6 +371,7 @@ volumes:
   seller-postgres-data:
   shipping-postgres-data:
   review-postgres-data:
+  wishlist-postgres-data:
   media-postgres-data:
     external: true
     name: media-service-local_media-postgres-data

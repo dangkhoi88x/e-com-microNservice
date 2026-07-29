@@ -40,6 +40,6 @@ services:
     base-url: ${SERVICES_PROFILE_BASE_URL:http://PROFILE-SERVICE}
 security:
   jwt:
-    issuer: ${JWT_ISSUER:http://localhost:8090}
+    issuer: ${JWT_ISSUER:identity-service}
     audience: ${JWT_AUDIENCE:novashop-api}
     jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8090/identity/api/.well-known/jwks.json}
