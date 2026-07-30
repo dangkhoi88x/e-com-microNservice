@@ -50,6 +50,6 @@ app:
     download-url-ttl: ${MEDIA_DOWNLOAD_URL_TTL:PT10M}
 security:
   jwt:
-    issuer: ${JWT_ISSUER:identity-service}
+    issuer: ${JWT_ISSUER:http://localhost:8090}
     audience: ${JWT_AUDIENCE:novashop-api}
     jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8090/identity/api/.well-known/jwks.json}

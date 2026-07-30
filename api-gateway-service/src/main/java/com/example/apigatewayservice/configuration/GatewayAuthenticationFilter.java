@@ -1,8 +1,8 @@
 package com.example.apigatewayservice.configuration;
 
+import com.example.apigatewayservice.client.AuthenticationClient;
 import com.example.apigatewayservice.dto.ErrorResponse;
 import com.example.apigatewayservice.dto.PublicEndpoint;
-import com.example.apigatewayservice.grpc.IntrospectGrpcClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
-    private final IntrospectGrpcClient introspectGrpcClient;
+    private final AuthenticationClient authenticationClient;
     private final JsonMapper jsonMapper;
     // Public endpoints không cần authentication
     private static final List<PublicEndpoint> PUBLIC_ENDPOINTS = List.of(
@@ -71,8 +71,10 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
             return unauthenticated(exchange);
         }
         String token = authHeader.substring(7);
-        return introspectGrpcClient.introspect(token)
-                .map(com.javabuilder.authentication.grpc.IntrospectResponse::getValid)
+        return authenticationClient.introspection(com.example.apigatewayservice.dto.IntrospecRequest.builder()
+                        .token(token)
+                        .build())
+                .map(response -> response.getData() != null && response.getData().isValid())
                 .onErrorResume(throwable -> {
                     log.error("Token introspection failed", throwable);
                     return Mono.just(false);

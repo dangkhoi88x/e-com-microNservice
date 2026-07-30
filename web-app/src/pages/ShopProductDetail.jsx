@@ -9,7 +9,7 @@ import RemoveOutlinedIcon from "@mui/icons-material/RemoveOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
-import { getProductById, searchProducts } from "../services/productService";
+import { getProductById, getProducts, searchProducts } from "../services/productService";
 import { loadWishlist, toggleWishlist } from "../services/wishlistService";
 import { addCartItem, cartQuantity, getMyCart } from "../services/cartService";
 import { isAuthenticated } from "../services/authenticationService";
@@ -82,7 +82,7 @@ export default function ShopProductDetail() {
   }, []);
   useEffect(() => {
     if (!product?.categoryId) return;
-    searchProducts({
+    getProducts({
       page: 1,
       size: 5,
       categoryId: product.categoryId,
