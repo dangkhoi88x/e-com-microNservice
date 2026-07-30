@@ -4,6 +4,7 @@ import com.example.microserviceecom.service.AuthenticationService;
 import com.javabuilder.authentication.grpc.IntrospecRequest;
 import com.javabuilder.authentication.grpc.IntrospectResponse;
 import com.javabuilder.authentication.grpc.IntrospectServiceGrpc;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,18 +18,31 @@ public class IntrospectGrpcService extends IntrospectServiceGrpc.IntrospectServi
 
     @Override
     public void introspect(IntrospecRequest request, StreamObserver<IntrospectResponse> responseObserver) {
+        if (request.getToken().isBlank()) {
+            responseObserver.onNext(IntrospectResponse.newBuilder()
+                    .setValid(false)
+                    .build());
+            responseObserver.onCompleted();
+            return;
+        }
 
-        String token = request.getToken();
-        log.info("received introspect token prefix: {}", token.substring(0, Math.min(token.length(), 10)));
-        var introSpectRequest = com.example.microserviceecom.dto.request.IntrospecRequest.builder()
-                .token(request.getToken())
-                .build();
-        var result = authenticationService.introspect(introSpectRequest);
-        var grpcResponse = IntrospectResponse.newBuilder()
-                .setUserId(result.getUserId() != null ? result.getUserId() : "")
-                .setValid(result.isValid())
-                .build();
-        responseObserver.onNext(grpcResponse);
-        responseObserver.onCompleted();
+        try {
+            var introSpectRequest = com.example.microserviceecom.dto.request.IntrospecRequest.builder()
+                    .token(request.getToken())
+                    .build();
+            var result = authenticationService.introspect(introSpectRequest);
+            var grpcResponse = IntrospectResponse.newBuilder()
+                    .setUserId(result.getUserId() != null ? result.getUserId() : "")
+                    .setValid(result.isValid())
+                    .build();
+
+            responseObserver.onNext(grpcResponse);
+            responseObserver.onCompleted();
+        } catch (Exception exception) {
+            log.error("gRPC token introspection failed", exception);
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription("Token introspection failed")
+                    .asRuntimeException());
+        }
     }
 }

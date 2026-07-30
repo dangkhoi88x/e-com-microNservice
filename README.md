@@ -193,7 +193,7 @@ Các path Gateway có thể gọi bằng `http://localhost:9191`; các path khô
 | Nhóm | Method / path | Ghi chú |
 | --- | --- | --- |
 | Auth | `POST :8090/users`, `POST :8090/auth/login` | Đăng ký và đăng nhập |
-| Auth | `POST :8090/auth/refresh-token`, `POST :8090/auth/logout`, `POST :8090/auth/token/introspect` | Quản lý JWT |
+| Auth | `POST :8090/auth/refresh-token`, `POST :8090/auth/logout` | Quản lý JWT |
 | Profile | `GET`, `PUT :8081/api/v1/user-profile/me` | Hồ sơ user hiện tại |
 | Category | `POST/GET :8084/api/v1/categories`, `GET/PUT/DELETE .../{id}` | Category |
 | Product | `POST/GET :8084/api/v1/products`, `GET .../slug/{slug}`, `GET/PUT/DELETE .../{id}` | Catalog và variant |

@@ -13,7 +13,7 @@ import java.util.Map;
 public class JwksController {
 
     private final JwtKeyProvider jwtKeyProvider;
-
+        //Các downstream service có thể dùng JWKS để tự xác minh JWT
     @GetMapping(value = "/.well-known/jwks.json", produces = "application/jwk-set+json")
     public Map<String, Object> getJwks() {
         return new JWKSet(jwtKeyProvider.publicJwk()).toJSONObject();

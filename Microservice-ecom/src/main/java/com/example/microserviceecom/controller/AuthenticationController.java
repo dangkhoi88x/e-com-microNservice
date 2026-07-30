@@ -1,18 +1,15 @@
 package com.example.microserviceecom.controller;
 
 import com.example.microserviceecom.dto.request.AuthenticationRequest;
-import com.example.microserviceecom.dto.request.IntrospecRequest;
 import com.example.microserviceecom.dto.request.PasswordResetRequest;
 import com.example.microserviceecom.dto.request.PasswordResetConfirmRequest;
 import com.example.microserviceecom.dto.response.ApiResponse;
 import com.example.microserviceecom.dto.response.AuthenticationResponse;
-import com.example.microserviceecom.dto.response.IntrospectResponse;
 import com.example.microserviceecom.exception.AuthenticationException;
 import com.example.microserviceecom.exception.ErrorCode;
 import com.example.microserviceecom.service.AuthenticationService;
 import com.example.microserviceecom.service.PasswordResetService;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -45,8 +42,8 @@ public class AuthenticationController {
     @PostMapping("/login")
 
 
-    public ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request,
-                                                            HttpServletResponse response) {
+    public ApiResponse<AuthenticationResponse> authenticate(@RequestBody @Valid AuthenticationRequest request,
+                                                             HttpServletResponse response) {
         var result = authenticationService.authenticate(request);
 
         addRefreshCookie(response, result.refreshToken(), Duration.ofDays(14));
@@ -60,19 +57,11 @@ public class AuthenticationController {
 
     @PostMapping("/password-reset/request")
     public ApiResponse<Void> requestPasswordReset(
-            @RequestBody @Valid PasswordResetRequest request,
-            HttpServletRequest servletRequest
+            @RequestBody @Valid PasswordResetRequest request
     ) {
-        passwordResetService.request(request.email(), clientAddress(servletRequest));
+        passwordResetService.request(request.email());
         return ApiResponse.<Void>builder().status(HttpStatus.OK.value())
                 .message("Nếu email tồn tại, mã xác nhận đã được gửi").build();
-    }
-
-    private String clientAddress(HttpServletRequest request) {
-        String forwardedFor = request.getHeader("X-Forwarded-For");
-        return forwardedFor == null || forwardedFor.isBlank()
-                ? request.getRemoteAddr()
-                : forwardedFor.split(",", 2)[0].trim();
     }
 
     @PostMapping("/password-reset/confirm")
@@ -112,16 +101,6 @@ public class AuthenticationController {
                 .message("Logout successful")
                 .build();
     }
-    @PostMapping("/token/introspect")
-    public ApiResponse<IntrospectResponse> introspection(@RequestBody @Valid IntrospecRequest request) {
-        var data = authenticationService.introspect(request);
-        return ApiResponse.<IntrospectResponse>builder()
-                .status(HttpStatus.OK.value())
-                .message("Refresh Token success")
-                .data(data)
-                .build();
-    }
-
     private void addRefreshCookie(HttpServletResponse response, String token, Duration maxAge) {
         clearLegacyRefreshCookie(response);
 

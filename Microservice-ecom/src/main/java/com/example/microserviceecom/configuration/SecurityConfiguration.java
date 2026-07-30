@@ -58,7 +58,7 @@ public class SecurityConfiguration {
     @Bean
     public AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(userDetailsService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
+        authenticationProvider.setPasswordEncoder(passwordEncoder()); // so sánh password đã bcrypt với email
 
         return new ProviderManager(authenticationProvider);
     }

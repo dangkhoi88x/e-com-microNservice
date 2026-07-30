@@ -42,8 +42,6 @@ services:
     internal-api-key: ${INTERNAL_NOTIFICATION_API_KEY:local-reset-mail-key}
 
 security:
-  password-reset:
-    pepper: ${PASSWORD_RESET_PEPPER}
   refresh-cookie:
     secure: false
     same-site: Lax

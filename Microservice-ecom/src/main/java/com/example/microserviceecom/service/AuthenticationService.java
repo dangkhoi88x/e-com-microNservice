@@ -23,6 +23,7 @@ import java.text.ParseException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -35,19 +36,21 @@ public class AuthenticationService {
     private final TokenService tokenService;
 
     public AuthenticationTokens authenticate(AuthenticationRequest request) {
+        String normalizedEmail = request.email().trim().toLowerCase(Locale.ROOT);
+        //Tạo authentication object
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(request.email(), request.password());
+                new UsernamePasswordAuthenticationToken(normalizedEmail, request.password());
 
         Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
-
+        //Lấy role
         var user = (User) authentication.getPrincipal();
 
         Collection<? extends GrantedAuthority> grantedAuthorities = user.getAuthorities();
 
         List<String> roles = grantedAuthorities.stream().map(GrantedAuthority::getAuthority).toList();
-
+        //set access,rEfresh
         String accessToken = jwtService.generateAccessToken(user.getId(), roles, user.getAuthVersion());
-        String refreshToken = tokenService.createRefreshSession(user.getId(), user.getAuthVersion(), Duration.ofDays(14));
+        String refreshToken = tokenService.createRefreshToken(user.getId(), Duration.ofDays(14));
 
         return new AuthenticationTokens(user.getId(), accessToken, refreshToken);
     }
@@ -58,23 +61,19 @@ public class AuthenticationService {
         }
 
         try {
-            TokenService.RefreshSession session = tokenService.consumeRefreshSession(refreshToken);
-            if (session == null) {
+            String userId = tokenService.findUserIdByRefreshToken(refreshToken);
+            if (userId == null) {
                 throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
             }
 
-            User user = userRepository.findById(session.userId())
+            User user = userRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User does not exist"));
-            if (user.getAuthVersion() == null || user.getAuthVersion() != session.authVersion()) {
-                throw new AuthenticationException(ErrorCode.UNAUTHORIZED);
-            }
 
             List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
             String accessToken = jwtService.generateAccessToken(user.getId(), roles, user.getAuthVersion());
-            String nextRefreshToken = tokenService.createRefreshSession(user.getId(), user.getAuthVersion(), Duration.ofDays(14));
 
-            return new AuthenticationTokens(user.getId(), accessToken, nextRefreshToken);
+            return new AuthenticationTokens(user.getId(), accessToken, refreshToken);
         } catch (RuntimeException exception) {
             if (exception instanceof AuthenticationException authenticationException) {
                 throw authenticationException;

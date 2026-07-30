@@ -13,10 +13,11 @@ import java.util.concurrent.TimeUnit;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+//redis entity
 public class Token {
 
     @Id
-    private String tokenId;
+    private String tokenId; //JWT jti
 
     private String userId;
 

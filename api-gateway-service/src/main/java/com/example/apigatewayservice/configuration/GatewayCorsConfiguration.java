@@ -16,6 +16,7 @@ public class GatewayCorsConfiguration {
 
     @Bean
     public CorsWebFilter corsWebFilter() {
+        // cho phép frontend gọi Gateway
         org.springframework.web.cors.CorsConfiguration corsConfiguration =
                 new org.springframework.web.cors.CorsConfiguration();
 
