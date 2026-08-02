@@ -8,12 +8,15 @@ import com.example.productservice.dto.response.UpdateCategoryResponse;
 import com.example.productservice.entity.Category;
 import com.example.productservice.exception.ErrorCode;
 import com.example.productservice.exception.ProductServiceException;
+import com.example.productservice.mapper.CategoryMapper;
 import com.example.productservice.repository.CategoryRepository;
 import com.example.productservice.repository.ProductRepository;
 import com.example.productservice.service.CategoryService;
 import com.example.productservice.utils.SlugUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,8 +29,10 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final CategoryMapper categoryMapper;
     //    @PreAuthorize("hasAuthority('ADMIN')")
     @Override
+    @CacheEvict(cacheNames = "categoryList", allEntries = true)
     public CreateCategoryResponse createCategory(CreateCategoryRequest request) {
        String name = request.name().trim();
        if(categoryRepository.existsByNameIgnoreCase(name))
@@ -40,21 +45,16 @@ public class CategoryServiceImpl implements CategoryService {
                .slug(slug)
                .description(request.description())
                .build();
-        categoryRepository.save(category);
-        return CreateCategoryResponse.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .slug(category.getSlug())
-                .description(category.getDescription())
-                .createdAt(category.getCreatedAt())
-                .build();
+        Category savedCategory = categoryRepository.save(category);
+        return categoryMapper.toCreateResponse(savedCategory);
     }
 
     @Override
+    @Cacheable(cacheNames = "categoryList", key = "'all'")
     public List<CategoryDetailResponse> getAllCategories() {
         return categoryRepository.findAll()
                 .stream()
-                .map(this::toCategoryDetailResponse)
+                .map(categoryMapper::toDetailResponse)
                 .toList();
     }
 
@@ -63,7 +63,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        return toCategoryDetailResponse(category);
+        return categoryMapper.toDetailResponse(category);
     }
 
     @Override
@@ -71,11 +71,12 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findBySlug(slug)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        return toCategoryDetailResponse(category);
+        return categoryMapper.toDetailResponse(category);
     }
 
     //    @PreAuthorize("hasAuthority('ADMIN')")
     @Override
+    @CacheEvict(cacheNames = "categoryList", allEntries = true)
     public UpdateCategoryResponse updateCategory(String id, UpdateCategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -91,19 +92,15 @@ public class CategoryServiceImpl implements CategoryService {
             category.setName(trimmedName);
         });
         Optional.ofNullable(request.description()).ifPresent(category::setDescription);
-        categoryRepository.save(category);
-        return UpdateCategoryResponse.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .slug(category.getSlug())
-                .description(category.getDescription())
-                .createdAt(category.getCreatedAt()).build();
+        Category savedCategory = categoryRepository.save(category);
+        return categoryMapper.toUpdateResponse(savedCategory);
 
     }
 
 
     //    @PreAuthorize("hasAuthority('ADMIN')")
     @Override
+    @CacheEvict(cacheNames = "categoryList", allEntries = true)
     public void deleteCategory(String id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ProductServiceException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -134,13 +131,4 @@ public class CategoryServiceImpl implements CategoryService {
         return slug;
     }
 
-    private CategoryDetailResponse toCategoryDetailResponse(Category category) {
-        return CategoryDetailResponse.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .slug(category.getSlug())
-                .description(category.getDescription())
-                .createdAt(category.getCreatedAt())
-                .build();
-    }
 }

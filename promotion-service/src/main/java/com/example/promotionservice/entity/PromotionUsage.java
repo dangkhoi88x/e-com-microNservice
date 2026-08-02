@@ -25,6 +25,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PromotionUsage extends AbstractEntity {
+    //Order nào đang hoặc đã sử dụng mã.
     @Column(nullable = false)
     private String userId;
 

@@ -52,6 +52,7 @@ public class PromotionUsageServiceImpl implements PromotionUsageService {
             throw new PromotionServiceException(ErrorCode.PROMOTION_NOT_CLAIMED);
         }
         BigDecimal discount = calculateDiscount(campaign, request.subtotalAmount());
+        //Tạo reservation
         PromotionUsage usage = PromotionUsage.builder()
                 .userId(request.userId())
                 .orderId(request.orderId())

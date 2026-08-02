@@ -4,6 +4,7 @@ import com.example.orderservice.dto.response.PromotionCalculationResponse;
 import com.example.orderservice.exception.ErrorCode;
 import com.example.orderservice.exception.OrderServiceException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -18,8 +19,9 @@ import com.example.orderservice.dto.response.FlashDealPriceResponse;
 @Component
 @RequiredArgsConstructor
 public class PromotionClient {
-    private static final String BASE_URL = "http://PROMOTION-SERVICE/internal/promotions";
-    private static final String FLASH_BASE_URL = "http://PROMOTION-SERVICE/internal/flash-deals";
+    @Value("${promotion-service.base-url:http://PROMOTION-SERVICE}")
+    private String promotionServiceBaseUrl;
+
     private final WebClient.Builder webClientBuilder;
 
     public PromotionCalculationResponse validate(String campaignCode, BigDecimal subtotalAmount) {
@@ -40,7 +42,7 @@ public class PromotionClient {
 
     public List<FlashDealPriceResponse> reserveFlashDeals(String orderId, List<FlashDealItemRequest> items) {
         try {
-            ApiResponse<List<FlashDealPriceResponse>> response = webClientBuilder.build().post().uri(FLASH_BASE_URL + "/reserve")
+            ApiResponse<List<FlashDealPriceResponse>> response = client().post().uri(flashBaseUrl() + "/reserve")
                     .bodyValue(new FlashDealReserveRequest(orderId, items)).retrieve()
                     .bodyToMono(new ParameterizedTypeReference<ApiResponse<List<FlashDealPriceResponse>>>() {}).block();
             return response == null || response.data() == null ? List.of() : response.data();
@@ -54,8 +56,8 @@ public class PromotionClient {
 
     private PromotionCalculationResponse postForCalculation(String path, Object body, ErrorCode clientError) {
         try {
-            ApiResponse<PromotionCalculationResponse> response = webClientBuilder.build().post()
-                    .uri(BASE_URL + path)
+            ApiResponse<PromotionCalculationResponse> response = client().post()
+                    .uri(promotionBaseUrl() + path)
                     .bodyValue(body)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<ApiResponse<PromotionCalculationResponse>>() {})
@@ -74,18 +76,33 @@ public class PromotionClient {
 
     private void postWithoutResponse(String path, Object body) {
         try {
-            webClientBuilder.build().post().uri(BASE_URL + path).bodyValue(body).retrieve().toBodilessEntity().block();
+            client().post().uri(promotionBaseUrl() + path).bodyValue(body).retrieve().toBodilessEntity().block();
         } catch (WebClientException exception) {
             throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE);
         }
     }
     private void postFlashWithoutResponse(String path, Object body) {
-        try { webClientBuilder.build().post().uri(FLASH_BASE_URL + path).bodyValue(body).retrieve().toBodilessEntity().block(); }
+        try { client().post().uri(flashBaseUrl() + path).bodyValue(body).retrieve().toBodilessEntity().block(); }
         catch (WebClientResponseException exception) { throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE); }
         catch (WebClientException exception) { throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE); }
     }
 
     private record ApiResponse<T>(T data) {}
+
+    private String promotionBaseUrl() {
+        return promotionServiceBaseUrl + "/internal/promotions";
+    }
+
+    private String flashBaseUrl() {
+        return promotionServiceBaseUrl + "/internal/flash-deals";
+    }
+
+    private WebClient client() {
+        return promotionServiceBaseUrl.startsWith("http://localhost")
+                ? WebClient.builder().build()
+                : webClientBuilder.build();
+    }
+
     private record ValidateRequest(String campaignCode, BigDecimal subtotalAmount) {}
     private record ReserveRequest(String campaignCode, String userId, String orderId, BigDecimal subtotalAmount) {}
     private record OrderRequest(String orderId) {}

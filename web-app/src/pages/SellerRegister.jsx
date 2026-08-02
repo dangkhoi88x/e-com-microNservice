@@ -13,6 +13,12 @@ const statusCopy = {
   SUSPENDED: { severity: "error", title: "Shop đang tạm ngưng", message: "Vui lòng liên hệ quản trị viên để biết thêm chi tiết." },
 };
 
+const requestErrorMessage = (requestError, fallback) =>
+  requestError.response?.data?.message
+  || requestError.response?.data?.error
+  || requestError.message
+  || fallback;
+
 export default function SellerRegister() {
   const navigate = useNavigate();
   const [form, setForm] = useState(emptyForm);
@@ -25,7 +31,7 @@ export default function SellerRegister() {
     getMySellerShop()
       .then((data) => { setShop(data); setForm((current) => ({ ...current, ...data })); })
       .catch((requestError) => {
-        if (requestError.response?.status !== 404) setError(requestError.response?.data?.message || "Không thể tải trạng thái đăng ký seller.");
+        if (requestError.response?.status !== 404) setError(requestErrorMessage(requestError, "Không thể tải trạng thái đăng ký seller."));
       })
       .finally(() => setLoading(false));
   }, []);
@@ -46,7 +52,7 @@ export default function SellerRegister() {
       const submittedShop = shop?.status === "REJECTED" ? await resubmitSellerShop() : updatedShop;
       setShop(submittedShop);
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Không thể gửi hồ sơ đăng ký seller.");
+      setError(requestErrorMessage(requestError, "Không thể gửi hồ sơ đăng ký seller."));
     } finally {
       setSubmitting(false);
     }

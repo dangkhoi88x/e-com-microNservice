@@ -39,7 +39,7 @@ public class JwtService {
     private final TokenService tokenService;
     private final UserRepository userRepository;
     private final JwtKeyProvider jwtKeyProvider;
-
+    //tao jwt
     public String generateAccessToken(String userId, List<String> roles, int authVersion) {
         JWSHeader header = signingHeader();
         Date now = new Date();
@@ -85,7 +85,7 @@ public class JwtService {
                 .expiration(expiresAt)
                 .build();
     }
-
+//Xác minh access token
     public SignedJWT verifyAccessToken(String token) throws ParseException, JOSEException {
         SignedJWT signedJWT = SignedJWT.parse(token);
         verifySignatureAndIssuer(signedJWT);

@@ -6,6 +6,7 @@ import com.example.productservice.common.ProductModerationAction;
 import com.example.productservice.common.ProductStatus;
 import com.example.productservice.dto.request.CreateProductRequest;
 import com.example.productservice.dto.request.CreateSellerProductRequest;
+import com.example.productservice.dto.request.CreateSellerProductVariantRequest;
 import com.example.productservice.dto.request.ModerateProductRequest;
 import com.example.productservice.dto.request.ProductVariantRequest;
 import com.example.productservice.dto.request.ProductOptionRequest;
@@ -18,9 +19,6 @@ import com.example.productservice.dto.request.UpdateSellerProductRequest;
 import com.example.productservice.dto.response.CreateProductResponse;
 import com.example.productservice.dto.response.PageResponse;
 import com.example.productservice.dto.response.ProductDetailResponse;
-import com.example.productservice.dto.response.ProductVariantResponse;
-import com.example.productservice.dto.response.ProductOptionResponse;
-import com.example.productservice.dto.response.ProductOptionValueResponse;
 import com.example.productservice.entity.Category;
 import com.example.productservice.entity.Product;
 import com.example.productservice.entity.ProductVariant;
@@ -28,6 +26,7 @@ import com.example.productservice.entity.ProductOption;
 import com.example.productservice.entity.ProductOptionValue;
 import com.example.productservice.exception.ErrorCode;
 import com.example.productservice.exception.ProductServiceException;
+import com.example.productservice.mapper.ProductMapper;
 import com.example.productservice.repository.CategoryRepository;
 import com.example.productservice.repository.ProductRepository;
 import com.example.productservice.repository.ProductVariantRepository;
@@ -72,6 +71,7 @@ public class ProductServiceImpl implements ProductService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final InventoryClient inventoryClient;
     private final SellerClient sellerClient;
+    private final ProductMapper productMapper;
 
   //  @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
     @Override
@@ -96,34 +96,8 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
         log.info("Product created successfully: id={}", product.getId());
 
-        ProductCreatedEvent productCreatedEvent = ProductCreatedEvent.builder()
-                .productId(product.getId())
-                .name(product.getName())
-                .description(product.getDescription())
-                .price(product.getPrice().doubleValue())
-                .status(product.getStatus().name())
-                .createdAt(product.getCreatedAt())
-                .categoryId(category.getId())
-                .categoryName(category.getName())
-                .thumbnailUrl(getThumbnailUrl(product))
-                .inStock(product.getQuantity() != null && product.getQuantity() > 0)
-                .build();
-
-        sendProductCreatedEvent(productCreatedEvent);
-        return CreateProductResponse.builder()
-                .id(product.getId())
-                .shopId(product.getShopId())
-                .name(product.getName())
-                .slug(product.getSlug())
-                .description(product.getDescription())
-                .price(product.getPrice())
-                .quantity(product.getQuantity())
-                .images(product.getImages())
-                .options(toOptionResponses(product.getOptions()))
-                .variants(toVariantResponses(product.getVariants()))
-                .status(product.getStatus())
-                .createdAt(product.getCreatedAt())
-                .build();
+        sendProductCreatedEvent(productMapper.toCreatedEvent(product));
+        return productMapper.toCreateResponse(product);
     }
 
     @Override
@@ -151,11 +125,15 @@ public class ProductServiceImpl implements ProductService {
                 .build();
         replaceOptions(product, request.options());
         replaceVariants(product, request.variants());
+
+        //variant bị ép về DRAFT
         product.getVariants().forEach(variant -> variant.setStatus(ProductStatus.DRAFT));
         Product savedProduct = productRepository.save(product);
+        //Đồng bộ tồn kho
         savedProduct.setQuantity(inventoryClient.setAvailableQuantity(savedProduct.getId(), request.quantity()));
-        sendProductCreatedEvent(toProductCreatedEvent(savedProduct));
-        return toCreateProductResponse(savedProduct);
+        //Phát event
+        sendProductCreatedEvent(productMapper.toCreatedEvent(savedProduct));
+        return productMapper.toCreateResponse(savedProduct);
     }
 
     @Override
@@ -165,7 +143,10 @@ public class ProductServiceImpl implements ProductService {
         Pageable pageable = PageRequest.of(currentPage - 1, Math.min(Math.max(size, 1), 100),
                 Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Product> products = productRepository.findAllBySellerIdOrderByCreatedAtDesc(sellerId, pageable);
-        return toPageResponse(products, products.getContent().stream().map(this::toProductDetailResponse).toList());
+        return productMapper.toPageResponse(
+                products,
+                products.getContent().stream().map(productMapper::toDetailResponse).toList()
+        );
     }
 
     @Override
@@ -191,15 +172,20 @@ public class ProductServiceImpl implements ProductService {
 
         // 4. Lấy content (danh sách products của trang hiện tại)
         List<Product> products = productPage.getContent();
-        Map<String, Integer> availableQuantities = inventoryClient.getAvailableQuantities(
-                products.stream()
-                        .map(Product::getId)
-                        .toList()
-        );
+        Map<String, Integer> availableQuantities;
+        try {
+            availableQuantities = inventoryClient.getAvailableQuantities(
+                    products.stream()
+                            .map(Product::getId)
+                            .toList()
+            );
+        } catch (InventoryClient.InventoryClientException exception) {
+            throw new ProductServiceException(ErrorCode.INVENTORY_SERVICE_UNAVAILABLE);
+        }
 
         // 5. Map Entity sang DTO
         List<ProductDetailResponse> responses = products.stream()
-                .map(product -> toProductDetailResponse(
+                .map(product -> productMapper.toDetailResponse(
                         product,
                         availableQuantities.getOrDefault(product.getId(), product.getQuantity())
                 ))
@@ -290,10 +276,10 @@ public class ProductServiceImpl implements ProductService {
         }
 
         productRepository.save(product);
-        sendProductUpdatedEvent(toProductUpdatedEvent(product));
+        sendProductUpdatedEvent(productMapper.toUpdatedEvent(product));
         log.info("Product updated successfully: id={}", product.getId());
 
-        return toProductDetailResponse(product);
+        return productMapper.toDetailResponse(product);
     }
 
     @Override
@@ -309,8 +295,42 @@ public class ProductServiceImpl implements ProductService {
         applySellerUpdate(product, request);
         product.getVariants().forEach(variant -> variant.setStatus(product.getStatus()));
         Product savedProduct = productRepository.save(product);
-        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
-        return toProductDetailResponse(savedProduct);
+        sendProductUpdatedEvent(productMapper.toUpdatedEvent(savedProduct));
+        return productMapper.toDetailResponse(savedProduct);
+    }
+
+    @Override
+    @Transactional
+    public ProductDetailResponse addSellerProductVariant(
+            String id,
+            String sellerId,
+            String authorization,
+            CreateSellerProductVariantRequest request
+    ) {
+        Product product = productRepository.findByIdAndSellerId(id, sellerId)
+                .orElseThrow(() -> new ProductServiceException(ErrorCode.PRODUCT_ACCESS_DENIED));
+        requireApprovedShopForProduct(authorization, product);
+        if (product.getStatus() != ProductStatus.ACTIVE) {
+            throw new ProductServiceException(ErrorCode.INVALID_PRODUCT_TRANSITION);
+        }
+
+        validateVariantAttributes(request.attributes(), product);
+        ProductVariant variant = toVariant(product, new ProductVariantRequest(
+                null,
+                request.sku(),
+                request.attributes(),
+                request.price(),
+                request.quantity(),
+                request.imageUrl(),
+                ProductStatus.ACTIVE
+        ), product.getVariants().stream().map(ProductVariant::getSku).collect(Collectors.toSet()));
+        product.getVariants().add(variant);
+
+        ProductVariant savedVariant = productVariantRepository.saveAndFlush(variant);
+        savedVariant.setQuantity(inventoryClient.setVariantAvailableQuantity(product.getId(), savedVariant.getId(), request.quantity()));
+        productVariantRepository.save(savedVariant);
+        sendProductUpdatedEvent(productMapper.toUpdatedEvent(product));
+        return productMapper.toDetailResponse(product);
     }
 
     @Override
@@ -330,8 +350,8 @@ public class ProductServiceImpl implements ProductService {
 
         product.setQuantity(inventoryClient.setAvailableQuantity(product.getId(), request.quantity()));
         Product savedProduct = productRepository.save(product);
-        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
-        return toProductDetailResponse(savedProduct);
+        sendProductUpdatedEvent(productMapper.toUpdatedEvent(savedProduct));
+        return productMapper.toDetailResponse(savedProduct);
     }
 
     @Override
@@ -356,8 +376,8 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus(targetStatus);
         product.getVariants().forEach(variant -> variant.setStatus(targetStatus));
         Product savedProduct = productRepository.save(product);
-        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
-        return toProductDetailResponse(savedProduct);
+        sendProductUpdatedEvent(productMapper.toUpdatedEvent(savedProduct));
+        return productMapper.toDetailResponse(savedProduct);
     }
 
     @Override
@@ -377,8 +397,8 @@ public class ProductServiceImpl implements ProductService {
         product.setModeratedBy(null);
         product.setModeratedAt(null);
         Product savedProduct = productRepository.save(product);
-        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
-        return toProductDetailResponse(savedProduct);
+        sendProductUpdatedEvent(productMapper.toUpdatedEvent(savedProduct));
+        return productMapper.toDetailResponse(savedProduct);
     }
 
     @Override
@@ -399,8 +419,8 @@ public class ProductServiceImpl implements ProductService {
         product.setModeratedBy(adminUserId);
         product.setModeratedAt(Instant.now());
         Product savedProduct = productRepository.save(product);
-        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
-        return toProductDetailResponse(savedProduct);
+        sendProductUpdatedEvent(productMapper.toUpdatedEvent(savedProduct));
+        return productMapper.toDetailResponse(savedProduct);
     }
 
    // @PreAuthorize("hasAnyAuthority('ROLE_SELLER', 'ROLE_ADMIN')")
@@ -445,7 +465,7 @@ public class ProductServiceImpl implements ProductService {
 
             variant.setQuantity(event.getAvailableQuantity());
             productVariantRepository.save(variant);
-            sendProductUpdatedEvent(toProductUpdatedEvent(variant.getProduct()));
+            sendProductUpdatedEvent(productMapper.toUpdatedEvent(variant.getProduct()));
 
             log.info("Synced variant stock from inventory: productId={}, variantId={}, quantity={}",
                     variant.getProduct().getId(),
@@ -464,7 +484,7 @@ public class ProductServiceImpl implements ProductService {
 
         product.setQuantity(event.getAvailableQuantity());
         Product savedProduct = productRepository.save(product);
-        sendProductUpdatedEvent(toProductUpdatedEvent(savedProduct));
+        sendProductUpdatedEvent(productMapper.toUpdatedEvent(savedProduct));
 
         log.info("Synced product stock from inventory: productId={}, quantity={}",
                 savedProduct.getId(),
@@ -485,7 +505,7 @@ public class ProductServiceImpl implements ProductService {
             product.getVariants().forEach(variant -> variant.setStatus(ProductStatus.INACTIVE));
         });
         List<Product> savedProducts = productRepository.saveAll(activeProducts);
-        savedProducts.forEach(product -> sendProductUpdatedEvent(toProductUpdatedEvent(product)));
+        savedProducts.forEach(product -> sendProductUpdatedEvent(productMapper.toUpdatedEvent(product)));
         log.info("Inactivated {} active products for suspended shop: shopId={}", savedProducts.size(), shopId);
     }
 
@@ -612,68 +632,6 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    private ProductUpdatedEvent toProductUpdatedEvent(Product product) {
-        Category category = product.getCategory();
-        return ProductUpdatedEvent.builder()
-                .productId(product.getId())
-                .name(product.getName())
-                .description(product.getDescription())
-                .price(product.getPrice().doubleValue())
-                .status(product.getStatus().name())
-                .createdAt(product.getCreatedAt())
-                .categoryId(category.getId())
-                .categoryName(category.getName())
-                .thumbnailUrl(getThumbnailUrl(product))
-                .inStock(product.getQuantity() != null && product.getQuantity() > 0)
-                .build();
-    }
-
-    private ProductCreatedEvent toProductCreatedEvent(Product product) {
-        Category category = product.getCategory();
-        return ProductCreatedEvent.builder()
-                .productId(product.getId())
-                .name(product.getName())
-                .description(product.getDescription())
-                .price(product.getPrice().doubleValue())
-                .status(product.getStatus().name())
-                .createdAt(product.getCreatedAt())
-                .categoryId(category.getId())
-                .categoryName(category.getName())
-                .thumbnailUrl(getThumbnailUrl(product))
-                .inStock(product.getQuantity() != null && product.getQuantity() > 0)
-                .build();
-    }
-
-    private CreateProductResponse toCreateProductResponse(Product product) {
-        return CreateProductResponse.builder()
-                .id(product.getId())
-                .shopId(product.getShopId())
-                .name(product.getName())
-                .slug(product.getSlug())
-                .description(product.getDescription())
-                .price(product.getPrice())
-                .quantity(product.getQuantity())
-                .images(product.getImages())
-                .options(toOptionResponses(product.getOptions()))
-                .variants(toVariantResponses(product.getVariants()))
-                .status(product.getStatus())
-                .createdAt(product.getCreatedAt())
-                .build();
-    }
-
-    private PageResponse<ProductDetailResponse> toPageResponse(
-            Page<Product> productPage,
-            List<ProductDetailResponse> content
-    ) {
-        return PageResponse.<ProductDetailResponse>builder()
-                .currentPage(productPage.getNumber() + 1)
-                .pageSize(productPage.getSize())
-                .totalPages(productPage.getTotalPages())
-                .totalElements(productPage.getTotalElements())
-                .content(content)
-                .build();
-    }
-
     private void sendProductCreatedEvent(ProductCreatedEvent event) {
         kafkaTemplate.send("product-created", event)
                 .whenComplete((res, throwable) -> {
@@ -696,48 +654,16 @@ public class ProductServiceImpl implements ProductService {
                 });
     }
 
-    private ProductDetailResponse toProductDetailResponse(Product product) {
-        return toProductDetailResponse(product, product.getQuantity());
-    }
-
     private ProductDetailResponse toProductDetailResponseWithFreshInventory(Product product) {
-        Integer availableQuantity = inventoryClient.getAvailableQuantity(product.getId())
-                .orElse(product.getQuantity());
-
-        return toProductDetailResponse(product, availableQuantity);
-    }
-
-    private ProductDetailResponse toProductDetailResponse(Product product, Integer quantity) {
-        return ProductDetailResponse.builder()
-                .id(product.getId())
-                .shopId(product.getShopId())
-                .sellerId(product.getSellerId())
-                .name(product.getName())
-                .slug(product.getSlug())
-                .description(product.getDescription())
-                .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
-                .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)
-                .price(product.getPrice())
-                .quantity(quantity)
-                .images(product.getImages())
-                .options(toOptionResponses(product.getOptions()))
-                .variants(toVariantResponses(product.getVariants()))
-                .status(product.getStatus())
-                .moderationNote(product.getModerationNote())
-                .createdAt(product.getCreatedAt())
-                .build();
-    }
-
-    private String getThumbnailUrl(Product product) {
-        if (product.getImages() == null || product.getImages().isEmpty()) {
-            return null;
+        Integer availableQuantity;
+        try {
+            availableQuantity = inventoryClient.getAvailableQuantity(product.getId())
+                    .orElse(product.getQuantity());
+        } catch (InventoryClient.InventoryClientException exception) {
+            throw new ProductServiceException(ErrorCode.INVENTORY_SERVICE_UNAVAILABLE);
         }
 
-        return product.getImages().stream()
-                .filter(image -> Boolean.TRUE.equals(image.getIsPrimary()))
-                .findFirst()
-                .orElse(product.getImages().getFirst())
-                .getUrl();
+        return productMapper.toDetailResponse(product, availableQuantity);
     }
 
     private void replaceVariants(Product product, List<ProductVariantRequest> variantRequests) {
@@ -788,15 +714,6 @@ public class ProductServiceImpl implements ProductService {
         variants.forEach(variant -> validateVariantAttributes(variant.getAttributes(), product));
     }
 
-    private List<ProductOptionResponse> toOptionResponses(List<ProductOption> options) {
-        if (options == null) return List.of();
-        return options.stream().map(option -> ProductOptionResponse.builder().id(option.getId()).name(option.getName())
-                .displayName(option.getDisplayName()).displayType(option.getDisplayType()).displayOrder(option.getDisplayOrder())
-                .required(option.getRequired()).values(option.getValues().stream().map(value -> ProductOptionValueResponse.builder()
-                        .id(value.getId()).value(value.getValue()).displayValue(value.getDisplayValue()).colorHex(value.getColorHex())
-                        .imageUrl(value.getImageUrl()).displayOrder(value.getDisplayOrder()).active(value.getActive()).build()).toList()).build()).toList();
-    }
-
     private ProductVariant toVariant(Product product, ProductVariantRequest request, Set<String> usedSkus) {
         String sku = normalizeSku(request.sku());
         if (sku == null) {
@@ -829,24 +746,6 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return productVariantRepository.existsBySkuAndIdNot(sku, request.id());
-    }
-
-    private List<ProductVariantResponse> toVariantResponses(List<ProductVariant> variants) {
-        if (variants == null) {
-            return List.of();
-        }
-
-        return variants.stream()
-                .map(variant -> ProductVariantResponse.builder()
-                        .id(variant.getId())
-                        .sku(variant.getSku())
-                        .attributes(variant.getAttributes())
-                        .price(variant.getPrice())
-                        .quantity(variant.getQuantity())
-                        .imageUrl(variant.getImageUrl())
-                        .status(variant.getStatus())
-                        .build())
-                .toList();
     }
 
     private String normalizeSku(String sku) {

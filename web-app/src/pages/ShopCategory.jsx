@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   ChevronDown,
   Filter,
@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { getCategories } from "../services/categoryService";
 import useShopProductListing from "../hooks/useShopProductListing";
+import { isAuthenticated } from "../services/authenticationService";
+import { loadWishlist, toggleWishlist } from "../services/wishlistService";
 import "./ShopCategory.css";
 import "./ShopProductListing.css";
 
@@ -39,8 +41,13 @@ const image = (item) => item.thumbnailUrl
 export default function ShopCategory() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const categoryId = idFromSlug(slug);
   const [categories, setCategories] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [wishlistLoading, setWishlistLoading] = useState(true);
+  const [wishlistPendingIds, setWishlistPendingIds] = useState(() => new Set());
+  const [wishlistNotice, setWishlistNotice] = useState("");
   const {
     aggregation: facets,
     filters,
@@ -57,11 +64,57 @@ export default function ShopCategory() {
   useEffect(() => {
     getCategories().then(setCategories).catch(() => {});
   }, []);
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      setWishlist([]);
+      setWishlistLoading(false);
+      return undefined;
+    }
+
+    let active = true;
+    loadWishlist()
+      .then((items) => {
+        if (active) setWishlist(items);
+      })
+      .catch((error) => {
+        if (active) setWishlistNotice(error.response?.data?.message || "Không thể tải danh sách yêu thích.");
+      })
+      .finally(() => {
+        if (active) setWishlistLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const category = categories.find((item) => item.id === categoryId);
   const changeQuery = (value) => {
     setQuery(value);
     setFilter("q", value);
+  };
+  const changeWishlist = async (event, product) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!isAuthenticated()) {
+      return navigate(`/shop/login?redirect=${encodeURIComponent(`${location.pathname}${location.search}`)}`);
+    }
+    const productId = product.productId || product.id;
+    if (wishlistLoading || wishlistPendingIds.has(productId)) return;
+
+    setWishlistPendingIds((current) => new Set(current).add(productId));
+    try {
+      const result = await toggleWishlist(product, wishlist);
+      setWishlist(result.items);
+      setWishlistNotice(result.action === "added" ? "Đã lưu sản phẩm vào yêu thích." : "Đã xoá sản phẩm khỏi yêu thích.");
+    } catch (error) {
+      setWishlistNotice(error.response?.data?.message || "Không thể cập nhật yêu thích.");
+    } finally {
+      setWishlistPendingIds((current) => {
+        const next = new Set(current);
+        next.delete(productId);
+        return next;
+      });
+    }
   };
 
   return (
@@ -74,6 +127,7 @@ export default function ShopCategory() {
         </div>
         <ShoppingBag size={88} />
       </section>
+      {wishlistNotice && <p className="category-wishlist-notice" role="status">{wishlistNotice}</p>}
 
       <section className="category-shell">
         <aside className="category-sidebar">
@@ -152,7 +206,15 @@ export default function ShopCategory() {
             {products.map((item) => (
               <article key={item.productId} onClick={() => navigate(productUrl(item))}>
                 <div className="category-product-image">
-                  <button onClick={(event) => event.stopPropagation()} aria-label="Thêm vào yêu thích"><Heart size={17} /></button>
+                  <button
+                    type="button"
+                    className={wishlist.some((wishlistItem) => wishlistItem.productId === item.productId) ? "is-wishlisted" : ""}
+                    disabled={wishlistLoading || wishlistPendingIds.has(item.productId)}
+                    onClick={(event) => changeWishlist(event, item)}
+                    aria-label="Thêm hoặc xoá yêu thích"
+                  >
+                    <Heart size={17} fill="currentColor" />
+                  </button>
                   {image(item) ? <img src={image(item)} alt={item.name} /> : <ShoppingBag size={35} />}
                 </div>
                 <div>

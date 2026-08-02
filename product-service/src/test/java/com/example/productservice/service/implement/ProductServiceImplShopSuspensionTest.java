@@ -6,6 +6,7 @@ import com.example.productservice.common.ProductStatus;
 import com.example.productservice.entity.Category;
 import com.example.productservice.entity.Product;
 import com.example.productservice.entity.ProductVariant;
+import com.example.productservice.mapper.ProductMapper;
 import com.example.productservice.repository.CategoryRepository;
 import com.example.productservice.repository.ProductRepository;
 import com.example.productservice.repository.ProductVariantRepository;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 
@@ -40,6 +42,8 @@ class ProductServiceImplShopSuspensionTest {
     private InventoryClient inventoryClient;
     @Mock
     private SellerClient sellerClient;
+    @Spy
+    private ProductMapper productMapper = new ProductMapper();
 
     @InjectMocks
     private ProductServiceImpl productService;

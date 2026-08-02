@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/user-profile")
-@PreAuthorize("hasAuthority('ROLE_USER')")
+@PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_SELLER', 'ROLE_SHIPPER', 'ROLE_ADMIN')")
 public class UserProfileController {
         private final UserProfileService userProfileService;
 

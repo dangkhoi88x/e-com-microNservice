@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown, Filter, Heart, Search, ShoppingBag, SlidersHorizontal, Star, Tag, Truck } from "lucide-react";
 import { getCategories } from "../services/categoryService";
 import { getProducts } from "../services/productService";
 import { getActiveProductSales } from "../services/promotionService";
+import { isAuthenticated } from "../services/authenticationService";
+import { loadWishlist, toggleWishlist } from "../services/wishlistService";
 import "./ShopCategory.css";
 import "./ShopBestDeals.css";
 
@@ -13,22 +15,112 @@ const money = (value) => new Intl.NumberFormat("vi-VN", { style: "currency", cur
 const image = (item) => item.imageUrl || item.images?.find((entry) => entry.isPrimary)?.url || item.images?.[0]?.url;
 
 function DealImage({ product }) {
-  const source = image(product); const [failed, setFailed] = useState(!source);
+  const source = image(product);
+  const [failed, setFailed] = useState(!source);
   return failed ? <ShoppingBag size={35} /> : <img src={source} alt={product.name} onError={() => setFailed(true)} />;
 }
 
 export default function ShopBestDeals() {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]); const [catalog, setCatalog] = useState([]); const [deals, setDeals] = useState([]); const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState(""); const [categoryId, setCategoryId] = useState(""); const [sort, setSort] = useState("discount,desc"); const [minPrice, setMinPrice] = useState(""); const [maxPrice, setMaxPrice] = useState(""); const [inStock, setInStock] = useState(false);
-  useEffect(() => { Promise.all([getProducts({ page: 1, size: 100 }), getCategories(), getActiveProductSales()]).then(([products, categoryData, dealData]) => { setCatalog(products.content || []); setCategories(categoryData || []); setDeals(dealData || []); }).catch(() => {}).finally(() => setLoading(false)); }, []);
+  const location = useLocation();
+  const [categories, setCategories] = useState([]);
+  const [catalog, setCatalog] = useState([]);
+  const [deals, setDeals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [wishlist, setWishlist] = useState([]);
+  const [wishlistLoading, setWishlistLoading] = useState(true);
+  const [wishlistPendingIds, setWishlistPendingIds] = useState(() => new Set());
+  const [wishlistNotice, setWishlistNotice] = useState("");
+  const [query, setQuery] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [sort, setSort] = useState("discount,desc");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [inStock, setInStock] = useState(false);
+
+  useEffect(() => {
+    Promise.all([getProducts({ page: 1, size: 100 }), getCategories(), getActiveProductSales()])
+      .then(([products, categoryData, dealData]) => {
+        setCatalog(products.content || []);
+        setCategories(categoryData || []);
+        setDeals(dealData || []);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      setWishlist([]);
+      setWishlistLoading(false);
+      return undefined;
+    }
+
+    let active = true;
+    loadWishlist()
+      .then((items) => {
+        if (active) setWishlist(items);
+      })
+      .catch((error) => {
+        if (active) setWishlistNotice(error.response?.data?.message || "Không thể tải danh sách yêu thích.");
+      })
+      .finally(() => {
+        if (active) setWishlistLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const discounted = useMemo(() => {
-    const byId = new Map(catalog.map((product) => [product.id, product])); const best = new Map();
-    deals.forEach((deal) => (deal.items || []).forEach((item) => { const product = byId.get(item.productId); if (!product || Number(item.salePrice) >= Number(item.originalPrice)) return; const discountPercent = Number(item.discountPercent || (100 - Number(item.salePrice) * 100 / Number(item.originalPrice))); const candidate = { ...product, salePrice: Number(item.salePrice), originalPrice: Number(item.originalPrice), discountPercent, quota: Number(item.quota || 0), quotaLimited: item.quotaLimited !== false, saleType: deal.saleType || "FLASH" }; const current = best.get(product.id); if (!current || candidate.salePrice < current.salePrice || (candidate.salePrice === current.salePrice && candidate.saleType === "FLASH" && current.saleType !== "FLASH")) best.set(product.id, candidate); }));
+    const byId = new Map(catalog.map((product) => [product.id, product]));
+    const best = new Map();
+    deals.forEach((deal) => (deal.items || []).forEach((item) => {
+      const product = byId.get(item.productId);
+      if (!product || Number(item.salePrice) >= Number(item.originalPrice)) return;
+      const discountPercent = Number(item.discountPercent || (100 - Number(item.salePrice) * 100 / Number(item.originalPrice)));
+      const candidate = { ...product, salePrice: Number(item.salePrice), originalPrice: Number(item.originalPrice), discountPercent, quota: Number(item.quota || 0), quotaLimited: item.quotaLimited !== false, saleType: deal.saleType || "FLASH" };
+      const current = best.get(product.id);
+      if (!current || candidate.salePrice < current.salePrice || (candidate.salePrice === current.salePrice && candidate.saleType === "FLASH" && current.saleType !== "FLASH")) best.set(product.id, candidate);
+    }));
     return [...best.values()];
   }, [catalog, deals]);
   const dealCategories = useMemo(() => categories.filter((category) => discounted.some((item) => item.categoryId === category.id || item.categoryName === category.name)), [categories, discounted]);
-  const products = useMemo(() => discounted.filter((item) => (!categoryId || item.categoryId === categoryId) && (!query || `${item.name} ${item.categoryName || ""}`.toLocaleLowerCase("vi-VN").includes(query.toLocaleLowerCase("vi-VN"))) && (!minPrice || item.salePrice >= Number(minPrice)) && (!maxPrice || item.salePrice <= Number(maxPrice)) && (!inStock || !item.quotaLimited || item.quota > 0)).sort((a, b) => sort === "price,asc" ? a.salePrice - b.salePrice : sort === "price,desc" ? b.salePrice - a.salePrice : b.discountPercent - a.discountPercent), [discounted, categoryId, query, minPrice, maxPrice, inStock, sort]);
+  const products = useMemo(() => discounted
+    .filter((item) => (!categoryId || item.categoryId === categoryId)
+      && (!query || `${item.name} ${item.categoryName || ""}`.toLocaleLowerCase("vi-VN").includes(query.toLocaleLowerCase("vi-VN")))
+      && (!minPrice || item.salePrice >= Number(minPrice))
+      && (!maxPrice || item.salePrice <= Number(maxPrice))
+      && (!inStock || !item.quotaLimited || item.quota > 0))
+    .sort((a, b) => sort === "price,asc" ? a.salePrice - b.salePrice : sort === "price,desc" ? b.salePrice - a.salePrice : b.discountPercent - a.discountPercent), [discounted, categoryId, query, minPrice, maxPrice, inStock, sort]);
   const reset = () => { setQuery(""); setCategoryId(""); setMinPrice(""); setMaxPrice(""); setInStock(false); setSort("discount,desc"); };
-  return <main className="category-page best-deals-page"><header className="category-topbar"><Link to="/shop" className="category-brand"><i>N</i>Nova<span>Shop</span></Link><label><Search size={17}/><input placeholder="Tìm trong ưu đãi tốt nhất" value={query} onChange={(event) => setQuery(event.target.value)} /></label><Link to="/cart"><ShoppingBag size={18} /> Giỏ hàng</Link></header><section className="category-hero best-deals-hero"><div><p>DEAL ĐANG DIỄN RA</p><h1>Ưu đãi tốt nhất</h1><span>{products.length} sản phẩm đang được áp dụng giá sale</span></div><Tag size={88} /></section><section className="category-shell"><aside className="category-sidebar"><div className="category-sidebar-title"><h2>Danh mục</h2><ChevronDown size={17} /></div><nav><button className={!categoryId ? "active" : ""} onClick={() => setCategoryId("")}>Tất cả ưu đãi</button>{dealCategories.map((item) => <button key={item.id} className={item.id === categoryId ? "active" : ""} onClick={() => setCategoryId(item.id)}>{item.name}</button>)}</nav><div className="category-filter-title"><Filter size={17} /><h2>Bộ lọc</h2></div><label className="category-search"><Search size={15} /><input placeholder="Tên sản phẩm" value={query} onChange={(event) => setQuery(event.target.value)} /></label><div className="category-filter"><b>Khoảng giá sau giảm</b><div><input placeholder="Từ" value={minPrice} onChange={(event) => setMinPrice(event.target.value)} type="number" /><i>—</i><input placeholder="Đến" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} type="number" /></div></div><div className="category-filter"><b>Tình trạng</b><label><input type="checkbox" checked={inStock} onChange={(event) => setInStock(event.target.checked)} /> Chỉ hiện ưu đãi còn hàng</label></div><button className="category-reset" onClick={reset}>Xóa bộ lọc</button></aside><div className="category-results"><div className="category-results-head"><div><p>HIỂN THỊ {products.length} ƯU ĐÃI</p><h2>Sản phẩm đang giảm giá</h2></div><label className="category-sort"><SlidersHorizontal size={16} /><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="discount,desc">Giảm nhiều nhất</option><option value="price,asc">Giá thấp đến cao</option><option value="price,desc">Giá cao đến thấp</option></select></label></div><div className="category-grid best-deals-grid">{products.map((item) => <article key={item.id} onClick={() => navigate(productUrl(item))}><div className="category-product-image"><b>−{Math.round(item.discountPercent)}%</b><button onClick={(event) => event.stopPropagation()} aria-label="Thêm vào yêu thích"><Heart size={17} /></button><DealImage product={item} /></div><div><p>{item.saleType === "LONG_TERM" ? "SALE DÀI HẠN" : "FLASH SALE"} · {item.categoryName || "Sản phẩm"}</p><h3>{item.name}</h3><strong>{money(item.salePrice)}</strong><del>{money(item.originalPrice)}</del><span><Star size={13} fill="currentColor" /> 4.8 · {item.quotaLimited ? `Còn ${item.quota} suất` : "Không giới hạn quota"}</span></div></article>)}</div>{loading && <div className="category-empty">Đang tải ưu đãi tốt nhất…</div>}{!loading && !products.length && <div className="category-empty"><Tag size={38} /><h3>Chưa có ưu đãi đang diễn ra</h3><p>Chương trình giảm giá mới sẽ sớm được cập nhật. Hãy quay lại sau nhé!</p><button onClick={() => navigate("/shop")}>Về trang mua sắm</button></div>}<div className="category-services"><div><Truck size={22} /><p><b>Giá sale chính xác</b>Áp dụng trực tiếp khi thanh toán</p></div><div><Tag size={21} /><p><b>Ưu đãi minh bạch</b>Giá gốc và mức giảm được hiển thị rõ ràng</p></div></div></div></section></main>;
+  const changeWishlist = async (event, product) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!isAuthenticated()) return navigate(`/shop/login?redirect=${encodeURIComponent(`${location.pathname}${location.search}`)}`);
+    if (wishlistLoading || wishlistPendingIds.has(product.id)) return;
+
+    setWishlistPendingIds((current) => new Set(current).add(product.id));
+    try {
+      const result = await toggleWishlist(product, wishlist);
+      setWishlist(result.items);
+      setWishlistNotice(result.action === "added" ? "Đã lưu sản phẩm vào yêu thích." : "Đã xoá sản phẩm khỏi yêu thích.");
+    } catch (error) {
+      setWishlistNotice(error.response?.data?.message || "Không thể cập nhật yêu thích.");
+    } finally {
+      setWishlistPendingIds((current) => {
+        const next = new Set(current);
+        next.delete(product.id);
+        return next;
+      });
+    }
+  };
+
+  return <main className="category-page best-deals-page">
+    <header className="category-topbar"><Link to="/shop" className="category-brand"><i>N</i>Nova<span>Shop</span></Link><label><Search size={17}/><input placeholder="Tìm trong ưu đãi tốt nhất" value={query} onChange={(event) => setQuery(event.target.value)} /></label><Link to="/cart"><ShoppingBag size={18} /> Giỏ hàng</Link></header>
+    <section className="category-hero best-deals-hero"><div><p>DEAL ĐANG DIỄN RA</p><h1>Ưu đãi tốt nhất</h1><span>{products.length} sản phẩm đang được áp dụng giá sale</span></div><Tag size={88} /></section>
+    {wishlistNotice && <p className="category-wishlist-notice" role="status">{wishlistNotice}</p>}
+    <section className="category-shell"><aside className="category-sidebar"><div className="category-sidebar-title"><h2>Danh mục</h2><ChevronDown size={17} /></div><nav><button className={!categoryId ? "active" : ""} onClick={() => setCategoryId("")}>Tất cả ưu đãi</button>{dealCategories.map((item) => <button key={item.id} className={item.id === categoryId ? "active" : ""} onClick={() => setCategoryId(item.id)}>{item.name}</button>)}</nav><div className="category-filter-title"><Filter size={17} /><h2>Bộ lọc</h2></div><label className="category-search"><Search size={15} /><input placeholder="Tên sản phẩm" value={query} onChange={(event) => setQuery(event.target.value)} /></label><div className="category-filter"><b>Khoảng giá sau giảm</b><div><input placeholder="Từ" value={minPrice} onChange={(event) => setMinPrice(event.target.value)} type="number" /><i>—</i><input placeholder="Đến" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} type="number" /></div></div><div className="category-filter"><b>Tình trạng</b><label><input type="checkbox" checked={inStock} onChange={(event) => setInStock(event.target.checked)} /> Chỉ hiện ưu đãi còn hàng</label></div><button className="category-reset" onClick={reset}>Xóa bộ lọc</button></aside>
+      <div className="category-results"><div className="category-results-head"><div><p>HIỂN THỊ {products.length} ƯU ĐÃI</p><h2>Sản phẩm đang giảm giá</h2></div><label className="category-sort"><SlidersHorizontal size={16} /><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="discount,desc">Giảm nhiều nhất</option><option value="price,asc">Giá thấp đến cao</option><option value="price,desc">Giá cao đến thấp</option></select></label></div><div className="category-grid best-deals-grid">{products.map((item) => <article key={item.id} onClick={() => navigate(productUrl(item))}><div className="category-product-image"><b>−{Math.round(item.discountPercent)}%</b><button type="button" className={wishlist.some((wishlistItem) => wishlistItem.productId === item.id) ? "is-wishlisted" : ""} disabled={wishlistLoading || wishlistPendingIds.has(item.id)} onClick={(event) => changeWishlist(event, item)} aria-label="Thêm hoặc xoá yêu thích"><Heart size={17} fill="currentColor" /></button><DealImage product={item} /></div><div><p>{item.saleType === "LONG_TERM" ? "SALE DÀI HẠN" : "FLASH SALE"} · {item.categoryName || "Sản phẩm"}</p><h3>{item.name}</h3><strong>{money(item.salePrice)}</strong><del>{money(item.originalPrice)}</del><span><Star size={13} fill="currentColor" /> 4.8 · {item.quotaLimited ? `Còn ${item.quota} suất` : "Không giới hạn quota"}</span></div></article>)}</div>{loading && <div className="category-empty">Đang tải ưu đãi tốt nhất…</div>}{!loading && !products.length && <div className="category-empty"><Tag size={38} /><h3>Chưa có ưu đãi đang diễn ra</h3><p>Chương trình giảm giá mới sẽ sớm được cập nhật. Hãy quay lại sau nhé!</p><button onClick={() => navigate("/shop")}>Về trang mua sắm</button></div>}<div className="category-services"><div><Truck size={22} /><p><b>Giá sale chính xác</b>Áp dụng trực tiếp khi thanh toán</p></div><div><Tag size={21} /><p><b>Ưu đãi minh bạch</b>Giá gốc và mức giảm được hiển thị rõ ràng</p></div></div></div>
+    </section>
+  </main>;
 }

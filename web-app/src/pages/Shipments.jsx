@@ -86,6 +86,27 @@ const transitions = {
   RETURNING: [{ action: "returned", label: "Mark returned", tone: "warning" }],
 };
 
+const shipperTransitions = {
+  CREATED: [
+    { action: "deliver", label: "Đã giao đơn", tone: "success" },
+    { action: "delivery-failed", label: "Giao không thành công", tone: "error" },
+  ],
+  PACKING: [
+    { action: "deliver", label: "Đã giao đơn", tone: "success" },
+    { action: "delivery-failed", label: "Giao không thành công", tone: "error" },
+  ],
+  READY_TO_SHIP: [
+    { action: "deliver", label: "Đã giao đơn", tone: "success" },
+    { action: "delivery-failed", label: "Giao không thành công", tone: "error" },
+  ],
+  IN_TRANSIT: [
+    { action: "deliver", label: "Đã giao đơn", tone: "success" },
+    { action: "delivery-failed", label: "Giao không thành công", tone: "error" },
+  ],
+  DELIVERY_FAILED: [{ action: "returning", label: "Bắt đầu trả hàng", tone: "warning" }],
+  RETURNING: [{ action: "returned", label: "Đã hoàn về kho", tone: "warning" }],
+};
+
 const cancellable = new Set(["CREATED", "PACKING", "READY_TO_SHIP"]);
 const carrierEditable = new Set(["CREATED", "PACKING", "READY_TO_SHIP"]);
 const carrierInitial = { carrier: "", trackingNumber: "", estimatedDeliveryAt: "" };
@@ -148,7 +169,7 @@ export default function Shipments({ shipperMode = false }) {
       openCarrier(shipment);
       return;
     }
-    if (["delivery-failed", "returning", "cancel"].includes(transition.action)
+    if (["delivery-failed", "returning", "returned", "cancel"].includes(transition.action)
       && !window.confirm(`${transition.label} for order ${shortId(shipment.orderId)}?`)) return;
 
     setSaving(true);
@@ -207,7 +228,7 @@ export default function Shipments({ shipperMode = false }) {
       <PageHeader
         eyebrow={shipperMode ? "Delivery · Shipper workspace" : "Fulfillment · Shipping service"}
         title="Shipments"
-        description={shipperMode ? "View all shipments and confirm orders that have been delivered." : "Coordinate packing, carrier handoff, delivery attempts and returns from one operational view."}
+        description={shipperMode ? "Xác nhận giao thành công, giao thất bại và hoàn hàng về kho." : "Coordinate packing, carrier handoff, delivery attempts and returns from one operational view."}
         actions={<Button variant="outlined" startIcon={<RefreshOutlinedIcon />} onClick={() => load(page, status)} disabled={loading}>Refresh</Button>}
       />
 
@@ -251,16 +272,17 @@ export default function Shipments({ shipperMode = false }) {
                   <TableCell><Typography className="table-primary">{formatDate(shipment.estimatedDeliveryAt)}</Typography><Typography className="table-secondary">{shipment.deliveredAt ? `Delivered ${formatDate(shipment.deliveredAt)}` : shipment.shippedAt ? `Shipped ${formatDate(shipment.shippedAt)}` : "Awaiting handoff"}</Typography></TableCell>
                   <TableCell><Chip size="small" color={meta.color} label={meta.label} /></TableCell>
                   <TableCell align="right"><Stack direction="row" justifyContent="flex-end" className="row-actions">
-                    {shipperMode && ["CREATED", "PACKING", "READY_TO_SHIP", "IN_TRANSIT"].includes(shipment.status) && (
+                    {shipperMode && (shipperTransitions[shipment.status] || []).map((transition) => (
                       <Button
+                        key={transition.action}
                         size="small"
                         variant="contained"
-                        color="success"
-                        onClick={() => runTransition({ action: "deliver", label: "Mark delivered" }, shipment)}
+                        color={transition.tone || "primary"}
+                        onClick={() => runTransition(transition, shipment)}
                       >
-                        Đã giao đơn
+                        {transition.label}
                       </Button>
-                    )}
+                    ))}
                     {canManageOperations && carrierEditable.has(shipment.status) && <Tooltip title="Assign carrier"><IconButton onClick={() => openCarrier(shipment)}><SettingsSuggestOutlinedIcon /></IconButton></Tooltip>}
                     <Tooltip title="View and manage"><IconButton onClick={() => setSelected(shipment)}><VisibilityOutlinedIcon /></IconButton></Tooltip>
                   </Stack></TableCell>
@@ -289,7 +311,7 @@ export default function Shipments({ shipperMode = false }) {
             <Button onClick={() => setSelected(null)} disabled={saving}>Đóng</Button>
             {canManageOperations && carrierEditable.has(selected.status) && <Button variant="outlined" onClick={() => openCarrier(selected)} disabled={saving}>Carrier details</Button>}
             {canManageOperations && cancellable.has(selected.status) && <Button color="error" onClick={() => runTransition({ action: "cancel", label: "Cancel shipment" })} disabled={saving}>Cancel shipment</Button>}
-            {(shipperMode ? (["CREATED", "PACKING", "READY_TO_SHIP", "IN_TRANSIT"].includes(selected.status) ? [{ action: "deliver", label: "Đã giao đơn", tone: "success" }] : []) : (transitions[selected.status] || [])).map((transition) => <Button key={transition.action} variant="contained" color={transition.tone || "primary"} onClick={() => runTransition(transition)} disabled={saving}>{transition.label}</Button>)}
+            {(shipperMode ? (shipperTransitions[selected.status] || []) : (transitions[selected.status] || [])).map((transition) => <Button key={transition.action} variant="contained" color={transition.tone || "primary"} onClick={() => runTransition(transition)} disabled={saving}>{transition.label}</Button>)}
           </DialogActions>
         </>}
       </Dialog>

@@ -31,7 +31,7 @@ public class SecurityConfiguration {
 
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
-
+    //chuỗi filter chạy trước khi request đi vào controller
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
         http.csrf(AbstractHttpConfigurer::disable)
@@ -39,10 +39,12 @@ public class SecurityConfiguration {
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers(PUBLIC_MATCHERS).permitAll()
                         .requestMatchers("/internal/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET_MATCHERS).permitAll()
                         .anyRequest().authenticated())
+                //Cấu hình Product Service thành OAuth2 Resource Server.
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
@@ -51,7 +53,7 @@ public class SecurityConfiguration {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
     }
-
+    //huyển claim trong JWT thành Spring Authority
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();

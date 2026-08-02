@@ -5,6 +5,8 @@ import com.example.shippingservice.dto.request.UpdateShipmentStatusRequest;
 import com.example.shippingservice.dto.response.ApiResponse;
 import com.example.shippingservice.dto.response.ShipmentResponse;
 import com.example.shippingservice.entity.ShipmentStatus;
+import com.example.shippingservice.exception.ErrorCode;
+import com.example.shippingservice.exception.ShippingServiceException;
 import com.example.shippingservice.service.ShipmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
+import java.util.Locale;
 
 @RestController
 @RequiredArgsConstructor
@@ -56,11 +59,22 @@ public class ShipmentController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SHIPPER')")
     public ApiResponse<Page<ShipmentResponse>> all(
-            @RequestParam(required = false) ShipmentStatus status,
+            @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        return ok("Shipments retrieved successfully", shipmentService.getAll(status, pageable(page, size)));
+        return ok("Shipments retrieved successfully", shipmentService.getAll(resolveStatus(status), pageable(page, size)));
+    }
+
+    private ShipmentStatus resolveStatus(String status) {
+        if (status == null || status.isBlank()) return null;
+        String normalized = status.trim().toUpperCase(Locale.ROOT);
+        if ("SHIPPING".equals(normalized)) return ShipmentStatus.IN_TRANSIT;
+        try {
+            return ShipmentStatus.valueOf(normalized);
+        } catch (IllegalArgumentException exception) {
+            throw new ShippingServiceException(ErrorCode.INVALID_REQUEST);
+        }
     }
 
     @PutMapping("/{shipmentId}/carrier")
@@ -109,7 +123,7 @@ public class ShipmentController {
     }
 
     @PutMapping("/{shipmentId}/delivery-failed")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SHIPPER')")
     public ApiResponse<ShipmentResponse> deliveryFailed(
             @PathVariable UUID shipmentId,
             @RequestBody @Valid UpdateShipmentStatusRequest request
@@ -118,7 +132,7 @@ public class ShipmentController {
     }
 
     @PutMapping("/{shipmentId}/returning")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SHIPPER')")
     public ApiResponse<ShipmentResponse> startReturning(
             @PathVariable UUID shipmentId,
             @RequestBody @Valid UpdateShipmentStatusRequest request
@@ -127,7 +141,7 @@ public class ShipmentController {
     }
 
     @PutMapping("/{shipmentId}/returned")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SHIPPER')")
     public ApiResponse<ShipmentResponse> markReturned(
             @PathVariable UUID shipmentId,
             @RequestBody @Valid UpdateShipmentStatusRequest request

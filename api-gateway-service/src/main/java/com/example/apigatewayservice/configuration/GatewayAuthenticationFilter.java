@@ -28,12 +28,13 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
     private final JsonMapper jsonMapper;
     // Public endpoints không cần authentication
     private static final List<PublicEndpoint> PUBLIC_ENDPOINTS = List.of(
+            new PublicEndpoint("/actuator/health/**", HttpMethod.GET),
+            new PublicEndpoint("/actuator/info", HttpMethod.GET),
             new PublicEndpoint("/identity/users", HttpMethod.POST),
             new PublicEndpoint("/identity/auth/login", HttpMethod.POST),
             new PublicEndpoint("/identity/auth/refresh-token", HttpMethod.POST),
             new PublicEndpoint("/identity/auth/password-reset/request", HttpMethod.POST),
             new PublicEndpoint("/identity/auth/password-reset/confirm", HttpMethod.POST),
-            new PublicEndpoint("/identity/auth/token/introspect", HttpMethod.POST),
             new PublicEndpoint("/identity/.well-known/jwks.json", HttpMethod.GET),
             new PublicEndpoint("/identity/search/**", HttpMethod.GET),  // Search API là public
             new PublicEndpoint("/api/v1/search/**", HttpMethod.GET),
@@ -54,13 +55,13 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        // 1. Lấy path và method từ request
+        // 1. Lấy path và method từ request de get va post
         String path = exchange.getRequest().getURI().getPath();
         HttpMethod method = exchange.getRequest().getMethod();
 
         if (HttpMethod.OPTIONS.equals(method)) return chain.filter(exchange);
-        if(publicEndpoint(path, method)) return chain.filter(exchange);
-        List<String> authorization = exchange.getRequest().getHeaders().get("Authorization");
+        if(publicEndpoint(path, method)) return chain.filter(exchange); //cho request tiep tuc den filter/route tiep
+        List<String> authorization = exchange.getRequest().getHeaders().get("Authorization"); // kiem tra auth
         if (authorization == null || authorization.isEmpty()) {
             return unauthenticated(exchange);
         }
@@ -68,26 +69,30 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
         if(!authHeader.startsWith("Bearer ")) {
             return unauthenticated(exchange);
         }
-        String token = authHeader.substring(7);
-        return introspectGrpcClient.introspect(token)
-                .map(com.javabuilder.authentication.grpc.IntrospectResponse::getValid)
+        String token = authHeader.substring(7).trim(); // lay token
+        if (token.isEmpty()) {
+            return unauthenticated(exchange);
+        }
+        //Gọi Identity Service bằng gRPC
+        Mono<Boolean> tokenValidity = introspectGrpcClient.introspect(token)
+                .map(response -> response.getValid())
                 .onErrorResume(throwable -> {
-                    log.error("Token introspection failed", throwable);
-                    return Mono.just(false);
-                })
-                .defaultIfEmpty(false)
-                .flatMap(valid -> {
-                    if(valid) {
-                        return chain.filter(exchange);
-                    }
-                    return unauthenticated(exchange);
+                    log.error("Identity gRPC introspection unavailable", throwable);
+                    return serviceUnavailable(exchange).then(Mono.empty());
                 });
+        //Cho qua hoặc trả 401
+        return tokenValidity.flatMap(valid -> {
+            if(valid) {
+                return chain.filter(exchange);
+            }
+            return unauthenticated(exchange);
+        });
 
     }
     private boolean publicEndpoint(String path, HttpMethod method) {
         return PUBLIC_ENDPOINTS.stream().anyMatch(endpoint ->
                 pathMatcher.match(endpoint.getPath(), path)
-                        && (endpoint.getHttpMethod() == null || endpoint.getHttpMethod().equals(method))
+                        && (endpoint.getHttpMethod() ==    null || endpoint.getHttpMethod().equals(method))
         );
     }
 
@@ -95,6 +100,7 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
     public int getOrder() {
         return -1;
     }
+    //WebFlux -> Mono<T> đại diện cho một kết quả bất đồng bộ có tối đa một giá trị -> Response 401
     private Mono<Void> unauthenticated(ServerWebExchange exchange) {
 
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -109,5 +115,24 @@ public class GatewayAuthenticationFilter implements GlobalFilter, Ordered {
                 .build();
         byte[] bytes = jsonMapper.writeValueAsBytes(errorResponse);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes)));
+    }
+    //Response 503
+    private Mono<Void> serviceUnavailable(ServerWebExchange exchange) {
+        exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+        ErrorResponse errorResponse = ErrorResponse
+                .builder()
+                .code(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .message("AUTHENTICATION_SERVICE_UNAVAILABLE")
+                .error(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
+                .path(exchange.getRequest().getURI().getPath())
+                .timestamp(System.currentTimeMillis())
+                .build();
+
+        byte[] bytes = jsonMapper.writeValueAsBytes(errorResponse);
+        return exchange.getResponse().writeWith(
+                Mono.just(exchange.getResponse().bufferFactory().wrap(bytes))
+        );
     }
 }

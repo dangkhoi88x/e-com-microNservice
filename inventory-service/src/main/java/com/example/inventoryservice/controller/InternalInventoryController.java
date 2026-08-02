@@ -31,6 +31,15 @@ public class InternalInventoryController {
         return inventoryService.setAvailableQuantity(productId, null, request.availableQuantity());
     }
 
+    @PutMapping("/products/{productId}/variants/{variantId}/quantity")
+    public InventoryResponse setVariantAvailableQuantity(
+            @PathVariable String productId,
+            @PathVariable String variantId,
+            @Valid @RequestBody SetInventoryQuantityRequest request
+    ) {
+        return inventoryService.setAvailableQuantity(productId, variantId, request.availableQuantity());
+    }
+
     @PostMapping("/confirm")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void confirm(@Valid @RequestBody InventoryOrderRequest request) {

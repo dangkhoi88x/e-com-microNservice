@@ -5,6 +5,7 @@ import co.elastic.clients.elasticsearch._types.aggregations.RangeBucket;
 import co.elastic.clients.elasticsearch._types.aggregations.StatsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import com.example.searchservice.document.ProductDocument;
+import com.example.searchservice.configuration.SearchRedisCacheConfiguration;
 import com.example.searchservice.dto.request.SearchRequest;
 import com.example.searchservice.dto.request.SearchSort;
 import com.example.searchservice.dto.response.AggregationResponse;
@@ -18,6 +19,8 @@ import com.example.searchservice.repository.ProductDocumentRepository;
 import com.example.searchservice.service.ProductDocumentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -39,6 +42,7 @@ public class ProductDocumentServiceImpl implements ProductDocumentService {
     private final ProductDocumentRepository productDocumentRepository;
 
     @Override
+    @CacheEvict(cacheNames = {SearchRedisCacheConfiguration.SUGGESTIONS_CACHE, SearchRedisCacheConfiguration.AGGREGATIONS_CACHE}, allEntries = true)
     public void saveProductDocument(ProductDocument document) {
         try {
             productDocumentRepository.save(document);
@@ -50,6 +54,7 @@ public class ProductDocumentServiceImpl implements ProductDocumentService {
     }
 
     @Override
+    @CacheEvict(cacheNames = {SearchRedisCacheConfiguration.SUGGESTIONS_CACHE, SearchRedisCacheConfiguration.AGGREGATIONS_CACHE}, allEntries = true)
     public void deleteProductDocument(String id) {
         try {
             productDocumentRepository.deleteById(id);
@@ -75,6 +80,7 @@ public class ProductDocumentServiceImpl implements ProductDocumentService {
     }
 
     @Override
+    @Cacheable(cacheNames = SearchRedisCacheConfiguration.AGGREGATIONS_CACHE, key = "#request.toString()")
     public AggregationResponse getAggregations(SearchRequest request) {
         validatePriceRange(request);
 
@@ -93,6 +99,11 @@ public class ProductDocumentServiceImpl implements ProductDocumentService {
     }
 
     @Override
+    @Cacheable(
+            cacheNames = SearchRedisCacheConfiguration.SUGGESTIONS_CACHE,
+            key = "#query.trim().toLowerCase() + ':' + T(java.lang.Math).min(T(java.lang.Math).max(#size, 1), 10)",
+            condition = "#query != null && #query.trim().length() >= 2"
+    )
     public List<ProductDocument> getSuggestions(String query, int size) {
         if (query == null || query.trim().length() < 2) return Collections.emptyList();
         try {
@@ -104,6 +115,7 @@ public class ProductDocumentServiceImpl implements ProductDocumentService {
     }
 
     @Override
+    @CacheEvict(cacheNames = {SearchRedisCacheConfiguration.SUGGESTIONS_CACHE, SearchRedisCacheConfiguration.AGGREGATIONS_CACHE}, allEntries = true)
     public void updateReviewSummary(String productId, double averageRating, long reviewCount) {
         try {
             productDocumentRepository.updateReviewSummary(productId, averageRating, reviewCount);

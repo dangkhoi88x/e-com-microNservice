@@ -1,0 +1,674 @@
+Index: .idea/shelf/Uncommitted_changes_before_Update_at_20_7_26__21_16__Changes_.xml
+===================================================================
+diff --git a/.idea/shelf/Uncommitted_changes_before_Update_at_20_7_26__21_16__Changes_.xml b/.idea/shelf/Uncommitted_changes_before_Update_at_20_7_26__21_16__Changes_.xml
+deleted file mode 100644
+--- a/.idea/shelf/Uncommitted_changes_before_Update_at_20_7_26__21_16__Changes_.xml	(revision deea2c34fc895118fcf15e9de84db430bc5c0857)
++++ /dev/null	(revision deea2c34fc895118fcf15e9de84db430bc5c0857)
+@@ -1,4 +0,0 @@
+-<changelist name="Uncommitted_changes_before_Update_at_20_7_26,_21_16_[Changes]" date="1784557080850" recycled="true" deleted="true">
+-  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_20_7_26,_21_16_[Changes]/shelved.patch" />
+-  <option name="DESCRIPTION" value="Uncommitted changes before Update at 20/7/26, 21:16 [Changes]" />
+-</changelist>
+\ No newline at end of file
+Index: .idea/shelf/Uncommitted_changes_before_Update_at_20_7_26,_21_16_[Changes]/shelved.patch
+===================================================================
+diff --git a/.idea/shelf/Uncommitted_changes_before_Update_at_20_7_26,_21_16_[Changes]/shelved.patch b/.idea/shelf/Uncommitted_changes_before_Update_at_20_7_26,_21_16_[Changes]/shelved.patch
+deleted file mode 100644
+--- a/.idea/shelf/Uncommitted_changes_before_Update_at_20_7_26,_21_16_[Changes]/shelved.patch	(revision deea2c34fc895118fcf15e9de84db430bc5c0857)
++++ /dev/null	(revision deea2c34fc895118fcf15e9de84db430bc5c0857)
+@@ -1,82 +0,0 @@
+-Index: .idea/workspace.xml
+-IDEA additional info:
+-Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+-<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"AutoImportSettings\">\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\n  </component>\n  <component name=\"ChangeListManager\">\n    <list default=\"true\" id=\"bcb3158b-54e0-49f1-94f3-096e1f174440\" name=\"Changes\" comment=\"Fe, cart service , wishlist service merge\">\n      <change beforePath=\"$PROJECT_DIR$/.idea/misc.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/misc.xml\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\n    </list>\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\n  </component>\n  <component name=\"ExternalProjectsData\">\n    <projectState path=\"$PROJECT_DIR$/ApiGatewayService\">\n      <ProjectState />\n    </projectState>\n  </component>\n  <component name=\"Git.Settings\">\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\n  </component>\n  <component name=\"GitHubPullRequestSearchHistory\">{\n  &quot;lastFilter&quot;: {\n    &quot;state&quot;: &quot;OPEN&quot;,\n    &quot;assignee&quot;: &quot;dangkhoi88x&quot;\n  }\n}</component>\n  <component name=\"GithubPullRequestsUISettings\">{\n  &quot;selectedUrlAndAccountId&quot;: {\n    &quot;url&quot;: &quot;https://github.com/dangkhoi88x/e-com-microNservice&quot;,\n    &quot;accountId&quot;: &quot;a57b9a6b-c445-4ae2-b2ae-28388bdad628&quot;\n  }\n}</component>\n  <component name=\"ProjectColorInfo\">{\n  &quot;associatedIndex&quot;: 3,\n  &quot;fromUser&quot;: false\n}</component>\n  <component name=\"ProjectId\" id=\"3GiDyRcG4JZlhVIJe2ZJafg7G9D\" />\n  <component name=\"ProjectViewState\">\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\n    <option name=\"showLibraryContents\" value=\"true\" />\n  </component>\n  <component name=\"PropertiesComponent\"><![CDATA[{\n  \"keyToString\": {\n    \"Maven.api-gateway-service [clean].executor\": \"Run\",\n    \"Maven.api-gateway-service [compile].executor\": \"Run\",\n    \"Maven.api-gateway-service [org.apache.maven.plugins:maven-clean-plugin:3.5.0:clean].executor\": \"Run\",\n    \"Maven.api-gateway-service [verify].executor\": \"Run\",\n    \"Maven.e-com-microservice-workspace [clean].executor\": \"Run\",\n    \"Maven.e-com-microservice-workspace [verify].executor\": \"Run\",\n    \"ModuleVcsDetector.initialDetectionPerformed\": \"true\",\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\n    \"RunOnceActivity.git.unshallow\": \"true\",\n    \"RunOnceActivity.typescript.service.memoryLimit.init\": \"true\",\n    \"Spring Boot.ApiGatewayServiceApplication.executor\": \"Run\",\n    \"Spring Boot.CartServiceApplication.executor\": \"Run\",\n    \"Spring Boot.DiscoveryServerApplication.executor\": \"Run\",\n    \"Spring Boot.InventoryServiceApplication.executor\": \"Run\",\n    \"Spring Boot.MicroserviceEcomApplication.executor\": \"Run\",\n    \"Spring Boot.NotificationServiceApplication.executor\": \"Run\",\n    \"Spring Boot.OrderServiceApplication.executor\": \"Run\",\n    \"Spring Boot.PaymentServiceApplication.executor\": \"Run\",\n    \"Spring Boot.ProductServiceApplication.executor\": \"Run\",\n    \"Spring Boot.ProfileServiceApplication.executor\": \"Run\",\n    \"Spring Boot.SearchServiceApplication.executor\": \"Run\",\n    \"Spring Boot.WishlistServiceApplication.executor\": \"Run\",\n    \"codeWithMe.voiceChat.enabledByDefault\": \"false\",\n    \"git-widget-placeholder\": \"main\",\n    \"kotlin-language-version-configured\": \"true\",\n    \"nodejs_package_manager_path\": \"npm\",\n    \"project.structure.last.edited\": \"Modules\",\n    \"project.structure.proportion\": \"0.0\",\n    \"project.structure.side.proportion\": \"0.0\",\n    \"run.configurations.included.in.services\": \"true\",\n    \"settings.editor.selected.configurable\": \"configurable.group.appearance\"\n  }\n}]]></component>\n  <component name=\"RunDashboard\">\n    <option name=\"configurationTypes\">\n      <set>\n        <option value=\"Application\" />\n        <option value=\"KtorApplicationConfigurationType\" />\n        <option value=\"MicronautRunConfigurationType\" />\n        <option value=\"QuarkusRunConfigurationType\" />\n        <option value=\"SpringBootApplicationConfigurationType\" />\n      </set>\n    </option>\n    <option name=\"configurationStatuses\">\n      <map>\n        <entry key=\"SpringBootApplicationConfigurationType\">\n          <value>\n            <map>\n              <entry key=\"ApiGatewayServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"CartServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"DiscoveryServerApplication\" value=\"STOPPED\" />\n              <entry key=\"InventoryServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"MicroserviceEcomApplication\" value=\"STOPPED\" />\n              <entry key=\"OrderServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"PaymentServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"ProductServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"ProfileServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"SearchServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"WishlistServiceApplication\" value=\"STOPPED\" />\n            </map>\n          </value>\n        </entry>\n      </map>\n    </option>\n  </component>\n  <component name=\"RunManager\" selected=\"Spring Boot.CartServiceApplication\">\n    <configuration name=\"Notification\" type=\"Application\" factoryName=\"Application\">\n      <option name=\"MAIN_CLASS_NAME\" value=\"com.example.notificationservice.NotificationServiceApplication\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"Unnamed\" type=\"Application\" factoryName=\"Application\" nameIsGenerated=\"true\">\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"CartServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" temporary=\"true\" nameIsGenerated=\"true\">\n      <option name=\"FRAME_DEACTIVATION_UPDATE_POLICY\" value=\"UnknownPolicyInFreeMode\" />\n      <module name=\"cart-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.cartservice.CartServiceApplication\" />\n      <extension name=\"coverage\">\n        <pattern>\n          <option name=\"PATTERN\" value=\"com.example.cartservice.*\" />\n          <option name=\"ENABLED\" value=\"true\" />\n        </pattern>\n      </extension>\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"MicroserviceEcomApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\n      <envs>\n        <env name=\"JWT_SECRET\" value=\"c04dba851cb883f69e9524aec19e9df7c22463e30fadaaced0bdba25a6865c21\" />\n      </envs>\n      <option name=\"FRAME_DEACTIVATION_UPDATE_POLICY\" value=\"UnknownPolicyInFreeMode\" />\n      <module name=\"Microservice-ecom\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.microserviceecom.MicroserviceEcomApplication\" />\n      <extension name=\"coverage\">\n        <pattern>\n          <option name=\"PATTERN\" value=\"com.example.microserviceecom.*\" />\n          <option name=\"ENABLED\" value=\"true\" />\n        </pattern>\n      </extension>\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"OrderServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" temporary=\"true\" nameIsGenerated=\"true\">\n      <option name=\"FRAME_DEACTIVATION_UPDATE_POLICY\" value=\"UnknownPolicyInFreeMode\" />\n      <module name=\"order-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.orderservice.OrderServiceApplication\" />\n      <extension name=\"coverage\">\n        <pattern>\n          <option name=\"PATTERN\" value=\"com.example.orderservice.*\" />\n          <option name=\"ENABLED\" value=\"true\" />\n        </pattern>\n      </extension>\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"PaymentServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" temporary=\"true\" nameIsGenerated=\"true\">\n      <option name=\"FRAME_DEACTIVATION_UPDATE_POLICY\" value=\"UnknownPolicyInFreeMode\" />\n      <module name=\"payment-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.paymentservice.PaymentServiceApplication\" />\n      <extension name=\"coverage\">\n        <pattern>\n          <option name=\"PATTERN\" value=\"com.example.paymentservice.*\" />\n          <option name=\"ENABLED\" value=\"true\" />\n        </pattern>\n      </extension>\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"ProfileServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" temporary=\"true\" nameIsGenerated=\"true\">\n      <option name=\"FRAME_DEACTIVATION_UPDATE_POLICY\" value=\"UnknownPolicyInFreeMode\" />\n      <module name=\"profile-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.profileservice.ProfileServiceApplication\" />\n      <extension name=\"coverage\">\n        <pattern>\n          <option name=\"PATTERN\" value=\"com.example.profileservice.*\" />\n          <option name=\"ENABLED\" value=\"true\" />\n        </pattern>\n      </extension>\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"SearchServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" temporary=\"true\" nameIsGenerated=\"true\">\n      <option name=\"FRAME_DEACTIVATION_UPDATE_POLICY\" value=\"UnknownPolicyInFreeMode\" />\n      <module name=\"search-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.searchservice.SearchServiceApplication\" />\n      <extension name=\"coverage\">\n        <pattern>\n          <option name=\"PATTERN\" value=\"com.example.searchservice.*\" />\n          <option name=\"ENABLED\" value=\"true\" />\n        </pattern>\n      </extension>\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <list>\n      <item itemvalue=\"Application.Notification\" />\n      <item itemvalue=\"Application.Unnamed\" />\n      <item itemvalue=\"Spring Boot.MicroserviceEcomApplication\" />\n      <item itemvalue=\"Spring Boot.CartServiceApplication\" />\n      <item itemvalue=\"Spring Boot.OrderServiceApplication\" />\n      <item itemvalue=\"Spring Boot.PaymentServiceApplication\" />\n      <item itemvalue=\"Spring Boot.ProfileServiceApplication\" />\n      <item itemvalue=\"Spring Boot.SearchServiceApplication\" />\n    </list>\n    <recent_temporary>\n      <list>\n        <item itemvalue=\"Spring Boot.PaymentServiceApplication\" />\n        <item itemvalue=\"Spring Boot.OrderServiceApplication\" />\n        <item itemvalue=\"Spring Boot.CartServiceApplication\" />\n        <item itemvalue=\"Spring Boot.ProfileServiceApplication\" />\n        <item itemvalue=\"Spring Boot.SearchServiceApplication\" />\n      </list>\n    </recent_temporary>\n  </component>\n  <component name=\"SharedIndexes\">\n    <attachedChunks>\n      <set>\n        <option value=\"bundled-jdk-30f59d01ecdd-63390994e64e-intellij.indexing.shared.core-IU-262.8665.258\" />\n        <option value=\"bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.8665.258\" />\n      </set>\n    </attachedChunks>\n  </component>\n  <component name=\"TaskManager\">\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\n      <changelist id=\"bcb3158b-54e0-49f1-94f3-096e1f174440\" name=\"Changes\" comment=\"\" />\n      <created>1784445749626</created>\n      <option name=\"number\" value=\"Default\" />\n      <option name=\"presentableId\" value=\"Default\" />\n      <updated>1784445749626</updated>\n    </task>\n    <servers />\n  </component>\n  <component name=\"TypeScriptGeneratedFilesManager\">\n    <option name=\"version\" value=\"3\" />\n  </component>\n  <component name=\"VcsManagerConfiguration\">\n    <MESSAGE value=\"Fe, cart service , wishlist service merge\" />\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"Fe, cart service , wishlist service merge\" />\n  </component>\n  <component name=\"XSLT-Support.FileAssociations.UIState\">\n    <expand />\n    <select />\n  </component>\n</project>
+-Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+-<+>UTF-8
+-===================================================================
+-diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+---- a/.idea/workspace.xml	(revision a8e7ed222ef48d98d6d875173852c84166e1a074)
+-+++ b/.idea/workspace.xml	(date 1784483170035)
+-@@ -4,10 +4,7 @@
+-     <option name="autoReloadType" value="SELECTIVE" />
+-   </component>
+-   <component name="ChangeListManager">
+--    <list default="true" id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="Fe, cart service , wishlist service merge">
+--      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+--      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+--    </list>
+-+    <list default="true" id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="Fe, cart service , wishlist service merge" />
+-     <option name="SHOW_DIALOG" value="false" />
+-     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+-     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+-@@ -33,6 +30,10 @@
+-     &quot;accountId&quot;: &quot;a57b9a6b-c445-4ae2-b2ae-28388bdad628&quot;
+-   }
+- }</component>
+-+  <component name="McpProjectServerCommands">
+-+    <commands />
+-+    <urls />
+-+  </component>
+-   <component name="ProjectColorInfo">{
+-   &quot;associatedIndex&quot;: 3,
+-   &quot;fromUser&quot;: false
+-@@ -51,6 +52,7 @@
+-     "Maven.e-com-microservice-workspace [clean].executor": "Run",
+-     "Maven.e-com-microservice-workspace [verify].executor": "Run",
+-     "ModuleVcsDetector.initialDetectionPerformed": "true",
+-+    "RunOnceActivity.MCP Project settings loaded": "true",
+-     "RunOnceActivity.ShowReadmeOnStart": "true",
+-     "RunOnceActivity.git.unshallow": "true",
+-     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+-@@ -67,14 +69,21 @@
+-     "Spring Boot.SearchServiceApplication.executor": "Run",
+-     "Spring Boot.WishlistServiceApplication.executor": "Run",
+-     "codeWithMe.voiceChat.enabledByDefault": "false",
+-+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+-     "git-widget-placeholder": "main",
+-+    "junie.onboarding.icon.badge.shown": "true",
+-     "kotlin-language-version-configured": "true",
+-+    "node.js.detected.package.eslint": "true",
+-+    "node.js.detected.package.tslint": "true",
+-+    "node.js.selected.package.eslint": "(autodetect)",
+-+    "node.js.selected.package.tslint": "(autodetect)",
+-     "nodejs_package_manager_path": "npm",
+-     "project.structure.last.edited": "Modules",
+-     "project.structure.proportion": "0.0",
+-     "project.structure.side.proportion": "0.0",
+-     "run.configurations.included.in.services": "true",
+--    "settings.editor.selected.configurable": "configurable.group.appearance"
+-+    "settings.editor.selected.configurable": "configurable.group.appearance",
+-+    "to.speed.mode.migration.done": "true"
+-   }
+- }]]></component>
+-   <component name="RunDashboard">
+-@@ -92,17 +101,12 @@
+-         <entry key="SpringBootApplicationConfigurationType">
+-           <value>
+-             <map>
+--              <entry key="ApiGatewayServiceApplication" value="STOPPED" />
+-               <entry key="CartServiceApplication" value="STOPPED" />
+--              <entry key="DiscoveryServerApplication" value="STOPPED" />
+--              <entry key="InventoryServiceApplication" value="STOPPED" />
+-               <entry key="MicroserviceEcomApplication" value="STOPPED" />
+-               <entry key="OrderServiceApplication" value="STOPPED" />
+-               <entry key="PaymentServiceApplication" value="STOPPED" />
+--              <entry key="ProductServiceApplication" value="STOPPED" />
+-               <entry key="ProfileServiceApplication" value="STOPPED" />
+-               <entry key="SearchServiceApplication" value="STOPPED" />
+--              <entry key="WishlistServiceApplication" value="STOPPED" />
+-             </map>
+-           </value>
+-         </entry>
+Index: .idea/dataSources.local.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"dataSourceStorageLocal\" created-in=\"IU-253.32098.37\">\n    <data-source name=\"postgres@localhost\" uuid=\"98dcfbf7-746b-4767-9948-0fb1c489cbe0\">\n      <database-info product=\"\" version=\"\" jdbc-version=\"\" driver-name=\"\" driver-version=\"\" dbms=\"POSTGRES\" />\n      <schema-mapping />\n    </data-source>\n    <data-source name=\"inventory_db@localhost\" uuid=\"a1448ece-6766-4504-abe6-24cc60e10d4c\">\n      <database-info product=\"\" version=\"\" jdbc-version=\"\" driver-name=\"\" driver-version=\"\" dbms=\"POSTGRES\" />\n      <schema-mapping />\n    </data-source>\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/dataSources.local.xml b/.idea/dataSources.local.xml
+--- a/.idea/dataSources.local.xml	(revision deea2c34fc895118fcf15e9de84db430bc5c0857)
++++ b/.idea/dataSources.local.xml	(date 1785166137978)
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+-  <component name="dataSourceStorageLocal" created-in="IU-253.32098.37">
++  <component name="dataSourceStorageLocal" created-in="IU-262.8665.337">
+     <data-source name="postgres@localhost" uuid="98dcfbf7-746b-4767-9948-0fb1c489cbe0">
+       <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="POSTGRES" />
+       <schema-mapping />
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"AutoImportSettings\">\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\n  </component>\n  <component name=\"ChangeListManager\">\n    <list default=\"true\" id=\"bcb3158b-54e0-49f1-94f3-096e1f174440\" name=\"Changes\" comment=\"lazy-load các trang Admin/Seller/Shipper.phan trang\">\n      <change beforePath=\"$PROJECT_DIR$/.env.example\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.env.example\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/entity/CartItem.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/entity/CartItem.java\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/exception/GlobalExceptionHandler.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/exception/GlobalExceptionHandler.java\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/repository/CartItemRepository.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/repository/CartItemRepository.java\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/service/implement/CartServiceImpl.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/service/implement/CartServiceImpl.java\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/docker-compose.yaml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/docker-compose.yaml\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/inventory-service/src/main/resources/application.yaml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/inventory-service/src/main/resources/application.yaml\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/inventory-service/src/main/resources/schema.sql\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/inventory-service/src/main/resources/schema.sql\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/S3Configuration.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/S3Configuration.java\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/S3Properties.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/S3Properties.java\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/media-service/src/main/resources/application.yaml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/media-service/src/main/resources/application.yaml\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/exception/ErrorCode.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/exception/ErrorCode.java\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/implement/OrderServiceImpl.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/implement/OrderServiceImpl.java\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/KafkaConsumerConfiguration.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/KafkaConsumerConfiguration.java\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/messaging/consumer/InventoryEventConsumer.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/messaging/consumer/InventoryEventConsumer.java\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/service/implement/ShipmentServiceImpl.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/service/implement/ShipmentServiceImpl.java\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/web-app/src/configurations/httpClient.js\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/web-app/src/configurations/httpClient.js\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/web-app/src/pages/Checkout.jsx\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/web-app/src/pages/Checkout.jsx\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/web-app/src/pages/PaymentResult.jsx\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/web-app/src/pages/PaymentResult.jsx\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/web-app/src/pages/Shipments.jsx\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/web-app/src/pages/Shipments.jsx\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/web-app/src/pages/Shop.jsx\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/web-app/src/pages/Shop.jsx\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/web-app/src/pages/ShopBestDeals.jsx\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/web-app/src/pages/ShopBestDeals.jsx\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/web-app/src/pages/ShopProductDetail.jsx\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/web-app/src/pages/ShopProductDetail.jsx\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/web-app/src/pages/ShopProductDetailDense.css\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/web-app/src/pages/ShopProductDetailDense.css\" afterDir=\"false\" />\n      <change beforePath=\"$PROJECT_DIR$/web-app/src/services/promotionService.js\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/web-app/src/services/promotionService.js\" afterDir=\"false\" />\n    </list>\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\n  </component>\n  <component name=\"ExternalProjectsData\">\n    <projectState path=\"$PROJECT_DIR$/ApiGatewayService\">\n      <ProjectState />\n    </projectState>\n  </component>\n  <component name=\"Git.Settings\">\n    <option name=\"RECENT_BRANCH_BY_REPOSITORY\">\n      <map>\n        <entry key=\"$PROJECT_DIR$\" value=\"main\" />\n      </map>\n    </option>\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\n  </component>\n  <component name=\"GitHubPullRequestSearchHistory\">{\n  &quot;lastFilter&quot;: {\n    &quot;state&quot;: &quot;OPEN&quot;,\n    &quot;assignee&quot;: &quot;dangkhoi88x&quot;\n  }\n}</component>\n  <component name=\"GithubPullRequestsUISettings\">{\n  &quot;selectedUrlAndAccountId&quot;: {\n    &quot;url&quot;: &quot;https://github.com/dangkhoi88x/e-com-microNservice/&quot;,\n    &quot;accountId&quot;: &quot;59baf105-7598-429f-8838-790c3c04119d&quot;\n  }\n}</component>\n  <component name=\"KubernetesApiPersistence\">{}</component>\n  <component name=\"KubernetesApiProvider\">{\n  &quot;isMigrated&quot;: true\n}</component>\n  <component name=\"McpProjectServerCommands\">\n    <commands />\n    <urls />\n  </component>\n  <component name=\"ProjectColorInfo\">{\n  &quot;associatedIndex&quot;: 3,\n  &quot;fromUser&quot;: false\n}</component>\n  <component name=\"ProjectId\" id=\"3GiDyRcG4JZlhVIJe2ZJafg7G9D\" />\n  <component name=\"ProjectViewState\">\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\n    <option name=\"showLibraryContents\" value=\"true\" />\n  </component>\n  <component name=\"PropertiesComponent\"><![CDATA[{\n  \"keyToString\": {\n    \"Maven.api-gateway-service [clean].executor\": \"Run\",\n    \"Maven.api-gateway-service [compile].executor\": \"Run\",\n    \"Maven.api-gateway-service [org.apache.maven.plugins:maven-clean-plugin:3.5.0:clean].executor\": \"Run\",\n    \"Maven.api-gateway-service [verify].executor\": \"Run\",\n    \"Maven.e-com-microservice-workspace [clean].executor\": \"Run\",\n    \"Maven.e-com-microservice-workspace [verify].executor\": \"Run\",\n    \"ModuleVcsDetector.initialDetectionPerformed\": \"true\",\n    \"RequestMappingsPanelOrder0\": \"0\",\n    \"RequestMappingsPanelOrder1\": \"1\",\n    \"RequestMappingsPanelWidth0\": \"75\",\n    \"RequestMappingsPanelWidth1\": \"75\",\n    \"RunOnceActivity.MCP Project settings loaded\": \"true\",\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\n    \"RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252\": \"true\",\n    \"RunOnceActivity.git.unshallow\": \"true\",\n    \"RunOnceActivity.typescript.service.memoryLimit.init\": \"true\",\n    \"SHARE_PROJECT_CONFIGURATION_FILES\": \"true\",\n    \"Spring Boot.ApiGatewayServiceApplication.executor\": \"Run\",\n    \"Spring Boot.CartServiceApplication.executor\": \"Run\",\n    \"Spring Boot.DiscoveryServerApplication.executor\": \"Run\",\n    \"Spring Boot.InventoryServiceApplication.executor\": \"Run\",\n    \"Spring Boot.MediaServiceApplication.executor\": \"Run\",\n    \"Spring Boot.MicroserviceEcomApplication.executor\": \"Run\",\n    \"Spring Boot.NotificationServiceApplication.executor\": \"Run\",\n    \"Spring Boot.OrderServiceApplication.executor\": \"Run\",\n    \"Spring Boot.PaymentServiceApplication.executor\": \"Run\",\n    \"Spring Boot.ProductServiceApplication.executor\": \"Run\",\n    \"Spring Boot.ProfileServiceApplication.executor\": \"Run\",\n    \"Spring Boot.PromotionServiceApplication.executor\": \"Run\",\n    \"Spring Boot.ReviewServiceApplication.executor\": \"Run\",\n    \"Spring Boot.SearchServiceApplication.executor\": \"Run\",\n    \"Spring Boot.SellerServiceApplication.executor\": \"Run\",\n    \"Spring Boot.ShippingServiceApplication.executor\": \"Run\",\n    \"Spring Boot.WishlistServiceApplication.executor\": \"Run\",\n    \"codeWithMe.voiceChat.enabledByDefault\": \"false\",\n    \"com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1\": \"true\",\n    \"git-widget-placeholder\": \"admin__dashboard\",\n    \"junie.onboarding.icon.badge.shown\": \"true\",\n    \"kotlin-language-version-configured\": \"true\",\n    \"node.js.detected.package.eslint\": \"true\",\n    \"node.js.selected.package.eslint\": \"(autodetect)\",\n    \"node.js.selected.package.tslint\": \"(autodetect)\",\n    \"nodejs_package_manager_path\": \"npm\",\n    \"project.structure.last.edited\": \"Modules\",\n    \"project.structure.proportion\": \"0.0\",\n    \"project.structure.side.proportion\": \"0.0\",\n    \"run.configurations.included.in.services\": \"true\",\n    \"settings.editor.selected.configurable\": \"configurable.group.build\",\n    \"to.speed.mode.migration.done\": \"true\",\n    \"vue.rearranger.settings.migration\": \"true\"\n  }\n}]]></component>\n  <component name=\"RunDashboard\">\n    <option name=\"configurationTypes\">\n      <set>\n        <option value=\"Application\" />\n        <option value=\"KtorApplicationConfigurationType\" />\n        <option value=\"MicronautRunConfigurationType\" />\n        <option value=\"QuarkusRunConfigurationType\" />\n        <option value=\"SpringBootApplicationConfigurationType\" />\n      </set>\n    </option>\n    <option name=\"configurationStatuses\">\n      <map>\n        <entry key=\"SpringBootApplicationConfigurationType\">\n          <value>\n            <map>\n              <entry key=\"ApiGatewayServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"CartServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"DiscoveryServerApplication\" value=\"STOPPED\" />\n              <entry key=\"InventoryServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"MediaServiceApplication\" value=\"FAILED\" />\n              <entry key=\"MicroserviceEcomApplication\" value=\"STOPPED\" />\n              <entry key=\"NotificationServiceApplication\" value=\"FAILED\" />\n              <entry key=\"OrderServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"PaymentServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"ProductServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"ProfileServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"PromotionServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"ReviewServiceApplication\" value=\"FAILED\" />\n              <entry key=\"SearchServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"SellerServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"ShippingServiceApplication\" value=\"STOPPED\" />\n              <entry key=\"WishlistServiceApplication\" value=\"STOPPED\" />\n            </map>\n          </value>\n        </entry>\n      </map>\n    </option>\n  </component>\n  <component name=\"RunManager\" selected=\"Spring Boot.CartServiceApplication\">\n    <configuration name=\"Notification\" type=\"Application\" factoryName=\"Application\">\n      <option name=\"MAIN_CLASS_NAME\" value=\"com.example.notificationservice.NotificationServiceApplication\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"Unnamed\" type=\"Application\" factoryName=\"Application\" nameIsGenerated=\"true\">\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"ApiGatewayServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\n      <module name=\"api-gateway-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.apigatewayservice.ApiGatewayServiceApplication\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"CartServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" temporary=\"true\" nameIsGenerated=\"true\">\n      <option name=\"FRAME_DEACTIVATION_UPDATE_POLICY\" value=\"UnknownPolicyInFreeMode\" />\n      <module name=\"cart-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.cartservice.CartServiceApplication\" />\n      <extension name=\"coverage\">\n        <pattern>\n          <option name=\"PATTERN\" value=\"com.example.cartservice.*\" />\n          <option name=\"ENABLED\" value=\"true\" />\n        </pattern>\n      </extension>\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"DiscoveryServerApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\n      <module name=\"discovery-server\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.discoveryserver.DiscoveryServerApplication\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"InventoryServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\n      <module name=\"inventory-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.inventoryservice.InventoryServiceApplication\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"MediaServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\n      <module name=\"media-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.mediaservice.MediaServiceApplication\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"MicroserviceEcomApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\n      <envs>\n        <env name=\"JWT_SECRET\" value=\"c04dba851cb883f69e9524aec19e9df7c22463e30fadaaced0bdba25a6865c21\" />\n      </envs>\n      <option name=\"FRAME_DEACTIVATION_UPDATE_POLICY\" value=\"UnknownPolicyInFreeMode\" />\n      <module name=\"Microservice-ecom\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.microserviceecom.MicroserviceEcomApplication\" />\n      <extension name=\"coverage\">\n        <pattern>\n          <option name=\"PATTERN\" value=\"com.example.microserviceecom.*\" />\n          <option name=\"ENABLED\" value=\"true\" />\n        </pattern>\n      </extension>\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"NotificationServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\n      <module name=\"notification-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.notificationservice.NotificationServiceApplication\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"OrderServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" temporary=\"true\" nameIsGenerated=\"true\">\n      <option name=\"FRAME_DEACTIVATION_UPDATE_POLICY\" value=\"UnknownPolicyInFreeMode\" />\n      <module name=\"order-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.orderservice.OrderServiceApplication\" />\n      <extension name=\"coverage\">\n        <pattern>\n          <option name=\"PATTERN\" value=\"com.example.orderservice.*\" />\n          <option name=\"ENABLED\" value=\"true\" />\n        </pattern>\n      </extension>\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"PaymentServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" temporary=\"true\" nameIsGenerated=\"true\">\n      <option name=\"FRAME_DEACTIVATION_UPDATE_POLICY\" value=\"UnknownPolicyInFreeMode\" />\n      <module name=\"payment-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.paymentservice.PaymentServiceApplication\" />\n      <extension name=\"coverage\">\n        <pattern>\n          <option name=\"PATTERN\" value=\"com.example.paymentservice.*\" />\n          <option name=\"ENABLED\" value=\"true\" />\n        </pattern>\n      </extension>\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"ProductServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\n      <module name=\"product-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.productservice.ProductServiceApplication\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"ProfileServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" temporary=\"true\" nameIsGenerated=\"true\">\n      <option name=\"FRAME_DEACTIVATION_UPDATE_POLICY\" value=\"UnknownPolicyInFreeMode\" />\n      <module name=\"profile-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.profileservice.ProfileServiceApplication\" />\n      <extension name=\"coverage\">\n        <pattern>\n          <option name=\"PATTERN\" value=\"com.example.profileservice.*\" />\n          <option name=\"ENABLED\" value=\"true\" />\n        </pattern>\n      </extension>\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"PromotionServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\n      <module name=\"promotion-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.promotionservice.PromotionServiceApplication\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"ReviewServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\n      <module name=\"review-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.reviewservice.ReviewServiceApplication\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"SearchServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" temporary=\"true\" nameIsGenerated=\"true\">\n      <option name=\"FRAME_DEACTIVATION_UPDATE_POLICY\" value=\"UnknownPolicyInFreeMode\" />\n      <module name=\"search-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.searchservice.SearchServiceApplication\" />\n      <extension name=\"coverage\">\n        <pattern>\n          <option name=\"PATTERN\" value=\"com.example.searchservice.*\" />\n          <option name=\"ENABLED\" value=\"true\" />\n        </pattern>\n      </extension>\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"SellerServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\n      <module name=\"seller-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.sellerservice.SellerServiceApplication\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"ShippingServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\n      <module name=\"shipping-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.shippingservice.ShippingServiceApplication\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <configuration name=\"WishlistServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\n      <module name=\"wishlist-service\" />\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.example.wishlistservice.WishlistServiceApplication\" />\n      <method v=\"2\">\n        <option name=\"Make\" enabled=\"true\" />\n      </method>\n    </configuration>\n    <list>\n      <item itemvalue=\"Application.Notification\" />\n      <item itemvalue=\"Application.Unnamed\" />\n      <item itemvalue=\"Spring Boot.MediaServiceApplication\" />\n      <item itemvalue=\"Spring Boot.SellerServiceApplication\" />\n      <item itemvalue=\"Spring Boot.ReviewServiceApplication\" />\n      <item itemvalue=\"Spring Boot.ShippingServiceApplication\" />\n      <item itemvalue=\"Spring Boot.ApiGatewayServiceApplication\" />\n      <item itemvalue=\"Spring Boot.DiscoveryServerApplication\" />\n      <item itemvalue=\"Spring Boot.InventoryServiceApplication\" />\n      <item itemvalue=\"Spring Boot.NotificationServiceApplication\" />\n      <item itemvalue=\"Spring Boot.ProductServiceApplication\" />\n      <item itemvalue=\"Spring Boot.PromotionServiceApplication\" />\n      <item itemvalue=\"Spring Boot.WishlistServiceApplication\" />\n      <item itemvalue=\"Spring Boot.MicroserviceEcomApplication\" />\n      <item itemvalue=\"Spring Boot.CartServiceApplication\" />\n      <item itemvalue=\"Spring Boot.OrderServiceApplication\" />\n      <item itemvalue=\"Spring Boot.PaymentServiceApplication\" />\n      <item itemvalue=\"Spring Boot.ProfileServiceApplication\" />\n      <item itemvalue=\"Spring Boot.SearchServiceApplication\" />\n    </list>\n    <recent_temporary>\n      <list>\n        <item itemvalue=\"Spring Boot.CartServiceApplication\" />\n        <item itemvalue=\"Spring Boot.ProfileServiceApplication\" />\n        <item itemvalue=\"Spring Boot.SearchServiceApplication\" />\n        <item itemvalue=\"Spring Boot.PaymentServiceApplication\" />\n        <item itemvalue=\"Spring Boot.OrderServiceApplication\" />\n      </list>\n    </recent_temporary>\n  </component>\n  <component name=\"SharedIndexes\">\n    <attachedChunks>\n      <set>\n        <option value=\"bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.32098.37\" />\n        <option value=\"bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.32098.37\" />\n      </set>\n    </attachedChunks>\n  </component>\n  <component name=\"TaskManager\">\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\n      <changelist id=\"bcb3158b-54e0-49f1-94f3-096e1f174440\" name=\"Changes\" comment=\"\" />\n      <created>1784445749626</created>\n      <option name=\"number\" value=\"Default\" />\n      <option name=\"presentableId\" value=\"Default\" />\n      <updated>1784445749626</updated>\n      <workItem from=\"1784722963141\" duration=\"572000\" />\n      <workItem from=\"1785125125487\" duration=\"12450000\" />\n    </task>\n    <task id=\"LOCAL-00001\" summary=\"lazy-load các trang Admin/Seller/Shipper.phan trang\">\n      <option name=\"closed\" value=\"true\" />\n      <created>1785133422737</created>\n      <option name=\"number\" value=\"00001\" />\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\n      <option name=\"project\" value=\"LOCAL\" />\n      <updated>1785133422738</updated>\n    </task>\n    <option name=\"localTasksCounter\" value=\"2\" />\n    <servers />\n  </component>\n  <component name=\"TypeScriptGeneratedFilesManager\">\n    <option name=\"version\" value=\"3\" />\n  </component>\n  <component name=\"VcsManagerConfiguration\">\n    <MESSAGE value=\"backend - promotion service 9/10\" />\n    <MESSAGE value=\"lazy-load các trang Admin/Seller/Shipper.phan trang\" />\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"lazy-load các trang Admin/Seller/Shipper.phan trang\" />\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision deea2c34fc895118fcf15e9de84db430bc5c0857)
++++ b/.idea/workspace.xml	(date 1785168334155)
+@@ -4,38 +4,18 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="lazy-load các trang Admin/Seller/Shipper.phan trang">
+-      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
++    <list default="true" id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="payment service stripe, add reset password">
++      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/entity/CartItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/entity/CartItem.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/exception/GlobalExceptionHandler.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/repository/CartItemRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/repository/CartItemRepository.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/service/implement/CartServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/service/implement/CartServiceImpl.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/docker-compose.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yaml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/resources/application.yaml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/resources/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/resources/schema.sql" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/S3Configuration.java" beforeDir="false" afterPath="$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/S3Configuration.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/S3Properties.java" beforeDir="false" afterPath="$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/S3Properties.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/media-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/media-service/src/main/resources/application.yaml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/exception/ErrorCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/exception/ErrorCode.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/implement/OrderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/implement/OrderServiceImpl.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/KafkaConsumerConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/KafkaConsumerConfiguration.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/messaging/consumer/InventoryEventConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/messaging/consumer/InventoryEventConsumer.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/service/implement/ShipmentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/service/implement/ShipmentServiceImpl.java" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/web-app/src/configurations/httpClient.js" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/configurations/httpClient.js" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Checkout.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Checkout.jsx" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/PaymentResult.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/PaymentResult.jsx" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Shipments.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Shipments.jsx" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Shop.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Shop.jsx" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopBestDeals.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopBestDeals.jsx" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetail.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetail.jsx" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetailDense.css" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetailDense.css" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/web-app/src/services/promotionService.js" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/services/promotionService.js" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+     <option name="LAST_RESOLUTION" value="IGNORE" />
++  </component>
++  <component name="EmbeddingIndexingInfo">
++    <option name="cachedIndexableFilesCount" value="793" />
+   </component>
+   <component name="ExternalProjectsData">
+     <projectState path="$PROJECT_DIR$/ApiGatewayService">
+@@ -58,17 +38,72 @@
+ }</component>
+   <component name="GithubPullRequestsUISettings">{
+   &quot;selectedUrlAndAccountId&quot;: {
+-    &quot;url&quot;: &quot;https://github.com/dangkhoi88x/e-com-microNservice/&quot;,
++    &quot;url&quot;: &quot;https://github.com/dangkhoi88x/e-com-microNservice&quot;,
+     &quot;accountId&quot;: &quot;59baf105-7598-429f-8838-790c3c04119d&quot;
+   }
+-}</component>
+-  <component name="KubernetesApiPersistence">{}</component>
+-  <component name="KubernetesApiProvider">{
+-  &quot;isMigrated&quot;: true
+ }</component>
+   <component name="McpProjectServerCommands">
+     <commands />
+     <urls />
++  </component>
++  <component name="NextEditCompletionFeaturesState">
++    <decayedCancelled>
++      <entry key="MS100" value="1.0" />
++      <entry key="MS500" value="1.0" />
++      <entry key="S2" value="1.0" />
++      <entry key="S5" value="1.0" />
++      <entry key="S10" value="1.0" />
++      <entry key="S30" value="1.0" />
++      <entry key="S60" value="1.0" />
++      <entry key="M2" value="1.0" />
++      <entry key="M5" value="1.0000029796045986" />
++      <entry key="M10" value="1.0097292983840718" />
++      <entry key="M15" value="1.1445742830305448" />
++      <entry key="M30" value="3.1500479442823823" />
++      <entry key="H1" value="9.293869137000815" />
++      <entry key="H2" value="17.326504816347995" />
++      <entry key="H4" value="25.367067239544873" />
++      <entry key="D1" value="66.51134607019058" />
++      <entry key="W1" value="93.0904541894743" />
++    </decayedCancelled>
++    <decayedSelected>
++      <entry key="MS100" value="0.0" />
++      <entry key="MS500" value="0.0" />
++      <entry key="S2" value="0.0" />
++      <entry key="S5" value="0.0" />
++      <entry key="S10" value="0.0" />
++      <entry key="S30" value="0.0" />
++      <entry key="S60" value="0.0" />
++      <entry key="M2" value="0.0" />
++      <entry key="M5" value="0.0" />
++      <entry key="M10" value="0.0" />
++      <entry key="M15" value="0.0" />
++      <entry key="M30" value="0.0" />
++      <entry key="H1" value="0.0" />
++      <entry key="H2" value="0.0" />
++      <entry key="H4" value="0.0" />
++      <entry key="D1" value="0.0" />
++      <entry key="W1" value="0.0" />
++    </decayedSelected>
++    <decayedShown>
++      <entry key="MS100" value="0.6029039138453802" />
++      <entry key="MS500" value="0.9037527267510859" />
++      <entry key="S2" value="0.9750174876533334" />
++      <entry key="S5" value="0.9899310855458512" />
++      <entry key="S10" value="0.9949528056877126" />
++      <entry key="S30" value="0.9983147634691089" />
++      <entry key="S60" value="0.9991570264323365" />
++      <entry key="M2" value="0.9995784243531552" />
++      <entry key="M5" value="0.9998343275963887" />
++      <entry key="M10" value="1.0096442784607684" />
++      <entry key="M15" value="1.1445111917155444" />
++      <entry key="M30" value="3.1499685191561424" />
++      <entry key="H1" value="9.293755891444803" />
++      <entry key="H2" value="17.326400179996668" />
++      <entry key="H4" value="25.366993473272306" />
++      <entry key="D1" value="66.5113232032159" />
++      <entry key="W1" value="93.0904500869013" />
++    </decayedShown>
+   </component>
+   <component name="ProjectColorInfo">{
+   &quot;associatedIndex&quot;: 3,
+@@ -79,64 +114,63 @@
+     <option name="hideEmptyMiddlePackages" value="true" />
+     <option name="showLibraryContents" value="true" />
+   </component>
+-  <component name="PropertiesComponent"><![CDATA[{
+-  "keyToString": {
+-    "Maven.api-gateway-service [clean].executor": "Run",
+-    "Maven.api-gateway-service [compile].executor": "Run",
+-    "Maven.api-gateway-service [org.apache.maven.plugins:maven-clean-plugin:3.5.0:clean].executor": "Run",
+-    "Maven.api-gateway-service [verify].executor": "Run",
+-    "Maven.e-com-microservice-workspace [clean].executor": "Run",
+-    "Maven.e-com-microservice-workspace [verify].executor": "Run",
+-    "ModuleVcsDetector.initialDetectionPerformed": "true",
+-    "RequestMappingsPanelOrder0": "0",
+-    "RequestMappingsPanelOrder1": "1",
+-    "RequestMappingsPanelWidth0": "75",
+-    "RequestMappingsPanelWidth1": "75",
+-    "RunOnceActivity.MCP Project settings loaded": "true",
+-    "RunOnceActivity.ShowReadmeOnStart": "true",
+-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+-    "RunOnceActivity.git.unshallow": "true",
+-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+-    "Spring Boot.ApiGatewayServiceApplication.executor": "Run",
+-    "Spring Boot.CartServiceApplication.executor": "Run",
+-    "Spring Boot.DiscoveryServerApplication.executor": "Run",
+-    "Spring Boot.InventoryServiceApplication.executor": "Run",
+-    "Spring Boot.MediaServiceApplication.executor": "Run",
+-    "Spring Boot.MicroserviceEcomApplication.executor": "Run",
+-    "Spring Boot.NotificationServiceApplication.executor": "Run",
+-    "Spring Boot.OrderServiceApplication.executor": "Run",
+-    "Spring Boot.PaymentServiceApplication.executor": "Run",
+-    "Spring Boot.ProductServiceApplication.executor": "Run",
+-    "Spring Boot.ProfileServiceApplication.executor": "Run",
+-    "Spring Boot.PromotionServiceApplication.executor": "Run",
+-    "Spring Boot.ReviewServiceApplication.executor": "Run",
+-    "Spring Boot.SearchServiceApplication.executor": "Run",
+-    "Spring Boot.SellerServiceApplication.executor": "Run",
+-    "Spring Boot.ShippingServiceApplication.executor": "Run",
+-    "Spring Boot.WishlistServiceApplication.executor": "Run",
+-    "codeWithMe.voiceChat.enabledByDefault": "false",
+-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+-    "git-widget-placeholder": "admin__dashboard",
+-    "junie.onboarding.icon.badge.shown": "true",
+-    "kotlin-language-version-configured": "true",
+-    "node.js.detected.package.eslint": "true",
+-    "node.js.selected.package.eslint": "(autodetect)",
+-    "node.js.selected.package.tslint": "(autodetect)",
+-    "nodejs_package_manager_path": "npm",
+-    "project.structure.last.edited": "Modules",
+-    "project.structure.proportion": "0.0",
+-    "project.structure.side.proportion": "0.0",
+-    "run.configurations.included.in.services": "true",
+-    "settings.editor.selected.configurable": "configurable.group.build",
+-    "to.speed.mode.migration.done": "true",
+-    "vue.rearranger.settings.migration": "true"
++  <component name="PropertiesComponent">{
++  &quot;keyToString&quot;: {
++    &quot;Maven.api-gateway-service [clean].executor&quot;: &quot;Run&quot;,
++    &quot;Maven.api-gateway-service [compile].executor&quot;: &quot;Run&quot;,
++    &quot;Maven.api-gateway-service [org.apache.maven.plugins:maven-clean-plugin:3.5.0:clean].executor&quot;: &quot;Run&quot;,
++    &quot;Maven.api-gateway-service [verify].executor&quot;: &quot;Run&quot;,
++    &quot;Maven.e-com-microservice-workspace [clean].executor&quot;: &quot;Run&quot;,
++    &quot;Maven.e-com-microservice-workspace [verify].executor&quot;: &quot;Run&quot;,
++    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
++    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
++    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
++    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
++    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
++    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
++    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
++    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
++    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
++    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
++    &quot;Spring Boot.ApiGatewayServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.CartServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.DiscoveryServerApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.InventoryServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.MediaServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.MicroserviceEcomApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.NotificationServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.OrderServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.PaymentServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.ProductServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.ProfileServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.PromotionServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.ReviewServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.SearchServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.SellerServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.ShippingServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;Spring Boot.WishlistServiceApplication.executor&quot;: &quot;Run&quot;,
++    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
++    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
++    &quot;git-widget-placeholder&quot;: &quot;admin__dashboard&quot;,
++    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
++    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
++    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
++    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
++    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
++    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
++    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
++    &quot;onboarding.tips.debug.path&quot;: &quot;/Users/dank/IdeaProjects/e-com-microNservice/untitled/src/main/java/com/example/Main.java&quot;,
++    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
++    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
++    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
++    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
++    &quot;settings.editor.selected.configurable&quot;: &quot;settings.sync&quot;,
++    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+   }
+-}]]></component>
++}</component>
+   <component name="RunDashboard">
+     <option name="configurationTypes">
+       <set>
+-        <option value="Application" />
+         <option value="KtorApplicationConfigurationType" />
+         <option value="MicronautRunConfigurationType" />
+         <option value="QuarkusRunConfigurationType" />
+@@ -148,22 +182,22 @@
+         <entry key="SpringBootApplicationConfigurationType">
+           <value>
+             <map>
+-              <entry key="ApiGatewayServiceApplication" value="STOPPED" />
++              <entry key="ApiGatewayServiceApplication" value="FAILED" />
+               <entry key="CartServiceApplication" value="STOPPED" />
+-              <entry key="DiscoveryServerApplication" value="STOPPED" />
++              <entry key="DiscoveryServerApplication" value="FAILED" />
+               <entry key="InventoryServiceApplication" value="STOPPED" />
+               <entry key="MediaServiceApplication" value="FAILED" />
+-              <entry key="MicroserviceEcomApplication" value="STOPPED" />
++              <entry key="MicroserviceEcomApplication" value="FAILED" />
+               <entry key="NotificationServiceApplication" value="FAILED" />
+-              <entry key="OrderServiceApplication" value="STOPPED" />
+-              <entry key="PaymentServiceApplication" value="STOPPED" />
+-              <entry key="ProductServiceApplication" value="STOPPED" />
++              <entry key="OrderServiceApplication" value="FAILED" />
++              <entry key="PaymentServiceApplication" value="FAILED" />
++              <entry key="ProductServiceApplication" value="FAILED" />
+               <entry key="ProfileServiceApplication" value="STOPPED" />
+-              <entry key="PromotionServiceApplication" value="STOPPED" />
++              <entry key="PromotionServiceApplication" value="FAILED" />
+               <entry key="ReviewServiceApplication" value="FAILED" />
+               <entry key="SearchServiceApplication" value="STOPPED" />
+-              <entry key="SellerServiceApplication" value="STOPPED" />
+-              <entry key="ShippingServiceApplication" value="STOPPED" />
++              <entry key="SellerServiceApplication" value="FAILED" />
++              <entry key="ShippingServiceApplication" value="FAILED" />
+               <entry key="WishlistServiceApplication" value="STOPPED" />
+             </map>
+           </value>
+@@ -171,7 +205,7 @@
+       </map>
+     </option>
+   </component>
+-  <component name="RunManager" selected="Spring Boot.CartServiceApplication">
++  <component name="RunManager" selected="Spring Boot.WishlistServiceApplication">
+     <configuration name="Notification" type="Application" factoryName="Application">
+       <option name="MAIN_CLASS_NAME" value="com.example.notificationservice.NotificationServiceApplication" />
+       <method v="2">
+@@ -183,9 +217,15 @@
+         <option name="Make" enabled="true" />
+       </method>
+     </configuration>
+-    <configuration name="ApiGatewayServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
++    <configuration name="ApiGatewayServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+       <module name="api-gateway-service" />
+       <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.apigatewayservice.ApiGatewayServiceApplication" />
++      <extension name="coverage">
++        <pattern>
++          <option name="PATTERN" value="com.example.apigatewayservice.*" />
++          <option name="ENABLED" value="true" />
++        </pattern>
++      </extension>
+       <method v="2">
+         <option name="Make" enabled="true" />
+       </method>
+@@ -312,16 +352,9 @@
+         <option name="Make" enabled="true" />
+       </method>
+     </configuration>
+-    <configuration name="SearchServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+-      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
++    <configuration name="SearchServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+       <module name="search-service" />
+       <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.searchservice.SearchServiceApplication" />
+-      <extension name="coverage">
+-        <pattern>
+-          <option name="PATTERN" value="com.example.searchservice.*" />
+-          <option name="ENABLED" value="true" />
+-        </pattern>
+-      </extension>
+       <method v="2">
+         <option name="Make" enabled="true" />
+       </method>
+@@ -354,35 +387,35 @@
+       <item itemvalue="Spring Boot.SellerServiceApplication" />
+       <item itemvalue="Spring Boot.ReviewServiceApplication" />
+       <item itemvalue="Spring Boot.ShippingServiceApplication" />
+-      <item itemvalue="Spring Boot.ApiGatewayServiceApplication" />
+       <item itemvalue="Spring Boot.DiscoveryServerApplication" />
+       <item itemvalue="Spring Boot.InventoryServiceApplication" />
+       <item itemvalue="Spring Boot.NotificationServiceApplication" />
+       <item itemvalue="Spring Boot.ProductServiceApplication" />
+       <item itemvalue="Spring Boot.PromotionServiceApplication" />
++      <item itemvalue="Spring Boot.SearchServiceApplication" />
+       <item itemvalue="Spring Boot.WishlistServiceApplication" />
+       <item itemvalue="Spring Boot.MicroserviceEcomApplication" />
++      <item itemvalue="Spring Boot.ApiGatewayServiceApplication" />
+       <item itemvalue="Spring Boot.CartServiceApplication" />
+       <item itemvalue="Spring Boot.OrderServiceApplication" />
+       <item itemvalue="Spring Boot.PaymentServiceApplication" />
+       <item itemvalue="Spring Boot.ProfileServiceApplication" />
+-      <item itemvalue="Spring Boot.SearchServiceApplication" />
+     </list>
+     <recent_temporary>
+       <list>
+-        <item itemvalue="Spring Boot.CartServiceApplication" />
++        <item itemvalue="Spring Boot.ApiGatewayServiceApplication" />
+         <item itemvalue="Spring Boot.ProfileServiceApplication" />
+-        <item itemvalue="Spring Boot.SearchServiceApplication" />
+         <item itemvalue="Spring Boot.PaymentServiceApplication" />
+         <item itemvalue="Spring Boot.OrderServiceApplication" />
++        <item itemvalue="Spring Boot.CartServiceApplication" />
+       </list>
+     </recent_temporary>
+   </component>
+   <component name="SharedIndexes">
+     <attachedChunks>
+       <set>
+-        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.32098.37" />
+-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.32098.37" />
++        <option value="bundled-jdk-30f59d01ecdd-63390994e64e-intellij.indexing.shared.core-IU-262.8665.337" />
++        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.8665.337" />
+       </set>
+     </attachedChunks>
+   </component>
+@@ -393,26 +426,31 @@
+       <option name="number" value="Default" />
+       <option name="presentableId" value="Default" />
+       <updated>1784445749626</updated>
+-      <workItem from="1784722963141" duration="572000" />
+-      <workItem from="1785125125487" duration="12450000" />
+-    </task>
+-    <task id="LOCAL-00001" summary="lazy-load các trang Admin/Seller/Shipper.phan trang">
+-      <option name="closed" value="true" />
+-      <created>1785133422737</created>
+-      <option name="number" value="00001" />
+-      <option name="presentableId" value="LOCAL-00001" />
+-      <option name="project" value="LOCAL" />
+-      <updated>1785133422738</updated>
+     </task>
+-    <option name="localTasksCounter" value="2" />
+     <servers />
+   </component>
+   <component name="TypeScriptGeneratedFilesManager">
+     <option name="version" value="3" />
+   </component>
+   <component name="VcsManagerConfiguration">
+-    <MESSAGE value="backend - promotion service 9/10" />
+-    <MESSAGE value="lazy-load các trang Admin/Seller/Shipper.phan trang" />
+-    <option name="LAST_COMMIT_MESSAGE" value="lazy-load các trang Admin/Seller/Shipper.phan trang" />
++    <MESSAGE value="Fe, cart service , wishlist service merge" />
++    <MESSAGE value="promotion service, flash sale , sale long term , fe" />
++    <MESSAGE value="fe edit" />
++    <option name="LAST_COMMIT_MESSAGE" value="fe edit" />
++  </component>
++  <component name="XDebuggerManager">
++    <breakpoint-manager>
++      <breakpoints>
++        <line-breakpoint enabled="true" type="java-line">
++          <url>file://$PROJECT_DIR$/untitled/src/main/java/com/example/Main.java</url>
++          <line>13</line>
++          <option name="timeStamp" value="1" />
++        </line-breakpoint>
++      </breakpoints>
++    </breakpoint-manager>
++  </component>
++  <component name="XSLT-Support.FileAssociations.UIState">
++    <expand />
++    <select />
+   </component>
+ </project>
+\ No newline at end of file
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project version=\"4\">\n  <component name=\"CompilerConfiguration\">\n    <annotationProcessing>\n      <profile default=\"true\" name=\"Default\" enabled=\"true\" />\n      <profile name=\"Maven default annotation processors profile\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <module name=\"discovery-server\" />\n      </profile>\n      <profile name=\"Annotation profile for api-gateway-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n        </processorPath>\n        <module name=\"api-gateway-service\" />\n      </profile>\n      <profile name=\"Annotation profile for cart-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n        </processorPath>\n        <module name=\"cart-service\" />\n      </profile>\n      <profile name=\"Annotation profile for inventory-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n        </processorPath>\n        <module name=\"inventory-service\" />\n      </profile>\n      <profile name=\"Annotation profile for media-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n        </processorPath>\n        <module name=\"media-service\" />\n      </profile>\n      <profile name=\"Annotation profile for notification-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n        </processorPath>\n        <module name=\"notification-service\" />\n      </profile>\n      <profile name=\"Annotation profile for order-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n        </processorPath>\n        <module name=\"order-service\" />\n      </profile>\n      <profile name=\"Annotation profile for payment-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n        </processorPath>\n        <module name=\"payment-service\" />\n      </profile>\n      <profile name=\"Annotation profile for product-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n        </processorPath>\n        <module name=\"product-service\" />\n      </profile>\n      <profile name=\"Annotation profile for profile-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n        </processorPath>\n        <module name=\"profile-service\" />\n      </profile>\n      <profile name=\"Annotation profile for search-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n        </processorPath>\n        <module name=\"search-service\" />\n      </profile>\n      <profile name=\"Annotation profile for seller-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n        </processorPath>\n        <module name=\"seller-service\" />\n      </profile>\n      <profile name=\"Annotation profile for wishlist-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n        </processorPath>\n        <module name=\"wishlist-service\" />\n      </profile>\n      <profile name=\"Annotation profile for Microservice-ecom\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n          <entry name=\"$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar\" />\n        </processorPath>\n        <module name=\"Microservice-ecom\" />\n      </profile>\n      <profile name=\"Annotation profile for review-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n          <entry name=\"$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar\" />\n        </processorPath>\n        <module name=\"review-service\" />\n      </profile>\n      <profile name=\"Annotation profile for shipping-service\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n          <entry name=\"$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar\" />\n        </processorPath>\n        <module name=\"shipping-service\" />\n      </profile>\n      <profile name=\"Annotation profile for e-com-microservice-workspace\" enabled=\"true\">\n        <sourceOutputDir name=\"target/generated-sources/annotations\" />\n        <sourceTestOutputDir name=\"target/generated-test-sources/test-annotations\" />\n        <outputRelativeToContentRoot value=\"true\" />\n        <processorPath useClasspath=\"false\">\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n          <entry name=\"$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar\" />\n          <entry name=\"$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar\" />\n          <entry name=\"$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar\" />\n        </processorPath>\n        <module name=\"promotion-service\" />\n      </profile>\n    </annotationProcessing>\n    <bytecodeTargetLevel>\n      <module name=\"ApiGateway-service\" target=\"25\" />\n      <module name=\"untitled\" target=\"26\" />\n    </bytecodeTargetLevel>\n  </component>\n  <component name=\"JavacSettings\">\n    <option name=\"ADDITIONAL_OPTIONS_OVERRIDE\">\n      <module name=\"ApiGateway-service\" options=\"-parameters\" />\n      <module name=\"Microservice-ecom\" options=\"-parameters\" />\n      <module name=\"api-gateway-service\" options=\"-parameters\" />\n      <module name=\"cart-service\" options=\"-parameters\" />\n      <module name=\"discovery-server\" options=\"-parameters\" />\n      <module name=\"inventory-service\" options=\"-parameters\" />\n      <module name=\"media-service\" options=\"-parameters\" />\n      <module name=\"notification-service\" options=\"-parameters\" />\n      <module name=\"order-service\" options=\"-parameters\" />\n      <module name=\"payment-service\" options=\"-parameters\" />\n      <module name=\"product-service\" options=\"-parameters\" />\n      <module name=\"profile-service\" options=\"-parameters\" />\n      <module name=\"promotion-service\" options=\"-parameters\" />\n      <module name=\"review-service\" options=\"-parameters\" />\n      <module name=\"search-service\" options=\"-parameters\" />\n      <module name=\"seller-service\" options=\"-parameters\" />\n      <module name=\"shipping-service\" options=\"-parameters\" />\n      <module name=\"wishlist-service\" options=\"-parameters\" />\n    </option>\n  </component>\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+--- a/.idea/compiler.xml	(revision deea2c34fc895118fcf15e9de84db430bc5c0857)
++++ b/.idea/compiler.xml	(date 1785165919114)
+@@ -15,6 +15,7 @@
+         <outputRelativeToContentRoot value="true" />
+         <processorPath useClasspath="false">
+           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+         </processorPath>
+         <module name="api-gateway-service" />
+       </profile>
+@@ -24,6 +25,7 @@
+         <outputRelativeToContentRoot value="true" />
+         <processorPath useClasspath="false">
+           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+         </processorPath>
+         <module name="cart-service" />
+       </profile>
+@@ -33,6 +35,7 @@
+         <outputRelativeToContentRoot value="true" />
+         <processorPath useClasspath="false">
+           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+         </processorPath>
+         <module name="inventory-service" />
+       </profile>
+@@ -42,6 +45,7 @@
+         <outputRelativeToContentRoot value="true" />
+         <processorPath useClasspath="false">
+           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+         </processorPath>
+         <module name="media-service" />
+       </profile>
+@@ -51,6 +55,7 @@
+         <outputRelativeToContentRoot value="true" />
+         <processorPath useClasspath="false">
+           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+         </processorPath>
+         <module name="notification-service" />
+       </profile>
+@@ -60,6 +65,7 @@
+         <outputRelativeToContentRoot value="true" />
+         <processorPath useClasspath="false">
+           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+         </processorPath>
+         <module name="order-service" />
+       </profile>
+@@ -68,6 +74,7 @@
+         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+         <outputRelativeToContentRoot value="true" />
+         <processorPath useClasspath="false">
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+         </processorPath>
+         <module name="payment-service" />
+@@ -77,6 +84,7 @@
+         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+         <outputRelativeToContentRoot value="true" />
+         <processorPath useClasspath="false">
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+         </processorPath>
+         <module name="product-service" />
+@@ -87,6 +95,7 @@
+         <outputRelativeToContentRoot value="true" />
+         <processorPath useClasspath="false">
+           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+         </processorPath>
+         <module name="profile-service" />
+       </profile>
+@@ -96,6 +105,7 @@
+         <outputRelativeToContentRoot value="true" />
+         <processorPath useClasspath="false">
+           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+         </processorPath>
+         <module name="search-service" />
+       </profile>
+@@ -104,6 +114,7 @@
+         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+         <outputRelativeToContentRoot value="true" />
+         <processorPath useClasspath="false">
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+         </processorPath>
+         <module name="seller-service" />
+@@ -113,39 +124,10 @@
+         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+         <outputRelativeToContentRoot value="true" />
+         <processorPath useClasspath="false">
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+         </processorPath>
+         <module name="wishlist-service" />
+-      </profile>
+-      <profile name="Annotation profile for Microservice-ecom" enabled="true">
+-        <sourceOutputDir name="target/generated-sources/annotations" />
+-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+-        <outputRelativeToContentRoot value="true" />
+-        <processorPath useClasspath="false">
+-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+-          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
+-        </processorPath>
+-        <module name="Microservice-ecom" />
+-      </profile>
+-      <profile name="Annotation profile for review-service" enabled="true">
+-        <sourceOutputDir name="target/generated-sources/annotations" />
+-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+-        <outputRelativeToContentRoot value="true" />
+-        <processorPath useClasspath="false">
+-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+-          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
+-        </processorPath>
+-        <module name="review-service" />
+-      </profile>
+-      <profile name="Annotation profile for shipping-service" enabled="true">
+-        <sourceOutputDir name="target/generated-sources/annotations" />
+-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+-        <outputRelativeToContentRoot value="true" />
+-        <processorPath useClasspath="false">
+-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+-          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
+-        </processorPath>
+-        <module name="shipping-service" />
+       </profile>
+       <profile name="Annotation profile for e-com-microservice-workspace" enabled="true">
+         <sourceOutputDir name="target/generated-sources/annotations" />

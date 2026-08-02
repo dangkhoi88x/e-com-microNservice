@@ -61,7 +61,7 @@ public class Shipment extends AbstractEntity {
 
     @Column(name = "delivered_at")
     private Instant deliveredAt;
-
+    //chống lost update khi admin và shipper cùng cập nhật một shipment.
     @Version
     private Long version;
 }

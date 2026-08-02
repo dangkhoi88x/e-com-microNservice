@@ -9,7 +9,7 @@ import RemoveOutlinedIcon from "@mui/icons-material/RemoveOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
-import { getProductById, searchProducts } from "../services/productService";
+import { getProductById, getProducts, searchProducts } from "../services/productService";
 import { loadWishlist, toggleWishlist } from "../services/wishlistService";
 import { addCartItem, cartQuantity, getMyCart } from "../services/cartService";
 import { isAuthenticated } from "../services/authenticationService";
@@ -48,6 +48,7 @@ export default function ShopProductDetail() {
   const [related, setRelated] = useState([]);
   const [catalogProducts, setCatalogProducts] = useState([]);
   const [selected, setSelected] = useState({});
+  const [selectedVariantId, setSelectedVariantId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState("");
   const [cartNotice, setCartNotice] = useState("");
@@ -66,6 +67,7 @@ export default function ShopProductDetail() {
         setProduct(data);
         setActiveImage(firstImage(data) || "");
         setSelected({});
+        setSelectedVariantId("");
         setQuantity(1);
       })
       .catch(() => setProduct(null));
@@ -80,7 +82,7 @@ export default function ShopProductDetail() {
   }, []);
   useEffect(() => {
     if (!product?.categoryId) return;
-    searchProducts({
+    getProducts({
       page: 1,
       size: 5,
       categoryId: product.categoryId,
@@ -129,15 +131,22 @@ export default function ShopProductDetail() {
     };
   }, []);
 
-  const variant = useMemo(
-    () =>
-      (product?.variants || []).find((item) =>
-        Object.entries(selected).every(
-          ([key, value]) => item.attributes?.[key] === value,
-        ),
+  const hasProductOptions = (product?.options || []).length > 0;
+  const hasVariants = (product?.variants || []).length > 0;
+  const variant = useMemo(() => {
+    if (!hasProductOptions) {
+      return (product?.variants || []).find((item) => item.id === selectedVariantId);
+    }
+    return (product?.variants || []).find((item) =>
+      Object.entries(selected).every(
+        ([key, value]) => item.attributes?.[key] === value,
       ),
-    [product, selected],
-  );
+    );
+  }, [hasProductOptions, product, selected, selectedVariantId]);
+  const variantSelectionRequired = hasVariants && !hasProductOptions && !selectedVariantId;
+  useEffect(() => {
+    if (variant?.imageUrl) setActiveImage(variant.imageUrl);
+  }, [variant?.id, variant?.imageUrl]);
   const searchResults = useMemo(() => {
     const keyword = productSearch.trim().toLocaleLowerCase("vi-VN");
     return keyword
@@ -195,12 +204,16 @@ export default function ShopProductDetail() {
   const saleRequiresVariantSelection =
     !selectedVariantSale && Boolean(activeSale?.variantId);
   const price = activeSale?.salePrice ?? originalPrice;
-  const stock = variant?.quantity ?? product.quantity ?? 0;
+  const stock = variantSelectionRequired ? 0 : variant?.quantity ?? product.quantity ?? 0;
   const add = async (goToCheckout = false) => {
     if (!isAuthenticated())
       return navigate(
         `/shop/login?redirect=${encodeURIComponent(`/shop/products/${slug}`)}`,
       );
+    if (variantSelectionRequired) {
+      setCartNotice("Vui lòng chọn phiên bản trước khi thêm vào giỏ hàng.");
+      return;
+    }
     try {
       const updated = await addCartItem({
         productId: product.id,
@@ -299,6 +312,25 @@ export default function ShopProductDetail() {
       </nav>
       <section className="detail-layout">
         <aside className="detail-options">
+          {!hasProductOptions && hasVariants && (
+            <section>
+              <h3>Option</h3>
+              <div className="detail-option-values">
+                {product.variants.map((item) => (
+                  <button
+                    key={item.id}
+                    className={selectedVariantId === item.id ? "selected" : ""}
+                    onClick={() => {
+                      setSelectedVariantId(item.id);
+                      setQuantity(1);
+                    }}
+                  >
+                    {item.sku || `Variant ${item.id.slice(0, 8)}`}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
           {(product.options || []).map((option) => (
             <section key={option.name}>
               <h3>{option.displayName}</h3>
@@ -364,11 +396,15 @@ export default function ShopProductDetail() {
               "Sản phẩm được tuyển chọn với thiết kế hiện đại và chất lượng cao."}
           </div>
           <div className="detail-selected">
-            {Object.keys(selected).length
+            {variantSelectionRequired
+              ? "Chọn phiên bản phù hợp với bạn"
+              : !hasProductOptions && variant
+                ? `Đã chọn: ${variant.sku || "Phiên bản"}`
+              : Object.keys(selected).length
               ? `Đã chọn: ${Object.entries(selected)
                   .map(([key, value]) => `${key}: ${value}`)
                   .join(" · ")}`
-              : "Chọn phiên bản phù hợp với bạn"}
+                : "Chọn phiên bản phù hợp với bạn"}
           </div>
           <div className="detail-price-row">
             {saleRequiresVariantSelection && <small>Giá từ</small>}

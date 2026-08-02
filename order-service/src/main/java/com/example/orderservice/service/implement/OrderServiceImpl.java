@@ -22,6 +22,7 @@ import com.example.orderservice.dto.request.CheckoutOrderRequest;
 import com.example.orderservice.dto.request.InventoryOrderRequest;
 import com.example.orderservice.dto.request.ReserveInventoryItemRequest;
 import com.example.orderservice.dto.request.ReserveInventoryRequest;
+import com.example.orderservice.dto.response.FlashDealPriceResponse;
 import com.example.orderservice.dto.response.OrderItemResponse;
 import com.example.orderservice.dto.response.OrderResponse;
 import com.example.orderservice.dto.response.PageResponse;
@@ -51,15 +52,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.TreeMap;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -119,6 +121,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderResponse createOrder(String userId, CreateOrderRequest request, String token, String campaignCode) {
+        //Nhận danh sách sản phẩm
         Order order = Order.builder()
                 .orderCode(generateOrderCode())
                 .userId(userId)
@@ -130,7 +133,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         BigDecimal totalAmount = BigDecimal.ZERO;
-
+        //Lấy thông tin từ Product Service
         for (var itemRequest : request.items()) {
             ProductDetailResponse product = productClient.getProductById(itemRequest.productId());
 
@@ -141,23 +144,23 @@ public class OrderServiceImpl implements OrderService {
             if (!"ACTIVE".equals(product.status())) {
                 throw new OrderServiceException(ErrorCode.PRODUCT_NOT_ACTIVE);
             }
-
+        //xác định seller
             if (order.getSellerId() == null) {
                 order.setSellerId(product.sellerId());
                 order.setShopId(product.shopId());
             } else if (!order.getSellerId().equals(product.sellerId())) {
                 throw new OrderServiceException(ErrorCode.MULTI_SHOP_CHECKOUT_NOT_SUPPORTED);
             }
-
+        //Tìm variant và xác định giá
             ProductVariantResponse variant = findVariant(product, itemRequest.variantId());
             BigDecimal itemPrice = variant != null ? variant.price() : product.price();
             String itemName = variant != null
                     ? product.name() + " - " + formatVariantAttributes(variant)
                     : product.name();
-
+    //Tính tiền từng item
             BigDecimal subtotal = itemPrice
                     .multiply(BigDecimal.valueOf(itemRequest.quantity()));
-
+    //snapshot
             OrderItem orderItem = OrderItem.builder()
                     .productId(product.id())
                     .variantId(variant != null ? variant.id() : null)
@@ -167,28 +170,34 @@ public class OrderServiceImpl implements OrderService {
                     .quantity(itemRequest.quantity())
                     .subtotal(subtotal)
                     .build();
-
+    //Thêm item vào Order
             order.addItem(orderItem);
             totalAmount = totalAmount.add(subtotal);
         }
-
+        //Lưu Order lần đầu
         order.setSubtotalAmount(totalAmount);
         order.setDiscountAmount(BigDecimal.ZERO);
         order.setTotalAmount(totalAmount);
 
         Order savedOrder = orderRepository.saveAndFlush(order);
         OrderStatus oldStatus = savedOrder.getStatus();
+        //Giữ tồn kho và khuyến mãi
         boolean inventoryReserved = false;
         boolean flashDealsReserved = false;
 
         try {
+            //Giữ tồn kho
             reserveInventory(savedOrder, token);
             inventoryReserved = true;
+    //Giữ flash deal
             List<PromotionClient.FlashDealItemRequest> flashItems = savedOrder.getItems().stream()
-                    .map(item -> new PromotionClient.FlashDealItemRequest(item.getProductId(), item.getVariantId(), item.getQuantity())).toList();
-            List<com.example.orderservice.dto.response.FlashDealPriceResponse> flashPrices = promotionClient.reserveFlashDeals(savedOrder.getId(), flashItems);
+                    .map(item -> new PromotionClient.FlashDealItemRequest(item.getProductId(), item.getVariantId(), item.getQuantity()))
+                    .toList();
+
+            List<FlashDealPriceResponse> flashPrices = promotionClient.reserveFlashDeals(savedOrder.getId(), flashItems);
             flashDealsReserved = !flashPrices.isEmpty();
             applyFlashDealPrices(savedOrder, flashPrices);
+            //Áp dụng campaign code
             if (hasPromotion(campaignCode)) {
                 PromotionCalculationResponse promotion = promotionClient.validate(campaignCode, savedOrder.getSubtotalAmount());
                 savedOrder.setPromotionCode(promotion.campaignCode());
@@ -198,11 +207,14 @@ public class OrderServiceImpl implements OrderService {
             if (hasPromotion(savedOrder.getPromotionCode())) {
                 promotionClient.reserve(savedOrder.getPromotionCode(), userId, savedOrder.getId(), savedOrder.getSubtotalAmount());
             }
+            //Chuyển sang chờ thanh toán
             savedOrder.setStatus(OrderStatus.PENDING_PAYMENT);
             Order reservedOrder = orderRepository.save(savedOrder);
+            //event
             publishOrderStatusUpdatedEvent(reservedOrder, oldStatus);
             publishOrderCreatedEvent(reservedOrder);
             return toOrderResponse(reservedOrder);
+            //tạo Order thất bại
         } catch (RuntimeException exception) {
             log.error("Failed to prepare checkout resources: orderId={}", savedOrder.getId(), exception);
             if (inventoryReserved) {
@@ -219,7 +231,7 @@ public class OrderServiceImpl implements OrderService {
             return toOrderResponse(failedOrder);
         }
     }
-
+    //lấy danh sách đơn
     @Override
     @Transactional(readOnly = true)
     public PageResponse<OrderResponse> getMyOrders(String userId, int page, int size) {
@@ -249,7 +261,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new OrderServiceException(ErrorCode.ORDER_NOT_FOUND));
         return new SellerOrderDetailResponse(toOrderResponse(order), shipmentClient.getByOrderId(orderId));
     }
-
+    //tính trực tiếp bằng query aggregate
     @Override
     @Transactional(readOnly = true)
     public SellerAnalyticsResponse getSellerAnalytics(String sellerId, Instant from, Instant to) {
@@ -257,12 +269,12 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal revenue = summary.getRevenue();
         long completedOrders = summary.getCompletedOrders();
         Map<String, Long> statuses = orderRepository.countSellerByStatus(sellerId, from, to).stream()
-                .collect(java.util.stream.Collectors.toMap(OrderRepository.StatusCount::getStatus, OrderRepository.StatusCount::getTotal));
+                .collect(Collectors.toMap(OrderRepository.StatusCount::getStatus, OrderRepository.StatusCount::getTotal));
         List<SellerAnalyticsResponse.TopProduct> topProducts = orderRepository.getSellerTopProducts(sellerId, from, to).stream()
                 .map(product -> new SellerAnalyticsResponse.TopProduct(product.getProductId(), product.getName(), product.getQuantitySold(), product.getRevenue()))
                 .toList();
         BigDecimal averageOrderValue = completedOrders == 0 ? BigDecimal.ZERO
-                : revenue.divide(BigDecimal.valueOf(completedOrders), 0, java.math.RoundingMode.HALF_UP);
+                : revenue.divide(BigDecimal.valueOf(completedOrders), 0, RoundingMode.HALF_UP);
         return new SellerAnalyticsResponse(revenue, completedOrders, summary.getTotalOrders(), averageOrderValue, statuses, topProducts);
     }
 
@@ -274,7 +286,7 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal revenue = summary.getRevenue();
         long completedOrders = summary.getCompletedOrders();
         Map<String, Long> statuses = orderRepository.countByStatus(from, to).stream()
-                .collect(java.util.stream.Collectors.toMap(OrderRepository.StatusCount::getStatus, OrderRepository.StatusCount::getTotal));
+                .collect(Collectors.toMap(OrderRepository.StatusCount::getStatus, OrderRepository.StatusCount::getTotal));
         List<AdminAnalyticsResponse.RevenuePoint> daily = orderRepository.getDailyRevenue(from, to).stream()
                 .map(point -> new AdminAnalyticsResponse.RevenuePoint(point.getDate(), point.getRevenue(), point.getTotal()))
                 .toList();
@@ -282,7 +294,7 @@ public class OrderServiceImpl implements OrderService {
                 .map(product -> new AdminAnalyticsResponse.TopProduct(product.getProductId(), product.getName(), product.getQuantitySold(), product.getRevenue()))
                 .toList();
         BigDecimal averageOrderValue = completedOrders == 0 ? BigDecimal.ZERO
-                : revenue.divide(BigDecimal.valueOf(completedOrders), 0, java.math.RoundingMode.HALF_UP);
+                : revenue.divide(BigDecimal.valueOf(completedOrders), 0, RoundingMode.HALF_UP);
         return new AdminAnalyticsResponse(revenue, summary.getTotalOrders(), completedOrders, averageOrderValue, statuses, daily, topProducts);
     }
 
@@ -741,9 +753,9 @@ public class OrderServiceImpl implements OrderService {
 
     private boolean hasFlashDeal(Order order) { return order.getItems().stream().anyMatch(item -> item.getPrice() != null && item.getOriginalPrice() != null && item.getPrice().compareTo(item.getOriginalPrice()) < 0); }
 
-    private void applyFlashDealPrices(Order order, List<com.example.orderservice.dto.response.FlashDealPriceResponse> prices) {
+    private void applyFlashDealPrices(Order order, List<FlashDealPriceResponse> prices) {
         for (OrderItem item : order.getItems()) {
-            prices.stream().filter(price -> price.productId().equals(item.getProductId()) && java.util.Objects.equals(price.variantId(), item.getVariantId())).findFirst().ifPresent(price -> {
+            prices.stream().filter(price -> price.productId().equals(item.getProductId()) && Objects.equals(price.variantId(), item.getVariantId())).findFirst().ifPresent(price -> {
                 item.setOriginalPrice(item.getPrice());
                 item.setPrice(price.salePrice());
                 item.setSubtotal(price.salePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
@@ -874,7 +886,7 @@ public class OrderServiceImpl implements OrderService {
         String orderCode;
         do {
             String date = ORDER_CODE_DATE_FORMAT.format(Instant.now());
-            String suffix = java.util.UUID.randomUUID()
+            String suffix = UUID.randomUUID()
                     .toString()
                     .replace("-", "")
                     .substring(0, 8)

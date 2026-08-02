@@ -4,33 +4,40 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="lazy-load các trang Admin/Seller/Shipper.phan trang">
-      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
+    <list default="true" id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="fix refresh token">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_23_7_26,_23_32_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_23_7_26__23_32__Changes_.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_25_7_26,_10_55_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_25_7_26__10_55__Changes_.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_7_24_2026_11_13_AM_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_7_24_2026_11_13_AM__Changes_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/entity/CartItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/entity/CartItem.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/exception/GlobalExceptionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/repository/CartItemRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/repository/CartItemRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/service/implement/CartServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/service/implement/CartServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/resources/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/resources/schema.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/S3Configuration.java" beforeDir="false" afterPath="$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/S3Configuration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/S3Properties.java" beforeDir="false" afterPath="$PROJECT_DIR$/media-service/src/main/java/com/example/mediaservice/configuration/S3Properties.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/media-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/media-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/exception/ErrorCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/exception/ErrorCode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/messaging/dlt/InventoryDltOperations.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/messaging/dlt/InventoryDltOperations.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/service/implement/InventoryServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/service/implement/InventoryServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/implement/OrderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/implement/OrderServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/client/OrderClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/client/OrderClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/repository/PaymentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/repository/PaymentRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/service/implement/PaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/service/implement/PaymentServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/client/SellerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/client/SellerClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/CustomAccessDeniedHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/CustomAccessDeniedHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/CustomAuthenticationEntryPoint.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/CustomAuthenticationEntryPoint.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/CustomJwtDecoder.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/CustomJwtDecoder.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/KafkaConsumerConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/KafkaConsumerConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/messaging/consumer/InventoryEventConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/messaging/consumer/InventoryEventConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/ProductRedisCacheConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/ProductRedisCacheConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/service/implement/CategoryServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/service/implement/CategoryServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/service/implement/ProductServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/service/implement/ProductServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/test/java/com/example/productservice/service/implement/ProductServiceImplShopSuspensionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/test/java/com/example/productservice/service/implement/ProductServiceImplShopSuspensionTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/entity/PromotionUsage.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/entity/PromotionUsage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/PromotionCampaignServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/PromotionCampaignServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/PromotionUsageServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/PromotionUsageServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/entity/Shipment.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/entity/Shipment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/entity/ShipmentHistory.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/entity/ShipmentHistory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/OrderCancelledConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/OrderCancelledConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/ShipmentRequestedConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/ShipmentRequestedConsumer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/service/implement/ShipmentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/service/implement/ShipmentServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/configurations/httpClient.js" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/configurations/httpClient.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Checkout.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Checkout.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/PaymentResult.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/PaymentResult.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Shipments.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Shipments.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/Shop.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/Shop.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopBestDeals.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopBestDeals.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetail.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetail.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetailDense.css" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetailDense.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/services/promotionService.js" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/services/promotionService.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,60 +86,60 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Maven.api-gateway-service [clean].executor": "Run",
-    "Maven.api-gateway-service [compile].executor": "Run",
-    "Maven.api-gateway-service [org.apache.maven.plugins:maven-clean-plugin:3.5.0:clean].executor": "Run",
-    "Maven.api-gateway-service [verify].executor": "Run",
-    "Maven.e-com-microservice-workspace [clean].executor": "Run",
-    "Maven.e-com-microservice-workspace [verify].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Spring Boot.ApiGatewayServiceApplication.executor": "Run",
-    "Spring Boot.CartServiceApplication.executor": "Run",
-    "Spring Boot.DiscoveryServerApplication.executor": "Run",
-    "Spring Boot.InventoryServiceApplication.executor": "Run",
-    "Spring Boot.MediaServiceApplication.executor": "Run",
-    "Spring Boot.MicroserviceEcomApplication.executor": "Run",
-    "Spring Boot.NotificationServiceApplication.executor": "Run",
-    "Spring Boot.OrderServiceApplication.executor": "Run",
-    "Spring Boot.PaymentServiceApplication.executor": "Run",
-    "Spring Boot.ProductServiceApplication.executor": "Run",
-    "Spring Boot.ProfileServiceApplication.executor": "Run",
-    "Spring Boot.PromotionServiceApplication.executor": "Run",
-    "Spring Boot.ReviewServiceApplication.executor": "Run",
-    "Spring Boot.SearchServiceApplication.executor": "Run",
-    "Spring Boot.SellerServiceApplication.executor": "Run",
-    "Spring Boot.ShippingServiceApplication.executor": "Run",
-    "Spring Boot.WishlistServiceApplication.executor": "Run",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "admin__dashboard",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "run.configurations.included.in.services": "true",
-    "settings.editor.selected.configurable": "configurable.group.build",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Maven.api-gateway-service [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.api-gateway-service [compile].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.api-gateway-service [org.apache.maven.plugins:maven-clean-plugin:3.5.0:clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.api-gateway-service [verify].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.e-com-microservice-workspace [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.e-com-microservice-workspace [verify].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Spring Boot.ApiGatewayServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.CartServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.DiscoveryServerApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.InventoryServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.MediaServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.MicroserviceEcomApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.NotificationServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.OrderServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.PaymentServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.ProductServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.ProfileServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.PromotionServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.ReviewServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.SearchServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.SellerServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.ShippingServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.WishlistServiceApplication.executor&quot;: &quot;Run&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;admin__dashboard&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.build&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunDashboard">
     <option name="configurationTypes">
       <set>
@@ -153,17 +160,17 @@
               <entry key="DiscoveryServerApplication" value="STOPPED" />
               <entry key="InventoryServiceApplication" value="STOPPED" />
               <entry key="MediaServiceApplication" value="FAILED" />
-              <entry key="MicroserviceEcomApplication" value="STOPPED" />
+              <entry key="MicroserviceEcomApplication" value="FAILED" />
               <entry key="NotificationServiceApplication" value="FAILED" />
               <entry key="OrderServiceApplication" value="STOPPED" />
               <entry key="PaymentServiceApplication" value="STOPPED" />
               <entry key="ProductServiceApplication" value="STOPPED" />
-              <entry key="ProfileServiceApplication" value="STOPPED" />
+              <entry key="ProfileServiceApplication" value="FAILED" />
               <entry key="PromotionServiceApplication" value="STOPPED" />
               <entry key="ReviewServiceApplication" value="FAILED" />
-              <entry key="SearchServiceApplication" value="STOPPED" />
+              <entry key="SearchServiceApplication" value="FAILED" />
               <entry key="SellerServiceApplication" value="STOPPED" />
-              <entry key="ShippingServiceApplication" value="STOPPED" />
+              <entry key="ShippingServiceApplication" value="FAILED" />
               <entry key="WishlistServiceApplication" value="STOPPED" />
             </map>
           </value>
@@ -370,11 +377,11 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Spring Boot.CartServiceApplication" />
-        <item itemvalue="Spring Boot.ProfileServiceApplication" />
         <item itemvalue="Spring Boot.SearchServiceApplication" />
+        <item itemvalue="Spring Boot.ProfileServiceApplication" />
         <item itemvalue="Spring Boot.PaymentServiceApplication" />
         <item itemvalue="Spring Boot.OrderServiceApplication" />
+        <item itemvalue="Spring Boot.CartServiceApplication" />
       </list>
     </recent_temporary>
   </component>
@@ -394,7 +401,15 @@
       <option name="presentableId" value="Default" />
       <updated>1784445749626</updated>
       <workItem from="1784722963141" duration="572000" />
-      <workItem from="1785125125487" duration="12450000" />
+      <workItem from="1785125125487" duration="13227000" />
+      <workItem from="1785157250183" duration="41000" />
+      <workItem from="1785211526006" duration="3007000" />
+      <workItem from="1785247995590" duration="2130000" />
+      <workItem from="1785473780852" duration="15370000" />
+      <workItem from="1785509321359" duration="5665000" />
+      <workItem from="1785562205480" duration="11054000" />
+      <workItem from="1785598089803" duration="1809000" />
+      <workItem from="1785647158089" duration="48000" />
     </task>
     <task id="LOCAL-00001" summary="lazy-load các trang Admin/Seller/Shipper.phan trang">
       <option name="closed" value="true" />
@@ -404,15 +419,62 @@
       <option name="project" value="LOCAL" />
       <updated>1785133422738</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="aws s3, flow check out cod fixed">
+      <option name="closed" value="true" />
+      <created>1785144869092</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1785144869092</updated>
+    </task>
+    <task id="LOCAL-00003" summary="aws s3, flow check out cod fixed">
+      <option name="closed" value="true" />
+      <created>1785157264478</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1785157264478</updated>
+    </task>
+    <task id="LOCAL-00004" summary="retry, circuit breaker">
+      <option name="closed" value="true" />
+      <created>1785215161203</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1785215161203</updated>
+    </task>
+    <task id="LOCAL-00005" summary="healthcheck,devops">
+      <option name="closed" value="true" />
+      <created>1785221194308</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1785221194308</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="backend - promotion service 9/10" />
     <MESSAGE value="lazy-load các trang Admin/Seller/Shipper.phan trang" />
-    <option name="LAST_COMMIT_MESSAGE" value="lazy-load các trang Admin/Seller/Shipper.phan trang" />
+    <MESSAGE value="aws s3, flow check out cod fixed" />
+    <MESSAGE value="retry, circuit breaker" />
+    <MESSAGE value="healthcheck,devops" />
+    <MESSAGE value="fix refresh token" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix refresh token" />
   </component>
 </project>

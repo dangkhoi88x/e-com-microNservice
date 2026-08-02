@@ -20,7 +20,7 @@ public class OrderClient {
 
     @Value("${services.order.internal-api-key}")
     private String internalApiKey;
-
+    //API dành cho user
     public OrderResponse getOrderDetail(String orderId, String token) {
         return getOrderDetail("/api/v1/orders/{id}", orderId, token);
     }
@@ -29,10 +29,11 @@ public class OrderClient {
      * Used only by an admin-confirmed payment result (for example COD).
      * The order service enforces the ADMIN authority on this endpoint.
      */
+    //API dành cho admin
     public OrderResponse getOrderDetailForAdmin(String orderId, String token) {
         return getOrderDetail("/api/v1/orders/{id}/admin", orderId, token);
     }
-
+    //API nội bộ cho webhook
     public OrderResponse getOrderDetailForPaymentWebhook(String orderId) {
         try {
             ApiResponse<OrderResponse> response = orderWebClient.get()
@@ -56,7 +57,7 @@ public class OrderClient {
     private OrderResponse getOrderDetail(String uri, String orderId, String token) {
         try {
             ApiResponse<OrderResponse> response = orderWebClient.get()
-                    .uri(uri, orderId)
+                    .uri(uri,orderId)
                     .headers(headers -> headers.setBearerAuth(token))
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<ApiResponse<OrderResponse>>() {

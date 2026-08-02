@@ -6,6 +6,10 @@ spring:
     name: promotion-service
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   datasource:
     url: jdbc:postgresql://localhost:5437/promotion_db
     username: root
@@ -15,12 +19,39 @@ spring:
       ddl-auto: update
 
 eureka:
+  instance:
+    hostname: localhost
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
 flash-deal:
   status-refresh-ms: 60000
+
+product-service:
+  base-url: ${PRODUCT_SERVICE_BASE_URL:http://localhost:8084}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      productService:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 5
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 15s
+        permittedNumberOfCallsInHalfOpenState: 2
+        slowCallDurationThreshold: 2s
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info
 security:
   jwt:
     issuer: ${JWT_ISSUER:http://localhost:8090}

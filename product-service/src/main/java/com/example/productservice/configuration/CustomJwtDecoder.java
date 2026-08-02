@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 public class CustomJwtDecoder implements JwtDecoder {
 
     private final JwtDecoder delegate;
-
+    //xác minh JWT
     public CustomJwtDecoder(
             @Value("${security.jwt.jwk-set-uri}") String jwkSetUri,
             @Value("${security.jwt.issuer}") String issuer,
@@ -35,7 +35,7 @@ public class CustomJwtDecoder implements JwtDecoder {
                 audienceValidator));
         this.delegate = decoder;
     }
-
+    //chuyển JWT dạng chuỗi thành object Jwt
     @Override
     public Jwt decode(String token) {
         return delegate.decode(token);

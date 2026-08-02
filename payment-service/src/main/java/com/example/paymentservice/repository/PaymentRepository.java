@@ -18,7 +18,8 @@ import java.util.Optional;
 public interface PaymentRepository extends JpaRepository<Payment,String> {
     Page<Payment> findByUserId(String userId, Pageable pageable);
     Optional<Payment> findByIdAndUserId(String id, String userId);
-
+    //Khóa Payment
+    //hai request đồng thời không tạo hai Stripe Checkout Session cho một Payment
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select payment from Payment payment where payment.id = :id and payment.userId = :userId")
     Optional<Payment> findByIdAndUserIdForUpdate(@Param("id") String id, @Param("userId") String userId);

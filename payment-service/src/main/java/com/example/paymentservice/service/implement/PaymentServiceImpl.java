@@ -64,9 +64,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse createPayment(String userId, String token, CreatePaymentRequest request) {
+        // Lấy Order
         OrderResponse order = orderClient.getOrderDetail(request.orderId(), token);
         validateOrderPayable(userId, order);
-
+        //Chống tạo payment trùng
         if (paymentRepository.existsByOrderIdAndUserIdAndStatusIn(
                 request.orderId(),
                 userId,
@@ -82,7 +83,7 @@ public class PaymentServiceImpl implements PaymentService {
         )) {
             throw new PaymentServiceException(ErrorCode.PAYMENT_ALREADY_SUCCESS);
         }
-
+        //Tạo entity
         Payment payment = Payment.builder()
                 .orderId(order.id())
                 .userId(userId)
@@ -91,24 +92,46 @@ public class PaymentServiceImpl implements PaymentService {
                 .status(PaymentStatus.PENDING)
                 .transactionCode(generateTransactionCode())
                 .build();
-
+    //Lưu database
         Payment savedPayment;
         try {
-            // The database partial unique index is the final protection when
-            // concurrent requests both pass the exists(...) checks above.
+//            CREATE UNIQUE INDEX uk_payments_one_pending_per_order
+//            ON payments (order_id)
+//                    WHERE status = 'PENDING';
+//            Mục đích: hai request đồng thời không thể tạo hai payment PENDING cho cùng Order.
             savedPayment = paymentRepository.saveAndFlush(payment);
         } catch (DataIntegrityViolationException exception) {
             throw new PaymentServiceException(ErrorCode.PAYMENT_ALREADY_EXISTS);
         }
         log.info("Payment created successfully: id={}, orderId={}", savedPayment.getId(), savedPayment.getOrderId());
-
+        //COD không gọi Stripe.
         if (savedPayment.getMethod() == PaymentMethod.COD) {
             publishCodPaymentCreatedEvent(savedPayment);
         }
 
         return PaymentMapper.toResponse(savedPayment);
     }
+    //event ship cod
+    private void publishCodPaymentCreatedEvent(Payment payment) {
+        CodPaymentCreatedEvent event = CodPaymentCreatedEvent.builder()
+                .paymentId(payment.getId())
+                .orderId(payment.getOrderId())
+                .userId(payment.getUserId())
+                .createdAt(Instant.now())
+                .build();
 
+        kafkaTemplate.send(COD_PAYMENT_CREATED_TOPIC, payment.getOrderId(), event)
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        log.error("Failed to publish CodPaymentCreatedEvent: paymentId={}, orderId={}",
+                                payment.getId(), payment.getOrderId(), throwable);
+                        return;
+                    }
+
+                    log.info("Published CodPaymentCreatedEvent: paymentId={}, orderId={}",
+                            payment.getId(), payment.getOrderId());
+                });
+    }
     @Override
     @Transactional(readOnly = true)
     public PageResponse<PaymentResponse> getMyPayments(String userId, int page, int size) {
@@ -144,7 +167,7 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = getPaymentForUser(userId, paymentId);
         return PaymentMapper.toResponse(payment);
     }
-
+    //Admin xác nhận payment
     @Override
     @Transactional
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -162,7 +185,7 @@ public class PaymentServiceImpl implements PaymentService {
         if (payment.getStatus() != PaymentStatus.PENDING) {
             throw new PaymentServiceException(ErrorCode.PAYMENT_CANNOT_BE_COMPLETED);
         }
-
+        //kiểm tra trạng thái Order
         // A COD/admin confirmation must not turn a payment into SUCCESS after
         // its order was cancelled or otherwise left the payment stage.
         OrderResponse order = orderClient.getOrderDetailForAdmin(payment.getOrderId(), token);
@@ -201,6 +224,10 @@ public class PaymentServiceImpl implements PaymentService {
 
         return PaymentMapper.toResponse(savedPayment);
     }
+    private Payment getPaymentForAdmin(String paymentId) {
+        return paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new PaymentServiceException(ErrorCode.PAYMENT_NOT_FOUND));
+    }
 
     @Override
     @Transactional
@@ -225,7 +252,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public StripeCheckoutResponse createStripeCheckout(String userId, String paymentId) {
         validateStripeConfiguration(false);
-
+        //Khóa Payment
         Payment payment = paymentRepository.findByIdAndUserIdForUpdate(paymentId, userId)
                 .orElseThrow(() -> new PaymentServiceException(ErrorCode.PAYMENT_NOT_FOUND));
 
@@ -235,7 +262,8 @@ public class PaymentServiceImpl implements PaymentService {
         if (payment.getStatus() != PaymentStatus.PENDING) {
             throw new PaymentServiceException(ErrorCode.PAYMENT_CANNOT_BE_COMPLETED);
         }
-
+        //Tái sử dụng session còn hạn
+        // user bấm nút thanh toán hai lần không tạo hai Stripe Session mới.
         if (StringUtils.hasText(payment.getStripeCheckoutUrl())
                 && payment.getStripeCheckoutExpiresAt() != null
                 && payment.getStripeCheckoutExpiresAt().isAfter(Instant.now().plusSeconds(30))) {
@@ -247,7 +275,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .replace("{PAYMENT_ID}", payment.getId());
         String cancelUrl = stripeProperties.cancelUrl()
                 .replace("{PAYMENT_ID}", payment.getId());
-
+        //Tạo request cho Stripe
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 .setClientReferenceId(payment.getId())
@@ -280,7 +308,7 @@ public class PaymentServiceImpl implements PaymentService {
                                 .build()
                 )
                 .build();
-
+        //Gọi Stripe
         try {
             RequestOptions requestOptions = RequestOptions.builder()
                     .setApiKey(stripeProperties.secretKey())
@@ -303,7 +331,14 @@ public class PaymentServiceImpl implements PaymentService {
             throw new PaymentServiceException(ErrorCode.STRIPE_CHECKOUT_FAILED);
         }
     }
-
+    //Kiểm tra cấu hình stripe
+    private void validateStripeConfiguration(boolean webhookRequired) {
+        boolean missingSecretKey = !webhookRequired && !StringUtils.hasText(stripeProperties.secretKey());
+        boolean missingWebhookSecret = webhookRequired && !StringUtils.hasText(stripeProperties.webhookSecret());
+        if (missingSecretKey || missingWebhookSecret) {
+            throw new PaymentServiceException(ErrorCode.STRIPE_NOT_CONFIGURED);
+        }
+    }
     @Override
     @Transactional
     public PaymentResponse reconcileStripePayment(String userId, String paymentId) {
@@ -451,18 +486,9 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(() -> new PaymentServiceException(ErrorCode.PAYMENT_NOT_FOUND));
     }
 
-    private Payment getPaymentForAdmin(String paymentId) {
-        return paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new PaymentServiceException(ErrorCode.PAYMENT_NOT_FOUND));
-    }
 
-    private void validateStripeConfiguration(boolean webhookRequired) {
-        boolean missingSecretKey = !webhookRequired && !StringUtils.hasText(stripeProperties.secretKey());
-        boolean missingWebhookSecret = webhookRequired && !StringUtils.hasText(stripeProperties.webhookSecret());
-        if (missingSecretKey || missingWebhookSecret) {
-            throw new PaymentServiceException(ErrorCode.STRIPE_NOT_CONFIGURED);
-        }
-    }
+
+
 
     private StripeObject deserializeStripeEventObject(Event event) {
         try {
@@ -544,7 +570,7 @@ public class PaymentServiceImpl implements PaymentService {
             throw new PaymentServiceException(ErrorCode.INVALID_STRIPE_WEBHOOK);
         }
     }
-
+// kiểm tra order thanh toán dc k
     private void validateOrderPayable(String userId, OrderResponse order) {
         if (order == null) {
             throw new PaymentServiceException(ErrorCode.ORDER_NOT_FOUND);
@@ -598,26 +624,7 @@ public class PaymentServiceImpl implements PaymentService {
         return "PAY-" + UUID.randomUUID();
     }
 
-    private void publishCodPaymentCreatedEvent(Payment payment) {
-        CodPaymentCreatedEvent event = CodPaymentCreatedEvent.builder()
-                .paymentId(payment.getId())
-                .orderId(payment.getOrderId())
-                .userId(payment.getUserId())
-                .createdAt(Instant.now())
-                .build();
 
-        kafkaTemplate.send(COD_PAYMENT_CREATED_TOPIC, payment.getOrderId(), event)
-                .whenComplete((result, throwable) -> {
-                    if (throwable != null) {
-                        log.error("Failed to publish CodPaymentCreatedEvent: paymentId={}, orderId={}",
-                                payment.getId(), payment.getOrderId(), throwable);
-                        return;
-                    }
-
-                    log.info("Published CodPaymentCreatedEvent: paymentId={}, orderId={}",
-                            payment.getId(), payment.getOrderId());
-                });
-    }
 
     private void publishPaymentFailedEvent(Payment payment) {
         PaymentFailedEvent event = PaymentFailedEvent.builder()

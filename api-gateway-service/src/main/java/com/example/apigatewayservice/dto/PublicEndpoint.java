@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PublicEndpoint {
+    //endpoint không cần đăng nhập.
     private String path;
     private HttpMethod httpMethod;
 
