@@ -39,6 +39,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final OutboxPublisher outboxPublisher;
 
     @Override
+    @Transactional
     public InventoryResponse createInventory(CreateInventoryRequest request) {
         if (request.variantId() != null && !request.variantId().isBlank()
                 && inventoryRepository.existsByVariantId(request.variantId())) {
@@ -103,7 +104,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         return inventoryMapper.toResponse(inventory);
     }
-
+    //batch API dùng khi Product Service cần lấy quantity của nhiều sản phẩm.
     @Override
     public List<InventoryResponse> getInventoriesByProductIds(List<String> productIds) {
         List<String> distinctProductIds = productIds.stream()
@@ -118,7 +119,9 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
+    //giữ tồn kho khi Order Service bắt đầu checkout.
     public void reserveInventory(ReserveInventoryRequest request) {
+        //Chống reserve trùng order
         if (inventoryReservationRepository.existsByOrderId(request.orderId())) {
             throw new InventoryServiceException(ErrorCode.INVENTORY_ALREADY_RESERVED);
         }
@@ -126,15 +129,16 @@ public class InventoryServiceImpl implements InventoryService {
         Instant now = Instant.now();
 
         for (ReserveInventoryItemRequest item : request.items()) {
+            //Khóa inventory
             Inventory inventory = findInventoryForUpdate(item.productId(), item.variantId());
             if (inventory.getAvailableQuantity() < item.quantity()) {
                 throw new InventoryServiceException(ErrorCode.INSUFFICIENT_STOCK);
             }
-
+            //Di chuyển quantity
             inventory.setAvailableQuantity(inventory.getAvailableQuantity() - item.quantity());
             inventory.setReservedQuantity(inventory.getReservedQuantity() + item.quantity());
             validateNonNegativeQuantities(inventory);
-
+            //Tạo reservation
             InventoryReservation reservation = InventoryReservation.builder()
                     .orderId(request.orderId())
                     .productId(item.productId())
@@ -150,17 +154,18 @@ public class InventoryServiceImpl implements InventoryService {
             publishInventoryUpdatedEvent(inventory);
         }
     }
-
+    //chạy khi payment thành công hoặc COD
     @Override
     @Transactional
     public void confirmInventory(InventoryOrderRequest request) {
+        //Khóa reservation
         List<InventoryReservation> reservations = getReservationsForUpdateOrThrow(request.orderId());
         List<InventoryReservation> pendingReservations = filterPendingReservations(reservations);
 
         if (pendingReservations.isEmpty()) {
             return;
         }
-
+        //Chuyển reserved sang sold
         for (InventoryReservation reservation : pendingReservations) {
             Inventory inventory = findInventoryForUpdate(reservation.getProductId(), reservation.getVariantId());
 
@@ -175,7 +180,7 @@ public class InventoryServiceImpl implements InventoryService {
             publishInventoryUpdatedEvent(inventory);
         }
     }
-
+    //chạy khi payment thất bại hoặc đơn bị hủy
     @Override
     @Transactional
     public void releaseInventory(InventoryOrderRequest request) {
@@ -188,7 +193,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         for (InventoryReservation reservation : pendingReservations) {
             Inventory inventory = findInventoryForUpdate(reservation.getProductId(), reservation.getVariantId());
-
+            //quantity chuyển
             ensureReservedQuantityEnough(inventory, reservation);
             inventory.setReservedQuantity(inventory.getReservedQuantity() - reservation.getQuantity());
             inventory.setAvailableQuantity(inventory.getAvailableQuantity() + reservation.getQuantity());
@@ -304,16 +309,6 @@ public class InventoryServiceImpl implements InventoryService {
                 .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
     }
 
-    private Inventory findInventory(String productId, String variantId) {
-        String normalizedVariantId = normalizeVariantId(variantId);
-        if (normalizedVariantId != null) {
-            return inventoryRepository.findByVariantId(normalizedVariantId)
-                    .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
-        }
-
-        return inventoryRepository.findByProductIdAndVariantIdIsNull(productId)
-                .orElseThrow(() -> new InventoryServiceException(ErrorCode.INVENTORY_NOT_FOUND));
-    }
 
     private String normalizeVariantId(String variantId) {
         if (variantId == null || variantId.isBlank()) {
@@ -322,7 +317,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         return variantId.trim();
     }
-
+    //chuyển entity thành event
     private void publishInventoryUpdatedEvent(Inventory inventory) {
         InventoryUpdatedEvent event = InventoryUpdatedEvent.builder()
                 .productId(inventory.getProductId())

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j(topic = "ORDER-CANCELLED-SHIPPING-CONSUMER")
+//Hủy Shipment khi Order bị hủy
 public class OrderCancelledConsumer {
 
     private final ShipmentService shipmentService;

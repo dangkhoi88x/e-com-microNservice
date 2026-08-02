@@ -18,7 +18,7 @@ public class KafkaConsumerConfiguration {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
-
+    //Consumer tổng quát nhận Object
     @Bean
     ConsumerFactory<String, Object> kafkaConsumerFactory() {
         var config = new HashMap<String, Object>();
@@ -43,7 +43,7 @@ public class KafkaConsumerConfiguration {
         factory.setConsumerFactory(kafkaConsumerFactory);
         return factory;
     }
-
+        //Consumer riêng nhận InventoryUpdatedEvent
     @Bean
     ConsumerFactory<String, InventoryUpdatedEvent> inventoryKafkaConsumerFactory() {
         var config = new HashMap<String, Object>();

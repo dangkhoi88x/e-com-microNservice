@@ -18,7 +18,7 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
-
+    //xử lý 403 Forbidden
     private final JsonMapper jsonMapper;
 
     @Override

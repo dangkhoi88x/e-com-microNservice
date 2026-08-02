@@ -32,6 +32,7 @@ import java.util.UUID;
 public class ShipmentServiceImpl implements ShipmentService {
 
     private static final String SHIPMENT_STATUS_UPDATED_TOPIC = "shipment-status-updated";
+    //Trạng thái được phép hủy
     private static final Set<ShipmentStatus> CANCELLABLE_STATUSES = Set.of(
             ShipmentStatus.CREATED,
             ShipmentStatus.PACKING,
@@ -42,7 +43,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final ShipmentHistoryRepository shipmentHistoryRepository;
     private final ShipmentMapper shipmentMapper;
     private final KafkaTemplate<String, Object> kafkaTemplate;
-
+    //tạo shipment
     @Override
     @Transactional
     public ShipmentResponse create(CreateShipmentRequest request) {
@@ -50,7 +51,18 @@ public class ShipmentServiceImpl implements ShipmentService {
                 .map(this::toResponse)
                 .orElseGet(() -> createNewShipment(request));
     }
-
+    //Shipment chưa tồn tại thì tạo mới
+    //Shipment và ShipmentHistory được lưu trong cùng @Transactional
+    private ShipmentResponse createNewShipment(CreateShipmentRequest request) {
+        Shipment shipment = shipmentMapper.toEntity(request);
+        shipment.setStatus(ShipmentStatus.CREATED);
+        Shipment saved = shipmentRepository.save(shipment);
+        // vừa tạo shipment vừa tạo history
+        addHistory(saved, ShipmentStatus.CREATED, "Shipment created", null);
+        log.info("Created shipment: shipmentId={}, orderId={}", saved.getId(), saved.getOrderId());
+        return toResponse(saved);
+    }
+    //hàm đọc Shipment
     @Override
     @Transactional(readOnly = true)
     public ShipmentResponse getByOrderId(String orderId) {
@@ -80,7 +92,7 @@ public class ShipmentServiceImpl implements ShipmentService {
                 : shipmentRepository.findAllByStatusOrderByCreatedAtDesc(status, pageable);
         return shipments.map(this::toResponse);
     }
-
+    //Gán đơn vị vận chuyển
     @Override
     @Transactional
     public ShipmentResponse assignCarrier(UUID shipmentId, AssignCarrierRequest request) {
@@ -93,7 +105,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         if (shipmentRepository.existsByTrackingNumberAndIdNot(trackingNumber, shipmentId)) {
             throw new ShippingServiceException(ErrorCode.TRACKING_NUMBER_EXISTS);
         }
-
+            //Lưu thông tin
         shipment.setCarrier(request.carrier().trim());
         shipment.setTrackingNumber(trackingNumber);
         shipment.setEstimatedDeliveryAt(request.estimatedDeliveryAt());
@@ -105,7 +117,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     @Override
     @Transactional
     public ShipmentResponse startPacking(UUID shipmentId, UpdateShipmentStatusRequest request) {
-        return transition(shipmentId, ShipmentStatus.PACKING, Set.of(ShipmentStatus.CREATED), request);
+        return transition(shipmentId, ShipmentStatus.PACKING, Set.of(ShipmentStatus.CREATED), request); //Muốn chuyển sang PACKING thì trạng thái hiện tại phải là CREATED
     }
 
     @Override
@@ -139,7 +151,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         publishStatusUpdated(saved, oldStatus, request);
         return toResponse(saved);
     }
-
+    //Xác nhận đã giao
     @Override
     @Transactional
     public ShipmentResponse deliver(UUID shipmentId, UpdateShipmentStatusRequest request) {
@@ -147,9 +159,6 @@ public class ShipmentServiceImpl implements ShipmentService {
         if (shipment.getStatus() == ShipmentStatus.DELIVERED) {
             return toResponse(shipment);
         }
-        // The current workflow does not persist an assignee. A shipper can
-        // therefore confirm a delivery directly from the operational queue
-        // without first recording packing/carrier hand-off transitions.
         if (!Set.of(
                 ShipmentStatus.CREATED,
                 ShipmentStatus.PACKING,
@@ -167,7 +176,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         publishStatusUpdated(saved, oldStatus, request);
         return toResponse(saved);
     }
-
+    //Giao thất bại và hoàn hàng
     @Override
     @Transactional
     public ShipmentResponse markDeliveryFailed(UUID shipmentId, UpdateShipmentStatusRequest request) {
@@ -222,15 +231,8 @@ public class ShipmentServiceImpl implements ShipmentService {
         }, () -> log.info("No shipment to cancel for orderId={}", orderId));
     }
 
-    private ShipmentResponse createNewShipment(CreateShipmentRequest request) {
-        Shipment shipment = shipmentMapper.toEntity(request);
-        shipment.setStatus(ShipmentStatus.CREATED);
-        Shipment saved = shipmentRepository.save(shipment);
-        addHistory(saved, ShipmentStatus.CREATED, "Shipment created", null);
-        log.info("Created shipment: shipmentId={}, orderId={}", saved.getId(), saved.getOrderId());
-        return toResponse(saved);
-    }
 
+    //hàm chuyển trạng thái
     private ShipmentResponse transition(
             UUID shipmentId,
             ShipmentStatus targetStatus,
@@ -239,7 +241,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     ) {
         Shipment shipment = findById(shipmentId);
         if (shipment.getStatus() == targetStatus) {
-            return toResponse(shipment);
+            return toResponse(shipment); //Chống xử lý trùng
         }
         if (shipment.getStatus() == ShipmentStatus.DELIVERED) {
             throw new ShippingServiceException(ErrorCode.SHIPMENT_ALREADY_DELIVERED);
@@ -247,11 +249,13 @@ public class ShipmentServiceImpl implements ShipmentService {
         if (!allowedCurrentStatuses.contains(shipment.getStatus())) {
             throw new ShippingServiceException(ErrorCode.INVALID_SHIPMENT_TRANSITION);
         }
-
+        //Cập nhật trạng thái
         ShipmentStatus oldStatus = shipment.getStatus();
         shipment.setStatus(targetStatus);
         Shipment saved = shipmentRepository.save(shipment);
+        //Lưu lịch sử
         addHistory(saved, targetStatus, description(request, defaultDescription(targetStatus)), request.location());
+        //Phát Kafka event ->Order Service consume event và cập nhật Order.
         publishStatusUpdated(saved, oldStatus, request);
         return toResponse(saved);
     }
@@ -270,7 +274,7 @@ public class ShipmentServiceImpl implements ShipmentService {
                 .occurredAt(Instant.now())
                 .build());
     }
-
+// phát event đổi history status shipment
     private void publishStatusUpdated(
             Shipment shipment,
             ShipmentStatus oldStatus,

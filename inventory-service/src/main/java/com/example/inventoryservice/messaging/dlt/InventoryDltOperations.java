@@ -25,6 +25,8 @@ import java.util.concurrent.TimeoutException;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+//quản lý các Kafka Dead Letter Topic của Inventory Service.
+//là nơi lưu những Kafka message mà consumer xử lý thất bại nhiều lần.
 public class InventoryDltOperations {
 
     private static final List<String> DLT_TOPICS = List.of(
@@ -37,7 +39,7 @@ public class InventoryDltOperations {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
-
+//trả trạng thái của tất cả DLT.
     public List<DltTopicStatus> status() {
         return DLT_TOPICS.stream()
                 .map(topic -> new DltTopicStatus(topic, countRecords(topic)))
@@ -68,15 +70,16 @@ public class InventoryDltOperations {
             throw new IllegalStateException("Could not replay DLT message to " + topic, exception);
         }
     }
-
+    //đếm tổng số record còn được Kafka giữ trong một topic.
     private long countRecords(String topic) {
+        //Tạo AdminClient
         try (AdminClient adminClient = AdminClient.create(Map.of(
                 AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
             Set<String> topics = adminClient.listTopics().names().get(5, TimeUnit.SECONDS);
             if (!topics.contains(topic)) {
                 return 0;
             }
-
+//Lấy thông tin partition
             TopicDescription description = adminClient.describeTopics(List.of(topic))
                     .allTopicNames().get(5, TimeUnit.SECONDS).get(topic);
             Map<TopicPartition, org.apache.kafka.clients.admin.OffsetSpec> earliest = new HashMap<>();
@@ -86,7 +89,7 @@ public class InventoryDltOperations {
                 earliest.put(topicPartition, org.apache.kafka.clients.admin.OffsetSpec.earliest());
                 latest.put(topicPartition, org.apache.kafka.clients.admin.OffsetSpec.latest());
             });
-
+        //Lấy offset thật từ Kafka
             Map<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> firstOffsets =
                     adminClient.listOffsets(earliest).all().get(5, TimeUnit.SECONDS);
             Map<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> lastOffsets =

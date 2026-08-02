@@ -31,18 +31,25 @@ public class PromotionCampaignServiceImpl implements PromotionCampaignService {
     @Override
     @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.ACTIVE_PROMOTIONS_CACHE, allEntries = true)
     public PromotionCampaignResponse create(CreatePromotionCampaignRequest request) {
+        //Kiểm tra thời gian
         validateDates(request.startAt(), request.endAt());
+        //Chuẩn hóa code
         String code = normalizeCode(request.code());
         if (repository.existsByCodeIgnoreCase(code)) {
             throw new PromotionServiceException(ErrorCode.PROMOTION_CODE_EXISTS);
         }
-
+        //Map request sang entity
         PromotionCampaign campaign = mapper.toEntity(request);
         campaign.setName(request.name().trim());
         campaign.setCode(code);
         campaign.setUsedCount(0);
         campaign.setStatus(PromotionStatus.DRAFT);
         return mapper.toResponse(repository.save(campaign));
+    }
+    private void validateDates(Instant startAt, Instant endAt) {
+        if (!endAt.isAfter(startAt)) {
+            throw new PromotionServiceException(ErrorCode.INVALID_PROMOTION_PERIOD);
+        }
     }
 
     @Override
@@ -65,6 +72,8 @@ public class PromotionCampaignServiceImpl implements PromotionCampaignService {
         return mapper.toResponse(find(id));
     }
 
+
+     //Cập nhật và xóa Campaign
     @Override
     @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.ACTIVE_PROMOTIONS_CACHE, allEntries = true)
     public PromotionCampaignResponse update(String id, UpdatePromotionCampaignRequest request) {
@@ -74,7 +83,6 @@ public class PromotionCampaignServiceImpl implements PromotionCampaignService {
         campaign.setName(request.name().trim());
         return mapper.toResponse(repository.save(campaign));
     }
-
     @Override
     @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.ACTIVE_PROMOTIONS_CACHE, allEntries = true)
     public void delete(String id) {
@@ -85,7 +93,7 @@ public class PromotionCampaignServiceImpl implements PromotionCampaignService {
         }
         repository.delete(campaign);
     }
-
+    // lấy id từ db
     private PromotionCampaign find(String id) {
         try {
             return repository.findById(UUID.fromString(id))
@@ -95,11 +103,6 @@ public class PromotionCampaignServiceImpl implements PromotionCampaignService {
         }
     }
 
-    private void validateDates(Instant startAt, Instant endAt) {
-        if (!endAt.isAfter(startAt)) {
-            throw new PromotionServiceException(ErrorCode.INVALID_PROMOTION_PERIOD);
-        }
-    }
 
     private List<PromotionCampaign> findByStatus(String status) {
         try {

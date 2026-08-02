@@ -18,7 +18,7 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
-
+    //xử lý lỗi 401 Unauthorized.
     private final JsonMapper jsonMapper;
 
     @Override
@@ -29,7 +29,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
         response.setStatus(errorCode.getCode());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-
+        //tạo response thống nhất
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .code(errorCode.getCode())
                 .message(errorCode.getMessage())
@@ -37,7 +37,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                 .path(request.getRequestURI())
                 .timestamp(System.currentTimeMillis())
                 .build();
-
+            //chuyển Java object thành JSON
         response.getWriter().write(jsonMapper.writeValueAsString(errorResponse));
         response.flushBuffer();
     }

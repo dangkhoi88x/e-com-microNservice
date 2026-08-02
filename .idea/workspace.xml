@@ -4,35 +4,45 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="retry Admin/Seller/Shipper">
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_7_22_2026_12_56_PM_[Changes]/shelved.patch" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_7_22_2026_12_56_PM__Changes_.xml" beforeDir="false" />
+    <list default="true" id="bcb3158b-54e0-49f1-94f3-096e1f174440" name="Changes" comment="fix refresh token">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_23_7_26,_23_32_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_23_7_26__23_32__Changes_.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_25_7_26,_10_55_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_25_7_26__10_55__Changes_.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_7_24_2026_11_13_AM_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_7_24_2026_11_13_AM__Changes_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Microservice-ecom/src/main/resources/application-dev.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Microservice-ecom/src/main/resources/application-dev.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway-service/src/main/java/com/example/apigatewayservice/configuration/GatewayAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway-service/src/main/java/com/example/apigatewayservice/configuration/GatewayAuthenticationFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cart-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/cart-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/media-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/media-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notification-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/notification-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/payment-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/product-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/profile-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/profile-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/review-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/review-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/seller-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/seller-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/SellerRegister.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/SellerRegister.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetail.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/web-app/src/pages/ShopProductDetail.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wishlist-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/wishlist-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/service/implement/CartServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/cart-service/src/main/java/com/example/cartservice/service/implement/CartServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/messaging/dlt/InventoryDltOperations.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/messaging/dlt/InventoryDltOperations.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/service/implement/InventoryServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/inventory-service/src/main/java/com/example/inventoryservice/service/implement/InventoryServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/implement/OrderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-service/src/main/java/com/example/orderservice/service/implement/OrderServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/client/OrderClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/client/OrderClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/repository/PaymentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/repository/PaymentRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/service/implement/PaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/payment-service/src/main/java/com/example/paymentservice/service/implement/PaymentServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/client/SellerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/client/SellerClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/CustomAccessDeniedHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/CustomAccessDeniedHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/CustomAuthenticationEntryPoint.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/CustomAuthenticationEntryPoint.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/CustomJwtDecoder.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/CustomJwtDecoder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/KafkaConsumerConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/KafkaConsumerConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/ProductRedisCacheConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/ProductRedisCacheConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/SecurityConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/configuration/SecurityConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/service/implement/CategoryServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/service/implement/CategoryServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/service/implement/ProductServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/main/java/com/example/productservice/service/implement/ProductServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/product-service/src/test/java/com/example/productservice/service/implement/ProductServiceImplShopSuspensionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/src/test/java/com/example/productservice/service/implement/ProductServiceImplShopSuspensionTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/entity/PromotionUsage.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/entity/PromotionUsage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/PromotionCampaignServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/PromotionCampaignServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/PromotionUsageServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/promotion-service/src/main/java/com/example/promotionservice/service/implement/PromotionUsageServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/entity/Shipment.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/entity/Shipment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/entity/ShipmentHistory.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/entity/ShipmentHistory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/OrderCancelledConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/OrderCancelledConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/ShipmentRequestedConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/messaging/consumer/ShipmentRequestedConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/service/implement/ShipmentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/shipping-service/src/main/java/com/example/shippingservice/service/implement/ShipmentServiceImpl.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
-  </component>
-  <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="945" />
   </component>
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$/ApiGatewayService">
@@ -53,12 +63,12 @@
     &quot;assignee&quot;: &quot;dangkhoi88x&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/dangkhoi88x/e-com-microNservice",
-    "accountId": "59baf105-7598-429f-8838-790c3c04119d"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/dangkhoi88x/e-com-microNservice/&quot;,
+    &quot;accountId&quot;: &quot;59baf105-7598-429f-8838-790c3c04119d&quot;
   }
-}]]></component>
+}</component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -66,65 +76,6 @@
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
-  </component>
-  <component name="NextEditCompletionFeaturesState">
-    <decayedCancelled>
-      <entry key="MS100" value="1.0013125598335162" />
-      <entry key="MS500" value="1.8676319630966045" />
-      <entry key="S2" value="5.755341241415612" />
-      <entry key="S5" value="8.982324031905268" />
-      <entry key="S10" value="10.996490200450276" />
-      <entry key="S30" value="12.855547279313765" />
-      <entry key="S60" value="13.407223342680162" />
-      <entry key="M2" value="13.698250596981708" />
-      <entry key="M5" value="13.877983786546453" />
-      <entry key="M10" value="13.938769950503794" />
-      <entry key="M15" value="13.959130456821118" />
-      <entry key="M30" value="13.979540426311123" />
-      <entry key="H1" value="13.989822120785252" />
-      <entry key="H2" value="14.013554094790484" />
-      <entry key="H4" value="14.332166410552572" />
-      <entry key="D1" value="17.70843866751759" />
-      <entry key="W1" value="19.60147255910116" />
-    </decayedCancelled>
-    <decayedSelected>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="0.0" />
-      <entry key="S2" value="0.0" />
-      <entry key="S5" value="0.0" />
-      <entry key="S10" value="0.0" />
-      <entry key="S30" value="0.0" />
-      <entry key="S60" value="1.490458867055358E-301" />
-      <entry key="M2" value="3.8606461467678656E-151" />
-      <entry key="M5" value="6.833827294049437E-61" />
-      <entry key="M10" value="8.26669661597027E-31" />
-      <entry key="M15" value="8.808216883594746E-21" />
-      <entry key="M30" value="9.385210111443829E-11" />
-      <entry key="H1" value="9.687729409641779E-6" />
-      <entry key="H2" value="0.003112511752530709" />
-      <entry key="H4" value="0.055789889339652815" />
-      <entry key="D1" value="0.6181481635339618" />
-      <entry key="W1" value="0.9335897681505854" />
-    </decayedSelected>
-    <decayedShown>
-      <entry key="MS100" value="0.18927729741102944" />
-      <entry key="MS500" value="1.5410059083017011" />
-      <entry key="S2" value="5.609488216599885" />
-      <entry key="S5" value="8.884659283942092" />
-      <entry key="S10" value="10.931886080582105" />
-      <entry key="S30" value="12.828701930741742" />
-      <entry key="S60" value="13.392982044594282" />
-      <entry key="M2" value="13.690911665428715" />
-      <entry key="M5" value="13.874993985893923" />
-      <entry key="M10" value="13.937265854643895" />
-      <entry key="M15" value="13.958125670975058" />
-      <entry key="M30" value="13.979037002875529" />
-      <entry key="H1" value="13.989579837829464" />
-      <entry key="H2" value="14.016540442773758" />
-      <entry key="H4" value="14.387892235782791" />
-      <entry key="D1" value="18.326574432560218" />
-      <entry key="W1" value="20.535060418243795" />
-    </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3,
@@ -204,30 +155,30 @@
         <entry key="SpringBootApplicationConfigurationType">
           <value>
             <map>
-              <entry key="ApiGatewayServiceApplication" value="FAILED" />
-              <entry key="CartServiceApplication" value="FAILED" />
+              <entry key="ApiGatewayServiceApplication" value="STOPPED" />
+              <entry key="CartServiceApplication" value="STOPPED" />
               <entry key="DiscoveryServerApplication" value="STOPPED" />
-              <entry key="InventoryServiceApplication" value="FAILED" />
+              <entry key="InventoryServiceApplication" value="STOPPED" />
               <entry key="MediaServiceApplication" value="FAILED" />
-              <entry key="MicroserviceEcomApplication" value="STOPPED" />
+              <entry key="MicroserviceEcomApplication" value="FAILED" />
               <entry key="NotificationServiceApplication" value="FAILED" />
-              <entry key="OrderServiceApplication" value="FAILED" />
-              <entry key="PaymentServiceApplication" value="FAILED" />
-              <entry key="ProductServiceApplication" value="FAILED" />
+              <entry key="OrderServiceApplication" value="STOPPED" />
+              <entry key="PaymentServiceApplication" value="STOPPED" />
+              <entry key="ProductServiceApplication" value="STOPPED" />
               <entry key="ProfileServiceApplication" value="FAILED" />
-              <entry key="PromotionServiceApplication" value="FAILED" />
+              <entry key="PromotionServiceApplication" value="STOPPED" />
               <entry key="ReviewServiceApplication" value="FAILED" />
               <entry key="SearchServiceApplication" value="FAILED" />
-              <entry key="SellerServiceApplication" value="FAILED" />
+              <entry key="SellerServiceApplication" value="STOPPED" />
               <entry key="ShippingServiceApplication" value="FAILED" />
-              <entry key="WishlistServiceApplication" value="FAILED" />
+              <entry key="WishlistServiceApplication" value="STOPPED" />
             </map>
           </value>
         </entry>
       </map>
     </option>
   </component>
-  <component name="RunManager" selected="Spring Boot.MicroserviceEcomApplication">
+  <component name="RunManager" selected="Spring Boot.CartServiceApplication">
     <configuration name="Notification" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="com.example.notificationservice.NotificationServiceApplication" />
       <method v="2">
@@ -247,6 +198,7 @@
       </method>
     </configuration>
     <configuration name="CartServiceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
       <module name="cart-service" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.cartservice.CartServiceApplication" />
       <extension name="coverage">
@@ -283,12 +235,8 @@
     <configuration name="MicroserviceEcomApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <envs>
         <env name="JWT_SECRET" value="c04dba851cb883f69e9524aec19e9df7c22463e30fadaaced0bdba25a6865c21" />
-        <env name="JWT_RSA_PRIVATE_KEY" value="LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tDQpNSUlHL1FJQkFEQU5CZ2txaGtpRzl3MEJBUUVGQUFTQ0J1Y3dnZ2JqQWdFQUFvSUJnUUNQSTQwUkNhaUQ5SEMxDQpkTDRrdEZVRWxOYmtvWHBLc2VlU255RUxIVmNybTRmWGxGVitDT2xhWEJ1S3M3U2JJNm5Fdnh5OVc4Q1dJMjB2DQp4Y2pHZkowdW94MEtkaXU1N01WVkx5bWltaHFwWkw2TElmZ1RxdEhCNHNwMVl5bnJnREIvSis2M1c3b0RGQmg3DQpod1ZrbGRha3p6T3VxQ1BONDBmQy9uSS84UjRXTkl0RXcxTU1KYjdlN01BaU1CRXdQQ0VmZExRNnU2OXRzUGZyDQpRUitoSHhENkhKM09ScUJVUFZaOWZxU0s1ejcyclBlRlNYMFgwUCtrTi9wbDkzL21lVlJZSHJVOVQrUzV5NGdDDQpobUUwb1BOOWpFOFVVbWRUVjZsOXp6YUhpeW9PWHUwSnN2c2h0cjJtcWFHd0RodjZoVVEzTG13cUxNYjF1VkZpDQp2MGxKRHE1WnBKdTgwaTFmNTZkNytRQTR2ZmtKWG82Ui9SOTVBM0M4ckRwdTVnT05Qc000NW1iWjMyZThHc1ZLDQo4RkpPMld1THd4c0NPVGRGL29iY2psR3ByRHhCYmVObXhKd1FwM3FuYW5WL3ljblkrY2k3dEJXSHVIeDY4OUJ4DQp5dmh3MStaWGhSRWdYaUhscWVVSXZjWjdjTU1jN1lCSmpIYXZMT05sWGw2aCtaTUsrR2tDQXdFQUFRS0NBWUFQDQp2VnFKT1pVb3NXdmxZQ2w2Y3NQNGhYOWQwNjNWWWR1emdVRUtibGNFQ2cyMWRHKzBOTG1vUUlHY3ptYjVPa0kwDQpTc21YdnV1ZDl0Wk9Ud0xsWkpXS0o5Q05NbkpiZHdBNS9qNG5UYWZKNGJTY0t3ZVM3aEV6cjBNUkJtNzVJUGIwDQpQSWxnNnpxNGxQQ2VRTG9rbGQ5czd3WGhXa2Jab0hqbkpjQ2RiRitoRkhVT0FpWnpLd0ZpbFFrSm1WeUNmOUlxDQptZFFwc3pLMnJxT01ZSFJnYk1DYXFDUG9KMWNBL0YreTNBYXU2WC9BYzBPaWlmS3grRDdzS1dXazZjTE1McUlnDQpGeGxiZ1NxSVZzTXRNNkxDWUFJWTdlUG15ZjVyaHNrWWRyZ0NqVTVSVUFDSVN6M21CbXMvaExjaUxLbTU2bmVCDQpxMU01ajlzMjR0aCtoVkI4T05URGJnbUY5ZmxNUU92OFRISmhiT3ljeEZQMGVQcDVlMEtGa3dTZG1kUXFQeCtHDQpSdnoyaDRkMUE2Q0IxN2t0ZDB1elBTa1JsMnYvYUliazh4QUhIZGtPVVRhU3N2VGl2THpTb1hhaWxtSVlYRmJDDQpWNGVmQ2JLcE5hd2FaZmR4VlZZYm9QWmVhTFJKa1VtdXYwRXl5ckhQZjNCSEdFZzQzWjlVdjhnWjc2NTdjMk1DDQpnY0VBdjZNK2VCTkM3WU5PUUJ6d3FCQnNwNFo1U3J4THlTNVZWUUdRNklBQ1N0WXJONTFXSElrRlhqNVk1MnVMDQp6bGVCaWdIY1BmcjVxRmM3SVpLTHJseFpjcXpyb3R1U045Rk5IckFxcTY0QXhKbXdKcEpxV0VkZFBKSERLaEUxDQp4U1EzYW9nSFNCMDdZMngwMUh2ZS9VTnVDcGVDUC94ZHBYTksxeDBXVjVPdG5YT3dXR3ZHNWEvK2dHS2sxN0wzDQpQOUczR1RQOXdNSnBzOVhRQXhvekxsWks4MWhuZEZKVEFwVkQxck5obng0RTlrTE9zQjhpV1dGcm5ROElMTVRlDQp3UmMzQW9IQkFMODJjWlNSbnVLRzhSanZuUDBUWU9HanNKSDZZZ2tMUllQTnBkdzlSQTNXaGdZcmhTNkVRMXdNDQpEdWJ4bTBETEZEYzkrUE9yV24vZ3Jkc1dTaUpIVE1hYzJ5TmdpN0lmcitvMVpYOHBjRlRLejZZZkt6RU1wTERYDQpGcjlSZHN5NnNiSUp5SXBueU1FNU9tZFpaZ3RBRnF2Mm1qM2xNVmMwYkF6Qy9XV2FUUE9sbnpYZHB1ak14QTZDDQpXQWpvWXhCSmNGNldRc2FsM3p5THhxSVhMREk2QXZHSnBVV082eG5OUlpqUDhTaXoxN1FQSlBYdGwrNWJIaTNWDQpBQW9LQ3g3OVh3S0J3UUM3WGxPOHVUQnQ0ejBGNklYUC9NY1BnS1prMFBmVVN1MzV3Qjg3ZzdVNkVHNk80TkdKDQo4dHFCeTduSEF0cmRzNmNmRlRTT2tTMjZUeGVzZW9rQndKOWdSUHZhN28zbTcwaFU0ZS9HamNtSWI2L1A5c1h0DQpiRkVYNEhpT1QrZGZ5a280YWFtYzg1L1dWUHRocVg5YjVxclh4a3orWExQL0NWdTZPV0ZYM1RjWnhEdytKNXAvDQpoblR5ZUFBdU9YZ1BPTytwdjdDeDRDUFRSaEVzaDFoVlROL1pUNjFQQ1JMS2FzQzZVZ2IzdVRVbXhpa3FBRGJvDQpaeHo5b2UzZlA5bC90ejhDZ2NCQ04vQ05xd0NESW9oTVFtN3psY3B2V2VqRUpSbmVWL0R5L0R6OFVKdEl6NG9LDQppUGZPYkMrSHFRVmdKVHZHN0kxTHRFS0s0RVN2RkhnZzcwOHRIOVFPMUROdnhQZWI4QzFUeHJvbmw0bzNVeVVtDQpPcFVTbjNaSlo3T1EvZjFPV1RsQWx2TEVPN3ppYlpjMFExbDdlKzVlRDBETFBwd2Z2eC9NSzVybG5OSVpicm44DQpSWTZRQUpuRkRJN0FSdnBIb2Fjd21vajFrbXdFNDhNZVR6Z1hETkFJSmNyK2s4Z0hYM2RDdklDZnYraHJpdk1aDQoxL1pOclhCK0hzMnNyRjI5bGJFQ2djQlBuYjhCWEZocUJVVVk5TmlRQksrZ1Jva0NuaFZYTzI3cFlWWkNVQWd3DQpnQ2kwUU5CeEdoT0FMWkFLeUgrUTIxNXZzVjZUaW8zK0c5UytQa1hZUUo5aXdqWkRBVXZPaUZKSWczY2UrclRRDQpLdWtMZ1pSS2o5Nk5oZU1YcTJKZ1Q3dnE1Qk5XMUdCclk4UHY0cnRCdFAxYll2Z3VBVUc4bmhKK0dWRC9UMjFRDQpScTZsdExJd0JrVURMSFhFeUF3QmJqdzFYWDU2ZERPNkdlWlBIcENtcGJyUnhvYS9kNHkvN3JxMVRVaWY3ZHpGDQoxWGdiL3YxQzFiaHIwTWNsZmNLVlVQRT0NCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0NCg==" />
-        <env name="JWT_RSA_KEY_ID" value="identity-rs256-v1" />
-        <env name="JWT_ISSUER" value="http://localhost:8090" />
-        <env name="JWT_AUDIENCE" value="novashop-api" />
-        <env name="JWT_JWK_SET_URI" value="http://localhost:8090/identity/api/.well-known/jwks.json" />
       </envs>
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
       <module name="Microservice-ecom" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.microserviceecom.MicroserviceEcomApplication" />
       <extension name="coverage">
@@ -429,10 +377,10 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Spring Boot.SearchServiceApplication" />
         <item itemvalue="Spring Boot.ProfileServiceApplication" />
         <item itemvalue="Spring Boot.PaymentServiceApplication" />
         <item itemvalue="Spring Boot.OrderServiceApplication" />
-        <item itemvalue="Spring Boot.SearchServiceApplication" />
         <item itemvalue="Spring Boot.CartServiceApplication" />
       </list>
     </recent_temporary>
@@ -440,8 +388,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-63390994e64e-intellij.indexing.shared.core-IU-262.8665.337" />
-        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.8665.337" />
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.32098.37" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.32098.37" />
       </set>
     </attachedChunks>
   </component>
@@ -453,7 +401,15 @@
       <option name="presentableId" value="Default" />
       <updated>1784445749626</updated>
       <workItem from="1784722963141" duration="572000" />
-      <workItem from="1785125125487" duration="12450000" />
+      <workItem from="1785125125487" duration="13227000" />
+      <workItem from="1785157250183" duration="41000" />
+      <workItem from="1785211526006" duration="3007000" />
+      <workItem from="1785247995590" duration="2130000" />
+      <workItem from="1785473780852" duration="15370000" />
+      <workItem from="1785509321359" duration="5665000" />
+      <workItem from="1785562205480" duration="11054000" />
+      <workItem from="1785598089803" duration="1809000" />
+      <workItem from="1785647158089" duration="48000" />
     </task>
     <task id="LOCAL-00001" summary="lazy-load các trang Admin/Seller/Shipper.phan trang">
       <option name="closed" value="true" />
@@ -463,16 +419,62 @@
       <option name="project" value="LOCAL" />
       <updated>1785133422738</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="aws s3, flow check out cod fixed">
+      <option name="closed" value="true" />
+      <created>1785144869092</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1785144869092</updated>
+    </task>
+    <task id="LOCAL-00003" summary="aws s3, flow check out cod fixed">
+      <option name="closed" value="true" />
+      <created>1785157264478</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1785157264478</updated>
+    </task>
+    <task id="LOCAL-00004" summary="retry, circuit breaker">
+      <option name="closed" value="true" />
+      <created>1785215161203</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1785215161203</updated>
+    </task>
+    <task id="LOCAL-00005" summary="healthcheck,devops">
+      <option name="closed" value="true" />
+      <created>1785221194308</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1785221194308</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="backend - promotion service 9/10" />
     <MESSAGE value="lazy-load các trang Admin/Seller/Shipper.phan trang" />
-    <MESSAGE value="retry Admin/Seller/Shipper" />
-    <option name="LAST_COMMIT_MESSAGE" value="retry Admin/Seller/Shipper" />
+    <MESSAGE value="aws s3, flow check out cod fixed" />
+    <MESSAGE value="retry, circuit breaker" />
+    <MESSAGE value="healthcheck,devops" />
+    <MESSAGE value="fix refresh token" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix refresh token" />
   </component>
 </project>

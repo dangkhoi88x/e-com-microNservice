@@ -24,13 +24,14 @@ public class ProductRedisCacheConfiguration {
     RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory, ObjectMapper objectMapper) {
         JavaType categoryListType = objectMapper.getTypeFactory()
                 .constructCollectionType(List.class, CategoryDetailResponse.class);
+        //Danh sách category được chuyển thành JSON trước khi lưu Redis.
         JacksonJsonRedisSerializer<Object> categoryListSerializer =
                 new JacksonJsonRedisSerializer<Object>(objectMapper, categoryListType);
-
+    //Cấu hình mặc định
         RedisCacheConfiguration defaults = RedisCacheConfiguration.defaultCacheConfig()
                 .disableCachingNullValues()
                 .computePrefixWith(cacheName -> "product-service:" + cacheName + "::");
-
+        //TTL
         RedisCacheConfiguration categoryListConfig = defaults
                 .entryTtl(Duration.ofMinutes(30))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(categoryListSerializer));

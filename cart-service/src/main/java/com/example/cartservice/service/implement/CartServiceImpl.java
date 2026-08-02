@@ -3,7 +3,6 @@ package com.example.cartservice.service.implement;
 import com.example.cartservice.client.ProductClient;
 import com.example.cartservice.dto.request.AddCartItemRequest;
 import com.example.cartservice.dto.request.UpdateCartItemRequest;
-import com.example.cartservice.dto.response.CartItemResponse;
 import com.example.cartservice.dto.response.CartResponse;
 import com.example.cartservice.dto.response.ProductSnapshot;
 import com.example.cartservice.entity.Cart;
@@ -11,6 +10,7 @@ import com.example.cartservice.entity.CartItem;
 import com.example.cartservice.enums.CartStatus;
 import com.example.cartservice.exception.CartServiceException;
 import com.example.cartservice.exception.ErrorCode;
+import com.example.cartservice.mapper.CartMapper;
 import com.example.cartservice.repository.CartItemRepository;
 import com.example.cartservice.repository.CartRepository;
 import com.example.cartservice.service.CartService;
@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import java.util.Set;
@@ -29,26 +28,30 @@ import com.example.cartservice.dto.response.CheckoutCartItemResponse;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class CartServiceImpl implements CartService {
+    public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductClient productClient;
+    private final CartMapper cartMapper;
 
     @Override
     public CartResponse getMyCart(String userId) {
-        return toCartResponse(findActiveCartOrCreate(userId));
+        return cartMapper.toResponse(findActiveCartOrCreate(userId));
     }
 
     @Override
     public CartResponse addItem(String userId, AddCartItemRequest request) {
+        //lấy cart
         Cart cart = findActiveCartOrCreate(userId);
+        //lấy thông tin thật từ Product Service
         ProductSnapshot snapshot = productClient.getSnapshot(request);
-
+    //tìm item trùng Không có item trùng → item = null
+        //Có item trùng       → lấy item đầu tiên
         List<CartItem> matchingItems = cartItemRepository
                 .findAllByCartIdAndProductIdAndVariantId(cart.getId(), request.productId(), request.variantId());
         CartItem item = matchingItems.isEmpty() ? null : matchingItems.getFirst();
-
+        //chưa có item thì tạo mới
         if (item == null) {
             item = CartItem.builder()
                     .cart(cart)
@@ -63,6 +66,7 @@ public class CartServiceImpl implements CartService {
                     .build();
             cart.getItems().add(item);
         } else {
+            //đã có item thì cộng quantity
             int existingQuantity = matchingItems.stream()
                     .mapToInt(CartItem::getQuantity)
                     .sum();
@@ -71,14 +75,15 @@ public class CartServiceImpl implements CartService {
             item.setVariantName(snapshot.variantName());
             item.setPriceSnapshot(snapshot.price());
             item.setImageUrl(snapshot.imageUrl());
+            //Xử lý item trùng trong database
             matchingItems.stream()
                     .skip(1)
                     .forEach(duplicate -> cart.getItems().remove(duplicate));
         }
 
-        return toCartResponse(cartRepository.save(cart));
+        return cartMapper.toResponse(cartRepository.save(cart));
     }
-
+    //để đổi quantity hoặc trạng thái selected.
     @Override
     public CartResponse updateItem(String userId, String itemId, UpdateCartItemRequest request) {
         Cart cart = findActiveCartOrCreate(userId);
@@ -90,7 +95,7 @@ public class CartServiceImpl implements CartService {
             item.setSelected(request.selected());
         }
 
-        return toCartResponse(cartRepository.save(cart));
+        return cartMapper.toResponse(cartRepository.save(cart));
     }
 
     @Override
@@ -115,33 +120,31 @@ public class CartServiceImpl implements CartService {
         return findActiveCartOrCreate(userId).getItems().stream()
                 .filter(item -> Boolean.TRUE.equals(item.getSelected()))
                 .filter(item -> item.getCheckoutOrderId() == null)
-                .map(item -> new CheckoutCartItemResponse(item.getId().toString(), item.getProductId(), item.getVariantId(), item.getQuantity()))
+                .map(cartMapper::toCheckoutItemResponse)
                 .toList();
     }
-
+    //khóa những cart item đã được dùng để tạo order.
     @Override
     public void markCheckout(String userId, CartCheckoutRequest request) {
         Cart cart = findActiveCartOrCreate(userId);
+        //Dùng Set để loại ID trùng
         Set<String> ids = new HashSet<>(request.itemIds());
+        //Tìm item thuộc cart
         List<CartItem> items = cart.getItems().stream().filter(item -> ids.contains(item.getId().toString())).toList();
+        //Kiểm tra request hợp lệ
         if (items.size() != ids.size() || items.stream().anyMatch(item -> !Boolean.TRUE.equals(item.getSelected()) || item.getCheckoutOrderId() != null)) {
             throw new CartServiceException(ErrorCode.FORBIDDEN);
         }
+        //Khóa item
         items.forEach(item -> item.setCheckoutOrderId(request.orderId()));
         cartRepository.save(cart);
     }
-
+    //checkout thành công và caller biết user ID
+    // overload Tìm cart của user trước, sau đó xóa item trong cart. Tìm cart của user trước, sau đó xóa item trong cart
     @Override
     public void finalizeCheckout(String userId, String orderId) {
         Cart cart = findActiveCartOrCreate(userId);
-        cart.getItems().removeIf(item -> orderId.equals(item.getCheckoutOrderId()));
-        cartRepository.save(cart);
-    }
-
-    @Override
-    public void releaseCheckout(String userId, String orderId) {
-        Cart cart = findActiveCartOrCreate(userId);
-        cart.getItems().stream().filter(item -> orderId.equals(item.getCheckoutOrderId())).forEach(item -> item.setCheckoutOrderId(null));
+        cart.getItems().removeIf(item -> orderId.equals(item.getCheckoutOrderId())); //Chỉ xóa item được khóa bởi order đó.
         cartRepository.save(cart);
     }
 
@@ -149,6 +152,7 @@ public class CartServiceImpl implements CartService {
      * Payment events carry an order id, not a cart owner. An empty result is
      * deliberately successful so duplicate events cannot delete items twice.
      */
+    //o internal flow khi caller chỉ có order ID.
     @Override
     public void finalizeCheckout(String orderId) {
         List<CartItem> items = cartItemRepository.findByCheckoutOrderId(orderId);
@@ -156,6 +160,14 @@ public class CartServiceImpl implements CartService {
             return;
         }
         cartItemRepository.deleteAll(items);
+    }
+
+    //quá trình tạo order/checkout thất bại
+    @Override
+    public void releaseCheckout(String userId, String orderId) {
+        Cart cart = findActiveCartOrCreate(userId);
+        cart.getItems().stream().filter(item -> orderId.equals(item.getCheckoutOrderId())).forEach(item -> item.setCheckoutOrderId(null));
+        cartRepository.save(cart);
     }
 
     /** Idempotently unlocks only the cart items associated with this order. */
@@ -192,48 +204,4 @@ public class CartServiceImpl implements CartService {
         }
     }
 
-    private CartResponse toCartResponse(Cart cart) {
-        List<CartItemResponse> items = cart.getItems().stream()
-                .map(this::toCartItemResponse)
-                .toList();
-
-        BigDecimal totalAmount = items.stream()
-                .filter(item -> Boolean.TRUE.equals(item.selected()))
-                .map(CartItemResponse::subtotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        int totalItems = items.stream()
-                .filter(item -> Boolean.TRUE.equals(item.selected()))
-                .mapToInt(CartItemResponse::quantity)
-                .sum();
-
-        return CartResponse.builder()
-                .id(cart.getId().toString())
-                .userId(cart.getUserId())
-                .status(cart.getStatus())
-                .items(items)
-                .totalItems(totalItems)
-                .totalAmount(totalAmount)
-                .createdAt(cart.getCreatedAt())
-                .updatedAt(cart.getUpdatedAt())
-                .build();
-    }
-
-    private CartItemResponse toCartItemResponse(CartItem item) {
-        BigDecimal subtotal = item.getPriceSnapshot()
-                .multiply(BigDecimal.valueOf(item.getQuantity()));
-
-        return CartItemResponse.builder()
-                .id(item.getId().toString())
-                .productId(item.getProductId())
-                .variantId(item.getVariantId())
-                .productName(item.getProductName())
-                .variantName(item.getVariantName())
-                .price(item.getPriceSnapshot())
-                .imageUrl(item.getImageUrl())
-                .quantity(item.getQuantity())
-                .selected(item.getSelected())
-                .subtotal(subtotal)
-                .build();
-    }
 }
