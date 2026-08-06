@@ -2,3 +2,9 @@
 .env.*
 !.env.example
 *.pem
+
+# IntelliJ IDEA project state
+.idea/
+
+# JavaScript dependencies generated locally
+node_modules/

@@ -1,6 +1,7 @@
 package com.example.orderservice.client;
 
 import com.example.orderservice.dto.response.PromotionCalculationResponse;
+import com.example.orderservice.configuration.TraceIdWebClientFilter;
 import com.example.orderservice.exception.ErrorCode;
 import com.example.orderservice.exception.OrderServiceException;
 import lombok.RequiredArgsConstructor;
@@ -99,7 +100,7 @@ public class PromotionClient {
 
     private WebClient client() {
         return promotionServiceBaseUrl.startsWith("http://localhost")
-                ? WebClient.builder().build()
+                ? WebClient.builder().filter(TraceIdWebClientFilter.propagateTraceId()).build()
                 : webClientBuilder.build();
     }
 

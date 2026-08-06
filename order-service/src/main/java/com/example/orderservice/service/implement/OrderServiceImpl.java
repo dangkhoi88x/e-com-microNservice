@@ -210,6 +210,14 @@ public class OrderServiceImpl implements OrderService {
             //Chuyển sang chờ thanh toán
             savedOrder.setStatus(OrderStatus.PENDING_PAYMENT);
             Order reservedOrder = orderRepository.save(savedOrder);
+            log.info("Order created: orderId={}, orderCode={}, userId={}, sellerId={}, itemCount={}, totalAmount={}, status={}",
+                    reservedOrder.getId(),
+                    reservedOrder.getOrderCode(),
+                    reservedOrder.getUserId(),
+                    reservedOrder.getSellerId(),
+                    reservedOrder.getItems().size(),
+                    reservedOrder.getTotalAmount(),
+                    reservedOrder.getStatus());
             //event
             publishOrderStatusUpdatedEvent(reservedOrder, oldStatus);
             publishOrderCreatedEvent(reservedOrder);
