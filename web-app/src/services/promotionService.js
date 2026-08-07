@@ -71,6 +71,8 @@ export const getLiveLongTermSales = async () => getWithRetry(API.LONG_TERM_SALES
 export const getUpcomingFlashDeals = async () => getWithRetry(API.FLASH_DEALS_UPCOMING);
 export const getFlashDealNotificationSubscriptions = async () => (await httpClient.get(API.FLASH_DEAL_NOTIFICATION_SUBSCRIPTIONS)).data?.data || [];
 export const subscribeFlashDealNotification = async (flashDealId) => { await httpClient.post(`${API.FLASH_DEALS}/${flashDealId}/notifications`); };
+export const getGeneralFlashSaleNotificationSubscription = async () => Boolean((await httpClient.get(API.FLASH_DEAL_GENERAL_NOTIFICATION_SUBSCRIPTION)).data?.data);
+export const subscribeGeneralFlashSaleNotification = async () => { await httpClient.post(API.FLASH_DEAL_GENERAL_NOTIFICATION_SUBSCRIPTION); };
 export const createFlashDeal = async (payload) => (await httpClient.post(API.FLASH_DEALS, payload)).data?.data;
 export const updateFlashDeal = async (id, payload) => (await httpClient.put(`${API.FLASH_DEALS}/${id}`, payload)).data?.data;
 export const deleteFlashDeal = async (id) => { await httpClient.delete(`${API.FLASH_DEALS}/${id}`); };

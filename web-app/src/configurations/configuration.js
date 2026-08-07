@@ -36,6 +36,7 @@ export const API = {
   LONG_TERM_SALES_LIVE: "/api/v1/flash-deals/long-term/live",
   FLASH_DEALS_UPCOMING: "/api/v1/flash-deals/upcoming",
   FLASH_DEAL_NOTIFICATION_SUBSCRIPTIONS: "/api/v1/flash-deals/notification-subscriptions",
+  FLASH_DEAL_GENERAL_NOTIFICATION_SUBSCRIPTION: "/api/v1/flash-deals/notifications/general",
   MY_NOTIFICATIONS: "/notification/api/v1/notifications/my-notifications",
   ADMIN_NOTIFICATIONS: "/notification/api/v1/notifications/admin",
   SEARCH_PRODUCTS: "/api/v1/search/products",

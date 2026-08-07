@@ -43,14 +43,14 @@ export default function ShopHotDeals() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([searchInStock({ size: 16 }), getCategories()])
+    Promise.allSettled([searchInStock({ size: 16 }), getCategories()])
       .then(async ([featuredResult, categoryResult]) => {
-        const categoryList = (categoryResult || []).slice(0, 10);
-        const results = await Promise.all(categoryList.map((category) => searchInStock({ categoryId: category.id })));
+        const categoryList = categoryResult.status === "fulfilled" ? (categoryResult.value || []).slice(0, 10) : [];
+        const results = await Promise.allSettled(categoryList.map((category) => searchInStock({ categoryId: category.id })));
         if (!active) return;
-        setFeatured(featuredResult.content || []);
+        setFeatured(featuredResult.status === "fulfilled" ? featuredResult.value.content || [] : []);
         setCategories(categoryList);
-        setCategoryDeals(Object.fromEntries(categoryList.map((category, index) => [category.id, results[index].content || []])));
+        setCategoryDeals(Object.fromEntries(categoryList.map((category, index) => [category.id, results[index].status === "fulfilled" ? results[index].value.content || [] : []])));
       })
       .catch(() => { if (active) { setFeatured([]); setCategories([]); setCategoryDeals({}); } })
       .finally(() => { if (active) setLoading(false); });

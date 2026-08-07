@@ -230,7 +230,7 @@ public class OrderServiceImpl implements OrderService {
                 safeReleasePromotion(savedOrder);
             }
             if (flashDealsReserved) safeReleaseFlashDeals(savedOrder);
-            savedOrder.setStatus(inventoryReserved && hasPromotion(savedOrder.getPromotionCode())
+            savedOrder.setStatus(inventoryReserved
                     ? OrderStatus.PROMOTION_FAILED
                     : OrderStatus.INVENTORY_FAILED);
             Order failedOrder = orderRepository.save(savedOrder);

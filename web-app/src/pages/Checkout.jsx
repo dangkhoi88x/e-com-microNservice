@@ -129,6 +129,9 @@ export default function Checkout() {
         campaignCode: couponApplied ? coupon : null,
       });
       if (order?.status !== "PENDING_PAYMENT") {
+        if (order?.status === "PROMOTION_FAILED") {
+          throw new Error("Không thể giữ ưu đãi/Flash Sale lúc này. Vui lòng thử lại sau.");
+        }
         throw new Error(order?.status === "INVENTORY_FAILED"
           ? "Một số sản phẩm không còn đủ tồn kho. Vui lòng điều chỉnh giỏ hàng rồi thử lại."
           : "Đơn hàng chưa sẵn sàng để thanh toán. Vui lòng thử lại sau.");

@@ -1,10 +1,6 @@
 spring:
   config:
-    import:
-      - optional:file:.env.example[.properties]
-      - optional:file:../.env.example[.properties]
-      - optional:file:.env.dev[.properties]
-      - optional:file:../.env.dev[.properties]
+    import: optional:file:Microservice-ecom/.env.dev[.properties]
   datasource:
     url: jdbc:postgresql://localhost:5433/identity-service
     driver-class-name: org.postgresql.Driver

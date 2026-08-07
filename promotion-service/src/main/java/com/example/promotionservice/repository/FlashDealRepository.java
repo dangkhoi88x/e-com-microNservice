@@ -14,6 +14,7 @@ public interface FlashDealRepository extends JpaRepository<FlashDeal, UUID> {
     List<FlashDeal> findAllByOrderByStartAtDesc();
     List<FlashDeal> findAllBySellerIdOrderByStartAtDesc(String sellerId);
     List<FlashDeal> findAllByStatusOrderByStartAtAsc(FlashDealStatus status);
+    List<FlashDeal> findAllByStatusAndStartAtAfterAndStartAtLessThanEqual(FlashDealStatus status, Instant after, Instant before);
 
     @Modifying
     @Query("update FlashDeal deal set deal.status = com.example.promotionservice.entity.FlashDealStatus.ENDED where deal.status in (com.example.promotionservice.entity.FlashDealStatus.SCHEDULED, com.example.promotionservice.entity.FlashDealStatus.LIVE) and deal.endAt <= :now")

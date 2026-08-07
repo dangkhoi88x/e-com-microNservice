@@ -38,6 +38,7 @@ const tabs = [
   { key: "CANCELLED", label: "Đã huỷ" },
 ];
 const statusInfo = {
+  PROMOTION_FAILED: ["Không thể giữ ưu đãi", "failed"],
   PENDING: ["Đang xử lý", "pending"],
   PENDING_PAYMENT: ["Chờ thanh toán", "payment"],
   INVENTORY_FAILED: ["Tạm hết hàng", "failed"],
@@ -338,7 +339,8 @@ export default function CustomerOrders() {
             <h2>#{detail.orderCode || detail.id.slice(0, 8).toUpperCase()}</h2>
             <div className="order-timeline">
               {detail.status === "CANCELLED" ||
-              detail.status === "INVENTORY_FAILED" ? (
+              detail.status === "INVENTORY_FAILED" ||
+              detail.status === "PROMOTION_FAILED" ? (
                 <div className="order-timeline-failed">
                   <XCircle size={20} />
                   {statusInfo[detail.status]?.[0]}

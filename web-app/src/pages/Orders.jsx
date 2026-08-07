@@ -75,6 +75,7 @@ const statusColor = (status) => {
     case "PENDING_PAYMENT":
       return "warning";
     case "INVENTORY_FAILED":
+    case "PROMOTION_FAILED":
       return "error";
     case "CONFIRMED":
       return "info";
@@ -112,7 +113,7 @@ const fulfillmentSteps = [
 ];
 
 const getFulfillmentStep = (status) => {
-  if (["PENDING", "PENDING_PAYMENT", "INVENTORY_FAILED"].includes(status)) return 0;
+  if (["PENDING", "PENDING_PAYMENT", "INVENTORY_FAILED", "PROMOTION_FAILED"].includes(status)) return 0;
   if (status === "CONFIRMED") return 1;
   if (status === "SHIPPING") return 2;
   if (status === "COMPLETED") return 3;
@@ -120,6 +121,7 @@ const getFulfillmentStep = (status) => {
 };
 
 const statusLabel = (status) => ({
+  PROMOTION_FAILED: "Không thể giữ ưu đãi",
   PENDING: "Chờ xử lý",
   PENDING_PAYMENT: "Chờ thanh toán",
   INVENTORY_FAILED: "Không đủ tồn kho",

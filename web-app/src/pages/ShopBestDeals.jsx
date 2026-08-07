@@ -39,13 +39,12 @@ export default function ShopBestDeals() {
   const [inStock, setInStock] = useState(false);
 
   useEffect(() => {
-    Promise.all([getProducts({ page: 1, size: 100 }), getCategories(), getActiveProductSales()])
+    Promise.allSettled([getProducts({ page: 1, size: 100 }), getCategories(), getActiveProductSales()])
       .then(([products, categoryData, dealData]) => {
-        setCatalog(products.content || []);
-        setCategories(categoryData || []);
-        setDeals(dealData || []);
+        if (products.status === "fulfilled") setCatalog(products.value.content || []);
+        if (categoryData.status === "fulfilled") setCategories(categoryData.value || []);
+        if (dealData.status === "fulfilled") setDeals(dealData.value || []);
       })
-      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
   useEffect(() => {

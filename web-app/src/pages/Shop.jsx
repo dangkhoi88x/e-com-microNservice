@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddShoppingCartOutlinedIcon from "@mui/icons-material/AddShoppingCartOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
@@ -23,7 +23,7 @@ import { getProducts } from "../services/productService";
 import { loadWishlist, toggleWishlist } from "../services/wishlistService";
 import { addCartItem, getMyCart, removeCartItem, updateCartItem } from "../services/cartService";
 import { isAuthenticated } from "../services/authenticationService";
-import { getActiveProductSales, getFlashDealNotificationSubscriptions, getLiveFlashDeals, getUpcomingFlashDeals, subscribeFlashDealNotification } from "../services/promotionService";
+import { getActiveProductSales, getFlashDealNotificationSubscriptions, getGeneralFlashSaleNotificationSubscription, getLiveFlashDeals, getUpcomingFlashDeals, subscribeFlashDealNotification, subscribeGeneralFlashSaleNotification } from "../services/promotionService";
 import ShopStoreHeader from "../components/ShopStoreHeader";
 import "./Shop.css";
 import "./ShopDense.css";
@@ -70,9 +70,10 @@ const recommendFromCategories = (products, limit = 12, perCategory = 3) => {
 };
 function ProductImage({ product }) { const source = productImageUrl(product); const [failed, setFailed] = useState(!source); return failed ? <div className="shop-product-placeholder" aria-label="Ảnh sản phẩm NovaShop">N</div> : <img src={source} alt={product.name} onError={() => setFailed(true)} />; }
 
-function ShopFlashSale({ products, deals, upcomingDeals, notifiedIds, onNotify, onOpen }) {
-  const [now, setNow] = useState(() => new Date()); const [start, setStart] = useState(0); const [notified, setNotified] = useState(false);
+function ShopFlashSale({ products, deals, upcomingDeals, notifiedIds, generalNotificationSubscribed, onNotify, onGeneralNotify, onOpen }) {
+  const [now, setNow] = useState(() => new Date()); const [start, setStart] = useState(0); const notified = generalNotificationSubscribed;
   useEffect(() => { if (!deals.length && !upcomingDeals.length) return undefined; const timer = window.setInterval(() => setNow(new Date()), 1000); return () => window.clearInterval(timer); }, [deals.length, upcomingDeals.length]);
+  const setNotified = onGeneralNotify;
   const live = deals.length > 0; const upcoming = !live && upcomingDeals.length > 0; const targetAt = live ? deals.map((deal) => new Date(deal.endAt)).sort((a, b) => a - b)[0] : upcoming ? upcomingDeals.map((deal) => new Date(deal.startAt)).sort((a, b) => a - b)[0] : null;
   const countdown = useMemo(() => { if (!targetAt) return []; const seconds = Math.max(0, Math.floor((targetAt.getTime() - now.getTime()) / 1000)); return [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60].map((item) => String(item).padStart(2, "0")); }, [now, targetAt]);
   const dealProducts = deals.flatMap((deal) => (deal.items || []).map((item) => ({ deal, item, product: products.find((product) => product.id === item.productId) }))).filter((entry) => entry.product);
@@ -90,6 +91,7 @@ export default function Shop() {
   const [activeSales, setActiveSales] = useState([]);
   const [upcomingFlashDeals, setUpcomingFlashDeals] = useState([]);
   const [flashNotificationIds, setFlashNotificationIds] = useState(() => new Set());
+  const [generalFlashSaleNotificationSubscribed, setGeneralFlashSaleNotificationSubscribed] = useState(false);
   const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
@@ -97,10 +99,28 @@ export default function Shop() {
   const [wishlistPendingIds, setWishlistPendingIds] = useState(() => new Set());
   const [wishlistNotice, setWishlistNotice] = useState("");
 
-  useEffect(() => { Promise.all([getProducts({ page: 1, size: 100 }), getCategories()]).then(([productData, categoryData]) => { setProducts(productData.content || []); setCategories(categoryData || []); }).catch(() => {}); }, []);
+  useEffect(() => {
+    Promise.allSettled([getProducts({ page: 1, size: 100 }), getCategories()]).then(([productResult, categoryResult]) => {
+      if (productResult.status === "fulfilled") setProducts(productResult.value.content || []);
+      if (categoryResult.status === "fulfilled") setCategories(categoryResult.value || []);
+    });
+  }, []);
   useEffect(() => { getLiveFlashDeals().then(setFlashDeals).catch(() => {}); getActiveProductSales().then(setActiveSales).catch(() => {}); getUpcomingFlashDeals().then(setUpcomingFlashDeals).catch(() => {}); }, []);
-  useEffect(() => { if (isAuthenticated()) getFlashDealNotificationSubscriptions().then((ids) => setFlashNotificationIds(new Set(ids))).catch(() => {}); }, []);
+  useEffect(() => {
+    if (!isAuthenticated()) return;
+    Promise.allSettled([getFlashDealNotificationSubscriptions(), getGeneralFlashSaleNotificationSubscription()])
+      .then(([dealSubscriptions, generalSubscription]) => {
+        if (dealSubscriptions.status === "fulfilled") {
+          setFlashNotificationIds(new Set(dealSubscriptions.value));
+        }
+        if (generalSubscription.status === "fulfilled") {
+          setGeneralFlashSaleNotificationSubscribed(generalSubscription.value);
+        }
+      })
+      .catch(() => {});
+  }, []);
   const notifyFlashSale = async (flashDealId) => { if (!isAuthenticated()) return navigate("/shop/login?redirect=/shop"); try { await subscribeFlashDealNotification(flashDealId); setFlashNotificationIds((ids) => new Set(ids).add(flashDealId)); } catch (error) { setWishlistNotice(error.response?.data?.message || "Không thể đăng ký thông báo Flash Sale."); } };
+  const notifyGeneralFlashSale = useCallback(async () => { if (!isAuthenticated()) { navigate("/shop/login?redirect=/shop"); return false; } try { await subscribeGeneralFlashSaleNotification(); setGeneralFlashSaleNotificationSubscribed(true); return true; } catch (error) { setWishlistNotice(error.response?.data?.message || "Không thể đăng ký thông báo Flash Sale."); return false; } }, [navigate]);
   useEffect(() => {
     const openProductDetail = (event) => {
       const card = event.target.closest(".shop-product-card");
@@ -181,7 +201,7 @@ export default function Shop() {
       <section id="best-deals"><div className="shop-section-head"><div><small>Được chọn cho bạn</small><h2>Ưu đãi tốt nhất</h2></div><button onClick={() => navigate("/shop/best-deals")}>Xem tất cả →</button></div><div className="shop-product-grid">{saleProducts.slice(0, 8).map((product) => <article className="shop-product-card" key={product.id}><div className="shop-product-media"><span>-{Math.round(product.discountPercent)}%</span><button type="button" className={wishlist.some((item) => item.productId === product.id) ? "is-wishlisted" : ""} disabled={wishlistLoading || wishlistPendingIds.has(product.id)} onClick={(event) => changeWishlist(event, product)} aria-label="Thêm hoặc xoá yêu thích"><FavoriteBorderOutlinedIcon /></button><ProductImage product={product} /></div><div className="shop-product-body"><small>{product.saleType === "LONG_TERM" ? "Sale dài hạn" : "Flash Sale"} · {product.categoryName || "Sản phẩm"}</small><h3>{product.name}</h3><strong>{formatPrice(product.salePrice)}</strong><del className="shop-product-original-price">{formatPrice(product.originalPrice)}</del><div><span><StarRoundedIcon /> 4.8</span><button onClick={() => addToCart(product)} aria-label={`Thêm ${product.name} vào giỏ`}><AddShoppingCartOutlinedIcon /></button></div></div></article>)}</div>{saleProducts.length === 0 && <div className="shop-empty">Chương trình giảm giá mới sẽ sớm được cập nhật.</div>}</section>
       <section className="shop-recommendations"><div className="shop-section-head"><div><small>Khám phá từ nhiều danh mục</small><h2>Gợi ý dành cho bạn</h2></div><button onClick={() => navigate("/shop/categories")}>Xem tất cả →</button></div><div className="shop-product-grid">{recommendedProducts.map((product) => <article className="shop-product-card" key={`recommended-${product.id}`}><div className="shop-product-media"><button type="button" className={wishlist.some((item) => item.productId === product.id) ? "is-wishlisted" : ""} disabled={wishlistLoading || wishlistPendingIds.has(product.id)} onClick={(event) => changeWishlist(event, product)} aria-label="Thêm hoặc xoá yêu thích"><FavoriteBorderOutlinedIcon /></button><ProductImage product={product} /></div><div className="shop-product-body"><small>{product.categoryName || "Sản phẩm"}</small><h3>{product.name}</h3><strong>{formatPrice(product.price)}</strong><div><span><StarRoundedIcon /> 4.8</span><button onClick={() => addToCart(product)} aria-label={`Thêm ${product.name} vào giỏ`}><AddShoppingCartOutlinedIcon /></button></div></div></article>)}</div>{recommendedProducts.length === 0 && <div className="shop-empty">Chưa có sản phẩm còn hàng để gợi ý.</div>}</section>
       <section className="shop-trust"><div><ShoppingBagOutlinedIcon /><p><b>Thanh toán an toàn</b>Bảo mật 100%</p></div><div><LocalOfferOutlinedIcon /><p><b>Đổi trả dễ dàng</b>Trong vòng 30 ngày</p></div><div><NotificationsNoneOutlinedIcon /><p><b>Hỗ trợ 24/7</b>Luôn sẵn sàng</p></div></section>
-      <ShopFlashSale products={products} deals={flashDeals} upcomingDeals={upcomingFlashDeals} notifiedIds={flashNotificationIds} onNotify={notifyFlashSale} onOpen={(product) => navigate(productUrl(product))} />
+      <ShopFlashSale products={products} deals={flashDeals} upcomingDeals={upcomingFlashDeals} notifiedIds={flashNotificationIds} generalNotificationSubscribed={generalFlashSaleNotificationSubscribed} onNotify={notifyFlashSale} onGeneralNotify={notifyGeneralFlashSale} onOpen={(product) => navigate(productUrl(product))} />
     </main>
     <aside className="shop-cart"><div className="shop-cart-card"><div className="shop-cart-head"><h3>Giỏ hàng ({cart.reduce((sum, item) => sum + item.quantity, 0)})</h3><CloseOutlinedIcon /></div>{cart.length === 0 ? <div className="shop-cart-empty"><ShoppingBagOutlinedIcon /><p>Giỏ hàng đang trống.</p><small>Thêm sản phẩm để xem tổng tiền.</small></div> : <><div>{cart.map((item) => <div className="shop-cart-line" key={item.id}><div>{imageUrl(item) ? <img src={imageUrl(item)} alt="" /> : <ShoppingBagOutlinedIcon />}</div><section><b>{item.productName}</b><small>{formatPrice(item.price)}</small><p><button onClick={() => updateQuantity(item, -1)}><RemoveOutlinedIcon /></button>{item.quantity}<button onClick={() => updateQuantity(item, 1)}><AddShoppingCartOutlinedIcon /></button></p></section><button onClick={() => removeFromCart(item.id)}><DeleteOutlineOutlinedIcon /></button></div>)}</div><div className="shop-cart-summary"><p><span>Tạm tính</span><b>{formatPrice(total)}</b></p><p><span>Vận chuyển</span><b>Miễn phí</b></p><p className="total"><span>Tổng cộng</span><b>{formatPrice(total)}</b></p><button onClick={() => navigate("/cart")}>Thanh toán ({cart.reduce((sum, item) => sum + item.quantity, 0)})</button></div></>}</div></aside>
   </div></>;

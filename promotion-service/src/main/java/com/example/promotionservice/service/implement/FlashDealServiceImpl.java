@@ -7,6 +7,7 @@ import com.example.promotionservice.repository.FlashDealRepository;
 import com.example.promotionservice.repository.FlashDealItemRepository;
 import com.example.promotionservice.repository.FlashDealReservationRepository;
 import com.example.promotionservice.repository.FlashDealNotificationSubscriptionRepository;
+import com.example.promotionservice.repository.GeneralFlashSaleNotificationSubscriptionRepository;
 import com.example.promotionservice.repository.FlashDealItemMetricProjection;
 import com.example.promotionservice.repository.FlashDealCampaignMetricProjection;
 import com.example.promotionservice.client.SellerProductOwnershipClient;
@@ -33,6 +34,7 @@ public class FlashDealServiceImpl implements FlashDealService {
     private final FlashDealItemRepository itemRepository;
     private final FlashDealReservationRepository reservationRepository;
     private final FlashDealNotificationSubscriptionRepository notificationSubscriptionRepository;
+    private final GeneralFlashSaleNotificationSubscriptionRepository generalNotificationSubscriptionRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final SellerProductOwnershipClient sellerProductOwnershipClient;
     @Override @Transactional @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.FLASH_DEALS_CACHE, allEntries = true) public FlashDealResponse create(CreateFlashDealRequest request) { return save(new FlashDeal(), request); }
@@ -111,7 +113,7 @@ public class FlashDealServiceImpl implements FlashDealService {
     @Scheduled(fixedDelayString = "${flash-deal.status-refresh-ms:60000}")
     @Transactional
     @CacheEvict(cacheNames = PromotionRedisCacheConfiguration.FLASH_DEALS_CACHE, allEntries = true)
-    public void refreshStatuses() { synchronizeStatuses(); notifyUpcomingSubscribers(); }
+    public void refreshStatuses() { synchronizeStatuses(); materializeGeneralNotificationSubscriptions(); notifyUpcomingSubscribers(); }
     private void synchronizeStatuses() { Instant now = Instant.now(); repository.markEnded(now); repository.markLive(now); }
     @Override @Transactional public void subscribeForNotification(String flashDealId, String userId) {
         FlashDeal deal = find(flashDealId);
@@ -119,6 +121,27 @@ public class FlashDealServiceImpl implements FlashDealService {
         if (!notificationSubscriptionRepository.existsByUserIdAndFlashDealId(userId, deal.getId())) notificationSubscriptionRepository.save(FlashDealNotificationSubscription.builder().userId(userId).flashDeal(deal).build());
     }
     @Override @Transactional(readOnly = true) public List<String> getNotificationSubscriptions(String userId) { return notificationSubscriptionRepository.findAllByUserId(userId).stream().map(subscription -> subscription.getFlashDeal().getId().toString()).toList(); }
+    @Override @Transactional public void subscribeForGeneralNotification(String userId) {
+        if (!generalNotificationSubscriptionRepository.existsByUserId(userId)) {
+            generalNotificationSubscriptionRepository.save(GeneralFlashSaleNotificationSubscription.builder().userId(userId).build());
+        }
+    }
+    @Override @Transactional(readOnly = true) public boolean hasGeneralNotificationSubscription(String userId) {
+        return generalNotificationSubscriptionRepository.existsByUserId(userId);
+    }
+    private void materializeGeneralNotificationSubscriptions() {
+        List<GeneralFlashSaleNotificationSubscription> generalSubscriptions = generalNotificationSubscriptionRepository.findAll();
+        if (generalSubscriptions.isEmpty()) return;
+
+        Instant now = Instant.now();
+        repository.findAllByStatusAndStartAtAfterAndStartAtLessThanEqual(FlashDealStatus.SCHEDULED, now, now.plusSeconds(15 * 60)).stream()
+                .filter(deal -> deal.effectiveSaleType() == SaleType.FLASH)
+                .forEach(deal -> generalSubscriptions.forEach(subscription -> {
+                    if (!notificationSubscriptionRepository.existsByUserIdAndFlashDealId(subscription.getUserId(), deal.getId())) {
+                        notificationSubscriptionRepository.save(FlashDealNotificationSubscription.builder().userId(subscription.getUserId()).flashDeal(deal).build());
+                    }
+                }));
+    }
     private void notifyUpcomingSubscribers() {
         Instant now = Instant.now();
         notificationSubscriptionRepository.findAllByNotifiedAtIsNullAndFlashDealStatusAndFlashDealStartAtAfterAndFlashDealStartAtLessThanEqual(FlashDealStatus.SCHEDULED, now, now.plusSeconds(15 * 60)).forEach(subscription -> {
