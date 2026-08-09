@@ -49,6 +49,7 @@ export default function ShopProductDetail() {
   const [catalogProducts, setCatalogProducts] = useState([]);
   const [selected, setSelected] = useState({});
   const [selectedVariantId, setSelectedVariantId] = useState("");
+  const [baseProductSelected, setBaseProductSelected] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState("");
   const [cartNotice, setCartNotice] = useState("");
@@ -68,6 +69,7 @@ export default function ShopProductDetail() {
         setActiveImage(firstImage(data) || "");
         setSelected({});
         setSelectedVariantId("");
+        setBaseProductSelected(true);
         setQuantity(1);
       })
       .catch(() => setProduct(null));
@@ -134,16 +136,19 @@ export default function ShopProductDetail() {
   const hasProductOptions = (product?.options || []).length > 0;
   const hasVariants = (product?.variants || []).length > 0;
   const variant = useMemo(() => {
+    if (baseProductSelected) return undefined;
     if (!hasProductOptions) {
       return (product?.variants || []).find((item) => item.id === selectedVariantId);
     }
+    const selectionComplete = (product?.options || []).every((option) => selected[option.name] != null);
+    if (!selectionComplete) return undefined;
     return (product?.variants || []).find((item) =>
       Object.entries(selected).every(
         ([key, value]) => item.attributes?.[key] === value,
       ),
     );
-  }, [hasProductOptions, product, selected, selectedVariantId]);
-  const variantSelectionRequired = hasVariants && !hasProductOptions && !selectedVariantId;
+  }, [baseProductSelected, hasProductOptions, product, selected, selectedVariantId]);
+  const variantSelectionRequired = hasVariants && !baseProductSelected && !variant;
   useEffect(() => {
     if (variant?.imageUrl) setActiveImage(variant.imageUrl);
   }, [variant?.id, variant?.imageUrl]);
@@ -204,7 +209,7 @@ export default function ShopProductDetail() {
   const saleRequiresVariantSelection =
     !selectedVariantSale && Boolean(activeSale?.variantId);
   const price = activeSale?.salePrice ?? originalPrice;
-  const stock = variantSelectionRequired ? 0 : variant?.quantity ?? product.quantity ?? 0;
+  const stock = variantSelectionRequired ? 0 : (baseProductSelected ? product.quantity : variant?.quantity) ?? 0;
   const add = async (goToCheckout = false) => {
     if (!isAuthenticated())
       return navigate(
@@ -312,15 +317,30 @@ export default function ShopProductDetail() {
       </nav>
       <section className="detail-layout">
         <aside className="detail-options">
-          {!hasProductOptions && hasVariants && (
+          {hasVariants && (
             <section>
-              <h3>Option</h3>
+              <h3>Phiên bản</h3>
               <div className="detail-option-values">
-                {product.variants.map((item) => (
+                <button
+                  type="button"
+                  className={baseProductSelected ? "selected" : ""}
+                  onClick={() => {
+                    setBaseProductSelected(true);
+                    setSelected({});
+                    setSelectedVariantId("");
+                    setActiveImage(firstImage(product) || "");
+                    setQuantity(1);
+                  }}
+                >
+                  Sản phẩm gốc
+                </button>
+                {!hasProductOptions && product.variants.map((item) => (
                   <button
+                    type="button"
                     key={item.id}
                     className={selectedVariantId === item.id ? "selected" : ""}
                     onClick={() => {
+                      setBaseProductSelected(false);
                       setSelectedVariantId(item.id);
                       setQuantity(1);
                     }}
@@ -341,16 +361,19 @@ export default function ShopProductDetail() {
                   .filter((value) => value.active !== false)
                   .map((value) => (
                     <button
+                      type="button"
                       key={value.value}
                       className={
                         selected[option.name] === value.value ? "selected" : ""
                       }
-                      onClick={() =>
+                      onClick={() => {
                         setSelected((current) => ({
                           ...current,
                           [option.name]: value.value,
-                        }))
-                      }
+                        }));
+                        setBaseProductSelected(false);
+                        setQuantity(1);
+                      }}
                     >
                       {option.displayType === "COLOR_SWATCH" ? (
                         <span
@@ -396,9 +419,11 @@ export default function ShopProductDetail() {
               "Sản phẩm được tuyển chọn với thiết kế hiện đại và chất lượng cao."}
           </div>
           <div className="detail-selected">
-            {variantSelectionRequired
+            {baseProductSelected
+              ? "Đã chọn: Sản phẩm gốc"
+              : variantSelectionRequired
               ? "Chọn phiên bản phù hợp với bạn"
-              : !hasProductOptions && variant
+              : variant
                 ? `Đã chọn: ${variant.sku || "Phiên bản"}`
               : Object.keys(selected).length
               ? `Đã chọn: ${Object.entries(selected)

@@ -2,7 +2,7 @@ spring:
   application:
     name: media-service
   config:
-    import: optional:file:.env.dev[.properties],optional:file:../.env.dev[.properties]
+    import: optional:file:media-service/.env.dev[.properties],optional:file:.env.dev[.properties],optional:file:../.env.dev[.properties]
   datasource:
     # .env.example is shared by all services and contains a generic datasource URL.
     # Media must use its own Postgres instance on port 5441.
