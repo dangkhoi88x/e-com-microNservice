@@ -198,7 +198,7 @@ Các path Gateway có thể gọi bằng `http://localhost:9191`; các path khô
 | Category | `POST/GET :8084/api/v1/categories`, `GET/PUT/DELETE .../{id}` | Category |
 | Product | `POST/GET :8084/api/v1/products`, `GET .../slug/{slug}`, `GET/PUT/DELETE .../{id}` | Catalog và variant |
 | Inventory | `POST :8087/api/v1/inventory`, `GET .../products/{productId}` | Tạo và xem stock |
-| Inventory | `POST .../reserve`, `.../confirm`, `.../release` | API nội bộ cho order/payment flow |
+| Inventory | `POST :8087/internal/inventory/reserve`, `.../confirm`, `.../release` | API nội bộ cho order/payment flow; Gateway không route `/internal/**` |
 | Cart | `GET /api/v1/cart`, `POST /api/v1/cart/items` | Xem và thêm item qua Gateway hoặc `:8089` |
 | Cart | `PUT/DELETE /api/v1/cart/items/{itemId}`, `DELETE /api/v1/cart/items` | Sửa, xoá hoặc clear cart |
 | Wishlist | `GET /api/v1/wishlist`, `POST /api/v1/wishlist/items` | Xem/thêm wishlist |
@@ -275,7 +275,7 @@ cd api-gateway-service && ./mvnw spring-boot:run
 
 Các service Shipping, Review, Seller và Media chạy tương tự từ thư mục module tương ứng. `Microservice-ecom` không có Maven Wrapper nên dùng `mvn spring-boot:run`.
 
-Compose map Promotion Service ra host port `8094` (container port `8095`). Khi cần debug local ở `8095`, nên chọn một cách chạy để tránh có hai instance `promotion-service` cùng đăng ký Eureka và cùng dùng dữ liệu demo.
+Compose map Promotion Service ra host port `8095` trùng với container port. Phải giữ 1:1 vì Spring Cloud đăng ký lên Eureka bằng port Tomcat thật trong container; host port khác container port sẽ làm service không discover được từ host. Vì cả Docker lẫn IntelliJ đều dùng `8095`, chỉ chạy một trong hai để tránh hai instance `promotion-service` cùng đăng ký Eureka.
 
 ### 4. Khởi động frontend
 
