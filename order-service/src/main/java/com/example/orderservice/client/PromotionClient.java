@@ -48,9 +48,9 @@ public class PromotionClient {
                     .bodyToMono(new ParameterizedTypeReference<ApiResponse<List<FlashDealPriceResponse>>>() {}).block();
             return response == null || response.data() == null ? List.of() : response.data();
         } catch (WebClientResponseException exception) {
-            if (exception.getStatusCode().is4xxClientError()) throw new OrderServiceException(ErrorCode.FLASH_SALE_RESERVATION_FAILED);
-            throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE);
-        } catch (WebClientException exception) { throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE); }
+            if (exception.getStatusCode().is4xxClientError()) throw new OrderServiceException(ErrorCode.FLASH_SALE_RESERVATION_FAILED, exception);
+            throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE, exception);
+        } catch (WebClientException exception) { throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE, exception); }
     }
     public void confirmFlashDeals(String orderId) { postFlashWithoutResponse("/confirm", new OrderRequest(orderId)); }
     public void releaseFlashDeals(String orderId) { postFlashWithoutResponse("/release", new OrderRequest(orderId)); }
@@ -68,10 +68,10 @@ public class PromotionClient {
             }
             return response.data();
         } catch (WebClientResponseException exception) {
-            if (exception.getStatusCode().is4xxClientError()) throw new OrderServiceException(clientError);
-            throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE);
+            if (exception.getStatusCode().is4xxClientError()) throw new OrderServiceException(clientError, exception);
+            throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE, exception);
         } catch (WebClientException exception) {
-            throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE);
+            throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE, exception);
         }
     }
 
@@ -79,13 +79,13 @@ public class PromotionClient {
         try {
             client().post().uri(promotionBaseUrl() + path).bodyValue(body).retrieve().toBodilessEntity().block();
         } catch (WebClientException exception) {
-            throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE);
+            throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE, exception);
         }
     }
     private void postFlashWithoutResponse(String path, Object body) {
         try { client().post().uri(flashBaseUrl() + path).bodyValue(body).retrieve().toBodilessEntity().block(); }
-        catch (WebClientResponseException exception) { throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE); }
-        catch (WebClientException exception) { throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE); }
+        catch (WebClientResponseException exception) { throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE, exception); }
+        catch (WebClientException exception) { throw new OrderServiceException(ErrorCode.PROMOTION_SERVICE_UNAVAILABLE, exception); }
     }
 
     private record ApiResponse<T>(T data) {}
