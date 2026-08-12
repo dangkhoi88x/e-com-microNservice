@@ -2,8 +2,6 @@ package com.example.inventoryservice.controller;
 
 import com.example.inventoryservice.dto.request.BatchInventoryRequest;
 import com.example.inventoryservice.dto.request.CreateInventoryRequest;
-import com.example.inventoryservice.dto.request.InventoryOrderRequest;
-import com.example.inventoryservice.dto.request.ReserveInventoryRequest;
 import com.example.inventoryservice.dto.response.InventoryResponse;
 import com.example.inventoryservice.dto.response.ReservationResponse;
 import com.example.inventoryservice.service.InventoryService;
@@ -43,23 +41,8 @@ public class InventoryController {
         return inventoryService.getInventoriesByProductIds(request.productIds());
     }
 
-    @PostMapping("/reserve")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void reserveInventory(@Valid @RequestBody ReserveInventoryRequest request) {
-        inventoryService.reserveInventory(request);
-    }
-
-    @PostMapping("/confirm")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void confirmInventory(@Valid @RequestBody InventoryOrderRequest request) {
-        inventoryService.confirmInventory(request);
-    }
-
-    @PostMapping("/release")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void releaseInventory(@Valid @RequestBody InventoryOrderRequest request) {
-        inventoryService.releaseInventory(request);
-    }
+    // Reserve/confirm/release live in InternalInventoryController: this prefix is routed by the
+    // API Gateway, so stock movements must not be reachable from the public internet.
 
     @GetMapping("/reservations/orders/{orderId}")
     public List<ReservationResponse> getReservationsByOrderId(@PathVariable String orderId) {

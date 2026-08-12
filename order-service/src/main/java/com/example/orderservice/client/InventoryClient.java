@@ -15,7 +15,7 @@ public class InventoryClient {
     public void reserveInventory(ReserveInventoryRequest request, String token) {
         webClientBuilder.build()
                 .post()
-                .uri("http://INVENTORY-SERVICE/api/v1/inventory/reserve")
+                .uri("http://INVENTORY-SERVICE/internal/inventory/reserve")
                 .headers(headers -> headers.setBearerAuth(token))
                 .bodyValue(request)
                 .retrieve()
@@ -26,7 +26,7 @@ public class InventoryClient {
     public void releaseInventory(InventoryOrderRequest request, String token) {
         webClientBuilder.build()
                 .post()
-                .uri("http://INVENTORY-SERVICE/api/v1/inventory/release")
+                .uri("http://INVENTORY-SERVICE/internal/inventory/release")
                 .headers(headers -> headers.setBearerAuth(token))
                 .bodyValue(request)
                 .retrieve()
