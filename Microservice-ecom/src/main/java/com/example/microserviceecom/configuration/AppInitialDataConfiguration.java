@@ -86,13 +86,20 @@ public class AppInitialDataConfiguration implements CommandLineRunner {
                 .lastName(lastName)
                 .build();
 
-        kafkaTemplate.send("created-user-topic", userCreatedEvent).whenComplete((result, throwable) -> {
-            if (throwable != null) {
-                log.error("Failed to send initial user event: userId={}", user.getId(), throwable);
-                return;
-            }
+        try {
+            kafkaTemplate.send("created-user-topic", userCreatedEvent).whenComplete((result, throwable) -> {
+                if (throwable != null) {
+                    log.error("Failed to send initial user event: userId={}", user.getId(), throwable);
+                    return;
+                }
 
-            log.info("Initial user event sent: userId={}", user.getId());
-        });
+                log.info("Initial user event sent: userId={}", user.getId());
+            });
+        } catch (Exception exception) {
+            // send() also fails synchronously when the broker is unreachable, and this runs in a
+            // CommandLineRunner: letting it escape kills the whole service on startup. Seeding the
+            // initial users is not worth blocking authentication on Kafka being up.
+            log.warn("Skipped initial user event because Kafka is unavailable: userId={}", user.getId(), exception);
+        }
     }
 }
