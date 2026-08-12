@@ -47,7 +47,6 @@ const Forbidden = lazy(() => import("../pages/Forbidden"));
 
 const ADMIN_ROLES = ["ROLE_ADMIN"];
 const SELLER_ROLES = ["ROLE_SELLER"];
-const USER_ROLES = ["ROLE_USER"];
 
 function PrivateRoute({ children }) {
   if (!isAuthenticated()) {
