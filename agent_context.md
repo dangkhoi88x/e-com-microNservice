@@ -325,7 +325,7 @@ mvn -f promotion-service\pom.xml -DskipTests package
 mvn -f order-service\pom.xml -DskipTests package
 ```
 
-Root Maven currently does not include `promotion-service` in `<modules>`, so Promotion must be built separately until that is corrected.
+Root Maven aggregates all seventeen services, so `mvn -DskipTests package` from the repository root builds everything. CI runs exactly that.
 
 Frontend:
 

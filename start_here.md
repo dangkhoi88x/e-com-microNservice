@@ -701,11 +701,10 @@ Không. `docker compose stop <service>` chỉ dừng container. `docker compose 
 
 ## 21. Việc kỹ thuật nên ưu tiên tiếp theo
 
-1. Thêm `promotion-service` vào root Maven `<modules>`.
-2. Chuẩn hoá Docker cho toàn bộ application service hoặc chỉ giữ infrastructure trong Compose.
-4. Tách database/schema cho Cart, Order, Payment và Wishlist.
-5. Di chuyển password, JWT secret và Elasticsearch credential hoàn toàn sang environment.
-6. Thêm health check cho mọi service và Docker `depends_on` theo health.
+1. Chuẩn hoá Docker cho toàn bộ application service hoặc chỉ giữ infrastructure trong Compose.
+2. Tách database/schema cho Cart, Order, Payment và Wishlist.
+3. Di chuyển password, JWT secret và Elasticsearch credential hoàn toàn sang environment.
+4. Thêm health check cho mọi service và Docker `depends_on` theo health.
 7. Thêm migration bằng Flyway/Liquibase thay cho phụ thuộc hoàn toàn vào `ddl-auto:update`.
 8. Bổ sung integration test cho checkout/payment compensation và event idempotency.
 9. Thêm observability: correlation ID, centralized logs, metrics và distributed tracing.
