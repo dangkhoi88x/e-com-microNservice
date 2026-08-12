@@ -17,6 +17,7 @@ import com.example.promotionservice.repository.PromotionClaimRepository;
 import com.example.promotionservice.repository.PromotionUsageRepository;
 import com.example.promotionservice.service.PromotionUsageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ import java.math.RoundingMode;
 import java.time.Instant;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional
 public class PromotionUsageServiceImpl implements PromotionUsageService {
@@ -69,11 +71,16 @@ public class PromotionUsageServiceImpl implements PromotionUsageService {
     public void confirm(PromotionOrderRequest request) {
         usageRepository.findByOrderId(request.orderId()).ifPresent(usage -> {
             if (usage.getStatus() != PromotionUsageStatus.RESERVED) return;
+            java.util.UUID campaignId = usage.getCampaign().getId();
             usage.setStatus(PromotionUsageStatus.USED);
-            PromotionCampaign campaign = usage.getCampaign();
-            campaign.setUsedCount(campaign.getUsedCount() + 1);
-            campaignRepository.save(campaign);
-            usageRepository.save(usage);
+            // Flush before the modifying query below, which clears the persistence context.
+            usageRepository.saveAndFlush(usage);
+            if (campaignRepository.incrementUsedCount(campaignId) == 0) {
+                // The reservation was valid when it was made, so the customer keeps the discount
+                // they already paid with; only the campaign counter is capped.
+                log.warn("Promotion usage confirmed after campaign reached its limit: orderId={}, campaignId={}",
+                        request.orderId(), campaignId);
+            }
         });
     }
 

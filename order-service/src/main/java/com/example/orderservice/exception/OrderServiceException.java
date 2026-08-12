@@ -10,4 +10,10 @@ public class OrderServiceException extends RuntimeException{
         super(errorCode.getMessage());
         this.errorCode = errorCode;
     }
+
+    /** Keeps the downstream failure attached so logs show why a call actually failed. */
+    public OrderServiceException(ErrorCode errorCode, Throwable cause) {
+        super(errorCode.getMessage(), cause);
+        this.errorCode = errorCode;
+    }
 }

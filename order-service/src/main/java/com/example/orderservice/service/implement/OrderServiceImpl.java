@@ -230,6 +230,9 @@ public class OrderServiceImpl implements OrderService {
                 safeReleasePromotion(savedOrder);
             }
             if (flashDealsReserved) safeReleaseFlashDeals(savedOrder);
+            // Inventory is reserved first, so once that succeeded the failure came from a later
+            // promotion/flash-deal step. Reporting INVENTORY_FAILED there tells the customer the
+            // item is out of stock, which is wrong and hides the real cause.
             savedOrder.setStatus(inventoryReserved
                     ? OrderStatus.PROMOTION_FAILED
                     : OrderStatus.INVENTORY_FAILED);

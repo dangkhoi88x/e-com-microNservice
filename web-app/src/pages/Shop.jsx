@@ -178,6 +178,9 @@ export default function Shop() {
   const visibleCategories = useMemo(() => { const seen = new Set(); return categories.filter((category) => !/san pham abcx/i.test(category.name)).filter((category) => { const key = normalizedCategoryName(category).toLocaleLowerCase("vi-VN"); if (seen.has(key)) return false; seen.add(key); return true; }); }, [categories]);
   const addToCart = async (product) => {
     if (!isAuthenticated()) return navigate("/shop/login?redirect=/shop");
+    // A product with variants must be bought as a specific SKU. Adding it without a variantId
+    // makes checkout reserve the aggregate stock row instead of the variant's own stock.
+    if ((product.variants || []).length > 0) return navigate(productUrl(product));
     try { setCart((await addCartItem({ productId: product.id, quantity: 1 })).items || []); } catch { /* keep browsing when Cart Service is temporarily unavailable */ }
   };
   const updateQuantity = async (item, change) => {

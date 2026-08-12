@@ -86,17 +86,18 @@ e-com-microNservice/
 
 ### Promotion khi chạy Docker
 
-Container `promotion-service` nghe port `8095` bên trong và được publish ra host bằng:
+Container `promotion-service` nghe port `8095` bên trong và được publish ra host 1:1:
 
 ```text
-localhost:8094 -> container:8095
+localhost:8095 -> container:8095
 ```
+
+Bắt buộc phải giữ 1:1. Spring Cloud ghi đè `eureka.instance.non-secure-port` bằng port Tomcat thật trong container lúc khởi động, nên nếu host port khác container port thì service sẽ quảng bá lên Eureka một port mà host không truy cập được.
 
 Do đó:
 
-- Chạy Promotion bằng IntelliJ: dùng `http://localhost:8095`.
-- Chạy Promotion bằng Docker: dùng `http://localhost:8094`.
-- Chỉ chạy một trong hai cách.
+- Chạy Promotion bằng IntelliJ hoặc bằng Docker đều dùng `http://localhost:8095`.
+- Chỉ chạy một trong hai cách, vì cả hai cùng chiếm port `8095`.
 
 ### Ownership dữ liệu hiện tại
 
@@ -291,7 +292,7 @@ Mở http://localhost:8761 và kiểm tra các application cần dùng có trạ
 Không được có hai instance của cùng service nếu bạn chỉ định chạy một bản local. Trường hợp Promotion thường xuyên lúc được lúc lỗi thường do cùng chạy:
 
 - Promotion trong IntelliJ ở port 8095.
-- Promotion container ở host port 8094.
+- Promotion container cũng publish ra host port 8095.
 
 Khi chạy IntelliJ, dừng riêng application container nhưng giữ database:
 
@@ -329,10 +330,10 @@ docker compose up -d --build promotion-service
 Kiểm tra trực tiếp:
 
 ```powershell
-curl.exe http://localhost:8094/actuator/health
+curl.exe http://localhost:8095/actuator/health
 ```
 
-Nếu API Gateway chạy trên host nhưng Eureka hiển thị Promotion bằng hostname/container port mà host không truy cập được, hãy chạy Promotion bằng IntelliJ theo mục 8. Đây là giới hạn của cấu hình Compose hiện tại; production nên đặt Gateway, Eureka và application containers chung một Docker network hoặc cấu hình chính xác advertised hostname/port.
+Trước đây Promotion publish `8094 -> 8095`, khiến nó đăng ký lên Eureka port `8095` mà host không truy cập được; mọi lời gọi từ Gateway hoặc Order chạy trên host đều nhận `Connection refused`. Nay Compose publish 1:1 nên không cần workaround chạy bằng IntelliJ nữa. Khi thêm service Docker mới, luôn giữ host port trùng container port, nếu không service sẽ không thể discover được từ host.
 
 ## 10. Gateway routes
 
@@ -342,7 +343,7 @@ Gateway base URL:
 http://localhost:9191
 ```
 
-Các route được khai báo cả trong `GatewayConfiguration.java` và `application.yaml`:
+Toàn bộ route được khai báo trong `GatewayConfiguration.java`. Trước đây chúng nằm ở cả file này lẫn `application.yaml`, và bản YAML của `/order/**` thiếu `stripPrefix(1)` nên tuỳ bên nào thắng mà luồng đặt hàng có chạy hay không. Thêm route mới chỉ vào Java:
 
 | Public path | Target |
 | --- | --- |
@@ -353,7 +354,7 @@ Các route được khai báo cả trong `GatewayConfiguration.java` và `applic
 | `/search/**` | Search; strip prefix đầu |
 | `/api/v1/search/**` | Search giữ nguyên path |
 | `/inventory/**` | Inventory; strip prefix đầu |
-| `/api/v1/inventory/**` | Inventory giữ nguyên path |
+| `/api/v1/inventory/**` | Inventory giữ nguyên path; chỉ gồm endpoint đọc và tạo stock. Reserve/confirm/release nằm ở `/internal/inventory/**` và **không** được Gateway route |
 | `/order/**` | Order; strip prefix đầu |
 | `/payment/**` | Payment; strip prefix đầu |
 | `/api/v1/cart/**` | Cart giữ nguyên path |
@@ -700,12 +701,10 @@ Không. `docker compose stop <service>` chỉ dừng container. `docker compose 
 
 ## 21. Việc kỹ thuật nên ưu tiên tiếp theo
 
-1. Thêm `promotion-service` vào root Maven `<modules>`.
-2. Loại bỏ route trùng giữa `GatewayConfiguration.java` và Gateway YAML, chọn một nguồn cấu hình.
-3. Chuẩn hoá Docker cho toàn bộ application service hoặc chỉ giữ infrastructure trong Compose.
-4. Tách database/schema cho Cart, Order, Payment và Wishlist.
-5. Di chuyển password, JWT secret và Elasticsearch credential hoàn toàn sang environment.
-6. Thêm health check cho mọi service và Docker `depends_on` theo health.
+1. Chuẩn hoá Docker cho toàn bộ application service hoặc chỉ giữ infrastructure trong Compose.
+2. Tách database/schema cho Cart, Order, Payment và Wishlist.
+3. Di chuyển password, JWT secret và Elasticsearch credential hoàn toàn sang environment.
+4. Thêm health check cho mọi service và Docker `depends_on` theo health.
 7. Thêm migration bằng Flyway/Liquibase thay cho phụ thuộc hoàn toàn vào `ddl-auto:update`.
 8. Bổ sung integration test cho checkout/payment compensation và event idempotency.
 9. Thêm observability: correlation ID, centralized logs, metrics và distributed tracing.

@@ -19,7 +19,7 @@ public class SecurityConfiguration {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
-                        .requestMatchers("/api/v1/cart/internal/carts/**").permitAll()
+                        // Not routed by the API Gateway; reachable only inside the service network.
                         .requestMatchers("/internal/cart/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

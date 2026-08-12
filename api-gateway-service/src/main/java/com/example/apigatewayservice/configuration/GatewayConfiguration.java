@@ -6,11 +6,24 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Single source of truth for gateway routes.
+ *
+ * <p>Routes used to be split between this class and {@code application.yaml}, which silently
+ * duplicated four paths. The YAML copy of {@code /order/**} was missing {@code stripPrefix(1)},
+ * so whichever definition won decided whether ordering worked at all. Add new routes here only.
+ */
 @Configuration
-public class    GatewayConfiguration {
+public class GatewayConfiguration {
     @Bean
     public RouteLocator routeLocator(RouteLocatorBuilder builder) {
         return builder.routes()
+                .route("cart-service", r -> r.path("/api/v1/cart/**")
+                        .uri("lb://CART-SERVICE"))
+                .route("wishlist-service", r -> r.path("/api/v1/wishlist/**")
+                        .uri("lb://WISHLIST-SERVICE"))
+                .route("media-service", r -> r.path("/api/v1/media/**")
+                        .uri("lb://MEDIA-SERVICE"))
                 .route("identity-service", r -> r.path("/identity/**")
                         .filters(f -> f.stripPrefix(1)
                                 .prefixPath("/identity/api"))

@@ -66,7 +66,7 @@ Do not overwrite, reset, delete or reformat unrelated work. Do not assume a dirt
 | Wishlist | 8092 |
 | Search | 8093 |
 | Promotion via IntelliJ | 8095 |
-| Promotion Docker host mapping | 8094 -> container 8095 |
+| Promotion Docker host mapping | 8095 -> container 8095 (must stay 1:1) |
 | Eureka | 8761 |
 | API Gateway | 9191 |
 | Frontend | 5173 |
@@ -263,12 +263,9 @@ Do not expose internal endpoints directly in storefront code.
 
 ## 9. API Gateway context
 
-Gateway routes are currently split between:
+All gateway routes live in `api-gateway-service/src/main/java/.../GatewayConfiguration.java`. Add new routes there only; `application.yaml` no longer declares any.
 
-- `api-gateway-service/src/main/java/.../GatewayConfiguration.java`
-- `api-gateway-service/src/main/resources/application.yaml`
-
-This duplication is a known cleanup item. Before adding a route, inspect both sources to avoid duplicate route IDs and predicates.
+They used to be split across both files, which duplicated four paths. The copies were not equivalent — the YAML `/order/**` route lacked `stripPrefix(1)` — so which definition won decided whether ordering worked.
 
 Gateway prefixes in current use:
 
@@ -328,7 +325,7 @@ mvn -f promotion-service\pom.xml -DskipTests package
 mvn -f order-service\pom.xml -DskipTests package
 ```
 
-Root Maven currently does not include `promotion-service` in `<modules>`, so Promotion must be built separately until that is corrected.
+Root Maven aggregates all seventeen services, so `mvn -DskipTests package` from the repository root builds everything. CI runs exactly that.
 
 Frontend:
 
