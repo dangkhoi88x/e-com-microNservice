@@ -1,8 +1,12 @@
 # E-commerce Microservices
 
+[![CI](https://github.com/dangkhoi88x/e-com-microNservice/actions/workflows/ci.yml/badge.svg)](https://github.com/dangkhoi88x/e-com-microNservice/actions/workflows/ci.yml)
+
 Hệ thống e-commerce được xây dựng bằng Java/Spring Boot theo kiến trúc microservices, kèm một ứng dụng web React/Vite. Mỗi service sở hữu nghiệp vụ và dữ liệu của mình; REST được dùng cho các bước cần phản hồi ngay, Kafka cho các sự kiện bất đồng bộ.
 
-Tài liệu này bám theo mã nguồn và cấu hình hiện có trong repo. Đặc biệt, bảng Gateway bên dưới phản ánh đúng `api-gateway-service/src/main/resources/application.yaml`, không phải giả định rằng mọi service đều đã được Gateway expose.
+Tài liệu này bám theo mã nguồn và cấu hình hiện có trong repo. Bảng Gateway bên dưới phản ánh đúng `api-gateway-service/.../GatewayConfiguration.java`, nguồn khai báo route duy nhất.
+
+Xem thêm [code-flow.md](code-flow.md) để có sơ đồ luồng của các chức năng chính.
 
 ## Mục lục
 
@@ -90,15 +94,29 @@ flowchart LR
 
 ### Gateway routes đang hoạt động
 
-| Path trên Gateway | Service đích |
-| --- | --- |
-| `/api/v1/cart/**` | `lb://cart-service` |
-| `/api/v1/wishlist/**` | `lb://wishlist-service` |
-| `/api/v1/promotions/**` | `lb://promotion-service` |
-| `/api/v1/flash-deals/**` | `lb://promotion-service` |
-| `/api/v1/media/**` | `lb://media-service` |
-| `/api/v1/search/**` | `lb://search-service` |
-| `/order/**` | `lb://order-service` — không khớp `/api/v1/orders/**` |
+Khai báo trong `GatewayConfiguration.java`. Route có `stripPrefix(1)` sẽ cắt đoạn đầu trước khi chuyển tiếp, ví dụ `/order/api/v1/orders` tới Order thành `/api/v1/orders`.
+
+| Path trên Gateway | Service đích | Biến đổi path |
+| --- | --- | --- |
+| `/identity/**` | `IDENTITY-SERVICE` | strip 1 + thêm `/identity/api` |
+| `/profile/**` | `PROFILE-SERVICE` | strip 1 |
+| `/notification/**` | `NOTIFICATION-SERVICE` | strip 1 |
+| `/product/**` | `PRODUCT-SERVICE` | strip 1 |
+| `/order/**` | `ORDER-SERVICE` | strip 1 |
+| `/payment/**` | `PAYMENT-SERVICE` | strip 1 |
+| `/inventory/**`, `/search/**` | `INVENTORY-SERVICE`, `SEARCH-SERVICE` | strip 1 |
+| `/api/v1/cart/**` | `CART-SERVICE` | giữ nguyên |
+| `/api/v1/wishlist/**` | `WISHLIST-SERVICE` | giữ nguyên |
+| `/api/v1/media/**` | `MEDIA-SERVICE` | giữ nguyên |
+| `/api/v1/promotions/**`, `/api/v1/flash-deals/**` | `PROMOTION-SERVICE` | giữ nguyên |
+| `/api/v1/search/**` | `SEARCH-SERVICE` | giữ nguyên |
+| `/api/v1/inventory/**` | `INVENTORY-SERVICE` | giữ nguyên |
+| `/api/v1/shipments/**` | `SHIPPING-SERVICE` | giữ nguyên |
+| `/api/v1/reviews/**` | `REVIEW-SERVICE` | giữ nguyên |
+| `/api/v1/sellers/**` | `SELLER-SERVICE` | giữ nguyên |
+| `/api/v1/seller/products/**`, `/api/v1/admin/products/**` | `PRODUCT-SERVICE` | giữ nguyên |
+
+Prefix `/internal/**` **không** được Gateway route. Đó là ranh giới bảo vệ các endpoint service-to-service (`/internal/cart`, `/internal/inventory`, `/internal/promotions`, `/internal/flash-deals`).
 
 ## Quyền sở hữu dữ liệu
 

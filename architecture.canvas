@@ -1,0 +1,448 @@
+{
+  "nodes": [
+    {
+      "id": "1f1e45be1d452b16",
+      "type": "group",
+      "label": "Client",
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 200
+    },
+    {
+      "id": "8472796ef7ee05a9",
+      "type": "group",
+      "label": "Tài liệu",
+      "x": 360,
+      "y": 0,
+      "width": 600,
+      "height": 200
+    },
+    {
+      "id": "baa25b0a71aad178",
+      "type": "group",
+      "label": "Cổng vào và hạ tầng nền",
+      "x": 0,
+      "y": 240,
+      "width": 880,
+      "height": 220,
+      "color": "5"
+    },
+    {
+      "id": "395e070b357bd43b",
+      "type": "group",
+      "label": "Lõi checkout — Order điều phối",
+      "x": 0,
+      "y": 500,
+      "width": 880,
+      "height": 320,
+      "color": "2"
+    },
+    {
+      "id": "4067ea983ff33b45",
+      "type": "group",
+      "label": "Message broker",
+      "x": 960,
+      "y": 500,
+      "width": 320,
+      "height": 200,
+      "color": "6"
+    },
+    {
+      "id": "30e7b94c60340941",
+      "type": "group",
+      "label": "Service hỗ trợ",
+      "x": 0,
+      "y": 860,
+      "width": 1160,
+      "height": 320
+    },
+    {
+      "id": "0e47a519e9f6a39c",
+      "type": "group",
+      "label": "Lưu trữ — mỗi service sở hữu dữ liệu riêng",
+      "x": 0,
+      "y": 1220,
+      "width": 1160,
+      "height": 220,
+      "color": "4"
+    },
+    {
+      "id": "ca84d1343b96baa8",
+      "type": "text",
+      "text": "**Web app**\nReact 19 + Vite `:5173`\nstorefront · admin · seller · shipper",
+      "x": 40,
+      "y": 60,
+      "width": 240,
+      "height": 90
+    },
+    {
+      "id": "e4120a28fcde32ad",
+      "type": "file",
+      "file": "README.md",
+      "x": 400,
+      "y": 60,
+      "width": 240,
+      "height": 90
+    },
+    {
+      "id": "3393ae7bf9596e25",
+      "type": "file",
+      "file": "code-flow.md",
+      "x": 680,
+      "y": 60,
+      "width": 240,
+      "height": 90
+    },
+    {
+      "id": "fc471ce1ec61f8c7",
+      "type": "text",
+      "text": "**API Gateway** `:9191`\nSpring Cloud Gateway\n20 route · nguồn duy nhất trong Java",
+      "x": 40,
+      "y": 300,
+      "width": 240,
+      "height": 90,
+      "color": "1"
+    },
+    {
+      "id": "87854477ec578e95",
+      "type": "text",
+      "text": "**Identity** `:8090` · gRPC `:9090`\nKý JWT RS256 · JWKS\nRefresh token cookie",
+      "x": 320,
+      "y": 300,
+      "width": 240,
+      "height": 90,
+      "color": "1"
+    },
+    {
+      "id": "27eae1ff2508ae2e",
+      "type": "text",
+      "text": "**Eureka** `:8761`\nService discovery\n⚠ port quảng bá phải = port publish",
+      "x": 600,
+      "y": 300,
+      "width": 240,
+      "height": 90,
+      "color": "5"
+    },
+    {
+      "id": "cce55e4309a75398",
+      "type": "text",
+      "text": "**Order** `:8086`\nSaga checkout + bù trừ\n`OrderServiceImpl.createOrder`",
+      "x": 40,
+      "y": 560,
+      "width": 240,
+      "height": 90,
+      "color": "2"
+    },
+    {
+      "id": "8bfb4e1aa590eab8",
+      "type": "text",
+      "text": "**Cart** `:8089`\nKhoá item bằng `checkoutOrderId`",
+      "x": 320,
+      "y": 560,
+      "width": 240,
+      "height": 90,
+      "color": "3"
+    },
+    {
+      "id": "a22c81f9e58d3e18",
+      "type": "text",
+      "text": "**Inventory** `:8087`\n**Nguồn sự thật tồn kho**\nreserve → confirm / release",
+      "x": 600,
+      "y": 560,
+      "width": 240,
+      "height": 90,
+      "color": "3"
+    },
+    {
+      "id": "bfc95e50f828f0ae",
+      "type": "text",
+      "text": "**Payment** `:8088`\nCOD + Stripe webhook\n1 pending / order (ràng buộc DB)",
+      "x": 40,
+      "y": 690,
+      "width": 240,
+      "height": 90,
+      "color": "3"
+    },
+    {
+      "id": "1ac8c9771bb0723d",
+      "type": "text",
+      "text": "**Promotion** `:8095`\nCampaign + Flash deal\nreserve → confirm / release",
+      "x": 320,
+      "y": 690,
+      "width": 240,
+      "height": 90,
+      "color": "3"
+    },
+    {
+      "id": "f6c433acac2a27cc",
+      "type": "text",
+      "text": "**Product** `:8084`\nCatalog · variant · giá\n`quantity` chỉ là bản sao",
+      "x": 600,
+      "y": 690,
+      "width": 240,
+      "height": 90,
+      "color": "3"
+    },
+    {
+      "id": "16e27402a1f9be7e",
+      "type": "text",
+      "text": "**Kafka** `:9092`\n13 topic\nOutbox ở Inventory · DLT một phần",
+      "x": 1000,
+      "y": 560,
+      "width": 240,
+      "height": 90,
+      "color": "6"
+    },
+    {
+      "id": "3559d7accf003609",
+      "type": "text",
+      "text": "**Search** `:8093`\nRead model Elasticsearch",
+      "x": 40,
+      "y": 920,
+      "width": 240,
+      "height": 90
+    },
+    {
+      "id": "ed43a8a09e9ba56d",
+      "type": "text",
+      "text": "**Shipping** `:8096`",
+      "x": 320,
+      "y": 920,
+      "width": 240,
+      "height": 90
+    },
+    {
+      "id": "61e62b213a1a56f7",
+      "type": "text",
+      "text": "**Review** `:8097`",
+      "x": 600,
+      "y": 920,
+      "width": 240,
+      "height": 90
+    },
+    {
+      "id": "2e7464a5e9bac192",
+      "type": "text",
+      "text": "**Seller** `:8098`",
+      "x": 880,
+      "y": 920,
+      "width": 240,
+      "height": 90
+    },
+    {
+      "id": "7b2577c452c584b0",
+      "type": "text",
+      "text": "**Wishlist** `:8092`",
+      "x": 40,
+      "y": 1050,
+      "width": 240,
+      "height": 90
+    },
+    {
+      "id": "bb362a46a483f3f8",
+      "type": "text",
+      "text": "**Media** `:8099` · S3",
+      "x": 320,
+      "y": 1050,
+      "width": 240,
+      "height": 90
+    },
+    {
+      "id": "8743f9032f6b5fd4",
+      "type": "text",
+      "text": "**Notification** `:8083`",
+      "x": 600,
+      "y": 1050,
+      "width": 240,
+      "height": 90
+    },
+    {
+      "id": "d9f02d46be016f1b",
+      "type": "text",
+      "text": "**Profile** `:8081`",
+      "x": 880,
+      "y": 1050,
+      "width": 240,
+      "height": 90
+    },
+    {
+      "id": "96dd8d96902e9c5a",
+      "type": "text",
+      "text": "**PostgreSQL**\nproduct · identity · inventory\npromotion · shipping · review\nseller · media · wishlist",
+      "x": 40,
+      "y": 1280,
+      "width": 240,
+      "height": 90,
+      "color": "4"
+    },
+    {
+      "id": "191be3715bae070c",
+      "type": "text",
+      "text": "**MongoDB**\nprofile · notification",
+      "x": 320,
+      "y": 1280,
+      "width": 240,
+      "height": 90,
+      "color": "4"
+    },
+    {
+      "id": "9f6194d012e32351",
+      "type": "text",
+      "text": "**Redis**\nsession · cache flash deal",
+      "x": 600,
+      "y": 1280,
+      "width": 240,
+      "height": 90,
+      "color": "4"
+    },
+    {
+      "id": "09cd68a2a77b22a3",
+      "type": "text",
+      "text": "**Elasticsearch** `:9200`\nread model tìm kiếm",
+      "x": 880,
+      "y": 1280,
+      "width": 240,
+      "height": 90,
+      "color": "4"
+    }
+  ],
+  "edges": [
+    {
+      "id": "1c9727e61d6b24c1",
+      "fromNode": "ca84d1343b96baa8",
+      "toNode": "fc471ce1ec61f8c7",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "HTTPS + Bearer token"
+    },
+    {
+      "id": "96e7ec90a6867eee",
+      "fromNode": "fc471ce1ec61f8c7",
+      "toNode": "87854477ec578e95",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "gRPC introspect mỗi request",
+      "color": "1"
+    },
+    {
+      "id": "0db60dd99a9d1505",
+      "fromNode": "fc471ce1ec61f8c7",
+      "toNode": "cce55e4309a75398",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "/order/** (strip 1)"
+    },
+    {
+      "id": "dc0e81836b21826f",
+      "fromNode": "fc471ce1ec61f8c7",
+      "toNode": "8bfb4e1aa590eab8",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "/api/v1/cart/**"
+    },
+    {
+      "id": "9116e095cb9d96f6",
+      "fromNode": "fc471ce1ec61f8c7",
+      "toNode": "f6c433acac2a27cc",
+      "fromSide": "right",
+      "toSide": "right",
+      "label": "/product/**"
+    },
+    {
+      "id": "093993180c43f519",
+      "fromNode": "cce55e4309a75398",
+      "toNode": "8bfb4e1aa590eab8",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "/internal/cart"
+    },
+    {
+      "id": "78a500ff6c3607f5",
+      "fromNode": "cce55e4309a75398",
+      "toNode": "a22c81f9e58d3e18",
+      "fromSide": "top",
+      "toSide": "top",
+      "label": "/internal/inventory"
+    },
+    {
+      "id": "9eaf6b95bc67f479",
+      "fromNode": "cce55e4309a75398",
+      "toNode": "1ac8c9771bb0723d",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "label": "/internal/flash-deals"
+    },
+    {
+      "id": "3d84a2aab6f7cde1",
+      "fromNode": "cce55e4309a75398",
+      "toNode": "f6c433acac2a27cc",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "label": "REST · snapshot giá"
+    },
+    {
+      "id": "3ccefc475d4dd75d",
+      "fromNode": "bfc95e50f828f0ae",
+      "toNode": "16e27402a1f9be7e",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "label": "payment-success / failed / cancelled",
+      "color": "6"
+    },
+    {
+      "id": "60ae44281f9efdc1",
+      "fromNode": "16e27402a1f9be7e",
+      "toNode": "cce55e4309a75398",
+      "fromSide": "left",
+      "toSide": "right",
+      "label": "cập nhật trạng thái đơn",
+      "color": "6"
+    },
+    {
+      "id": "e31a59b0cc80ecdb",
+      "fromNode": "16e27402a1f9be7e",
+      "toNode": "a22c81f9e58d3e18",
+      "fromSide": "left",
+      "toSide": "right",
+      "label": "confirm / release tồn kho",
+      "color": "6"
+    },
+    {
+      "id": "639646717f2ecc06",
+      "fromNode": "f6c433acac2a27cc",
+      "toNode": "16e27402a1f9be7e",
+      "fromSide": "right",
+      "toSide": "left",
+      "label": "product-created / updated",
+      "color": "6"
+    },
+    {
+      "id": "d7a6c1640e14828c",
+      "fromNode": "16e27402a1f9be7e",
+      "toNode": "3559d7accf003609",
+      "fromSide": "bottom",
+      "toSide": "right",
+      "label": "cập nhật index",
+      "color": "6"
+    },
+    {
+      "id": "95b5320afabac4fc",
+      "fromNode": "cce55e4309a75398",
+      "toNode": "ed43a8a09e9ba56d",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "shipment-requested",
+      "color": "6"
+    },
+    {
+      "id": "933cfacf37d08231",
+      "fromNode": "a22c81f9e58d3e18",
+      "toNode": "f6c433acac2a27cc",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "label": "inventory-updated",
+      "color": "6"
+    }
+  ]
+}
