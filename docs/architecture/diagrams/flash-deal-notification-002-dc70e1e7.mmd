@@ -1,0 +1,13 @@
+flowchart TD
+    start([Subscribe flash deal]) --> eligible{"Deal FLASH, SCHEDULED, startAt tương lai?"}
+    eligible -->|Không| unavailable["Trả FLASH_SALE_NOTIFICATION_UNAVAILABLE"]
+    eligible -->|Có| direct["Lưu subscription nếu chưa có"]
+    direct --> timer["Scheduled refresh chạy"]
+    timer --> materialize["Chuyển general subscription thành deal subscription"]
+    materialize --> window{"Deal bắt đầu trong 15 phút và chưa notify?"}
+    window -->|Không| wait["Chờ lần refresh sau"]
+    window -->|Có| publish["Publish flash-sale-upcoming"]
+    publish --> notification["Notification Service lưu in-app notification"]
+    notification --> done([Hoàn tất])
+    unavailable --> done
+    wait --> done

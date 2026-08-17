@@ -1,0 +1,24 @@
+sequenceDiagram
+    actor User as Người dùng
+    participant GW as API Gateway
+    participant Promo as Promotion Service
+    participant PromoDB as Promotion database
+    participant Order as Order Service
+    participant Kafka as Kafka
+
+    User->>GW: POST /promotion/api/v1/promotions/claims/{campaignId}
+    GW->>Promo: Forward REST/HTTPS
+    Promo->>PromoDB: Kiểm tra campaign ACTIVE/time/usage limit
+    Promo->>PromoDB: Lưu PromotionClaim nếu chưa có
+    Promo-->>User: 200 claimed campaign
+    Order->>Promo: POST /internal/promotions/reserve (REST)
+    Promo->>PromoDB: Kiểm tra claim và tạo PromotionUsage RESERVED
+    Promo-->>Order: Discount calculation
+    Kafka-->>Order: Payment success hoặc cancellation event
+    alt Payment thành công
+        Order->>Promo: POST /internal/promotions/confirm (REST)
+        Promo->>PromoDB: Chuyển USED và tăng usedCount
+    else Payment thất bại hoặc order huỷ
+        Order->>Promo: POST /internal/promotions/release (REST)
+        Promo->>PromoDB: Chuyển RELEASED
+    end

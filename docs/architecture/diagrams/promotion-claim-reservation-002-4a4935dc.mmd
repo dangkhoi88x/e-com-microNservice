@@ -1,0 +1,15 @@
+flowchart TD
+    start([Claim promotion]) --> active{"Campaign ACTIVE, đúng thời gian, còn quota?"}
+    active -->|Không| campaignError["Trả promotion error"]
+    active -->|Có| claim["Lưu PromotionClaim idempotent"]
+    claim --> reserve["Checkout gọi reserve"]
+    reserve --> hasClaim{"User đã claim?"}
+    hasClaim -->|Không| notClaimed["Trả PROMOTION_NOT_CLAIMED"]
+    hasClaim -->|Có| usage["Lưu PromotionUsage RESERVED, hết hạn 30 phút"]
+    usage --> payment{"Payment/order result?"}
+    payment -->|Success| used["Confirm USED và tăng usedCount"]
+    payment -->|Failed/Cancelled| released["Release RESERVED thành RELEASED"]
+    used --> done([Hoàn tất])
+    released --> done
+    campaignError --> done
+    notClaimed --> done

@@ -1,0 +1,17 @@
+flowchart TD
+    start([Upload image]) --> purpose{"PRODUCT_IMAGE và user có role seller?"}
+    purpose -->|Không| denied["Trả MEDIA_ACCESS_DENIED"]
+    purpose -->|Có hoặc public purpose| configured{"S3 bucket được cấu hình?"}
+    configured -->|Không| configError["Trả S3_NOT_CONFIGURED"]
+    configured -->|Có| valid{"File size, header, content type hợp lệ?"}
+    valid -->|Không| fileError["Trả INVALID_MEDIA_FILE"]
+    valid -->|Có| upload["PutObject vào S3-compatible storage"]
+    upload --> stored{"Lưu metadata thành công?"}
+    stored -->|Có| response["Trả MediaResponse và presigned URL"]
+    stored -->|Không| cleanup["Cố gắng DeleteObject compensation"]
+    cleanup --> dbError["Trả lỗi persistence"]
+    denied --> done([Kết thúc])
+    configError --> done
+    fileError --> done
+    response --> done
+    dbError --> done

@@ -1,0 +1,28 @@
+sequenceDiagram
+    actor User as Người dùng
+    participant GW as API Gateway
+    participant Identity as Identity Service
+    participant UserDB as Identity database
+    participant Kafka as Kafka
+    participant Profile as Profile Service
+    participant ProfileDB as Profile database
+    participant Notify as Notification Service
+    participant NotifyDB as Notification database
+    participant SMTP as SMTP
+
+    User->>GW: POST /identity/users
+    GW->>Identity: Forward REST/HTTPS
+    Identity->>UserDB: Lưu User (JPA)
+    UserDB-->>Identity: Commit
+    Identity->>Kafka: Publish created-user-topic
+    Kafka-->>Profile: Deliver UserCreatedEvent
+    Profile->>ProfileDB: Tạo UserProfile
+    Profile->>Kafka: Publish created-profile-created
+    Kafka-->>Notify: Deliver UserProfileCreatedEvent
+    Notify->>NotifyDB: Lưu welcome notification
+    Notify->>SMTP: Gửi welcome email
+    alt Profile tạo thất bại sau retry
+        Profile->>Kafka: Publish user-profile-created-fail
+        Kafka-->>Identity: Deliver compensation event
+        Identity->>UserDB: Xoá User
+    end

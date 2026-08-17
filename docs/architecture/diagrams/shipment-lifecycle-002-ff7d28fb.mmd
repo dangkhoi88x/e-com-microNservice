@@ -1,0 +1,16 @@
+flowchart TD
+    start([Shipment CREATED]) --> packing["PACKING"]
+    packing --> ready["READY_TO_SHIP"]
+    ready --> carrier{"Có carrier và tracking?"}
+    carrier -->|Không| invalid["Trả INVALID_REQUEST"]
+    carrier -->|Có| transit["IN_TRANSIT"]
+    transit --> delivered{"Giao thành công?"}
+    delivered -->|Có| doneStatus["DELIVERED"]
+    delivered -->|Không| failed["DELIVERY_FAILED"]
+    failed --> returning["RETURNING"]
+    returning --> returned["RETURNED"]
+    doneStatus --> event["Lưu history và publish status event"]
+    returned --> event
+    event --> consumers["Order update và Notification consumer"]
+    consumers --> done([Hoàn tất])
+    invalid --> done

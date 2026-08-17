@@ -1,0 +1,14 @@
+flowchart TD
+    start([Tạo user]) --> saveUser["Lưu User trong Identity Service"]
+    saveUser --> committed{"Commit thành công?"}
+    committed -->|Không| failed["Trả lỗi tạo user"]
+    committed -->|Có| publishUser["Publish created-user-topic"]
+    publishUser --> createProfile["Profile Service tạo UserProfile"]
+    createProfile --> profileOk{"Tạo profile thành công?"}
+    profileOk -->|Có| publishProfile["Publish created-profile-created"]
+    publishProfile --> welcome["Lưu notification và gửi email"]
+    profileOk -->|Không, hết retry| compensate["Publish user-profile-created-fail"]
+    compensate --> deleteUser["Identity Service xoá User"]
+    welcome --> done([Hoàn tất])
+    failed --> done
+    deleteUser --> done

@@ -1,0 +1,14 @@
+flowchart TD
+    start([Tạo review]) --> duplicate{"Đã có review cho order item?"}
+    duplicate -->|Có| duplicateError["Trả REVIEW_ALREADY_EXISTS"]
+    duplicate -->|Không| eligibility["Gọi Order Service kiểm tra eligibility"]
+    eligibility --> allowed{"Có thể review?"}
+    allowed -->|Không| denied["Trả REVIEW_NOT_ELIGIBLE"]
+    allowed -->|Có| profile["Lấy public reviewer name"]
+    profile --> save["Lưu review PUBLISHED"]
+    save --> summarize["Tính average rating và review count"]
+    summarize --> publish["Publish review-summary-changed sau commit"]
+    publish --> index["Search cập nhật Elasticsearch và xoá cache"]
+    index --> done([Hoàn tất])
+    duplicateError --> done
+    denied --> done

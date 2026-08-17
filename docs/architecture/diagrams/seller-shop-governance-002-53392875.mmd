@@ -1,0 +1,20 @@
+flowchart TD
+    start([Admin review shop]) --> current{"Trạng thái hiện tại hợp lệ?"}
+    current -->|Không| invalid["Trả INVALID_SELLER_TRANSITION"]
+    current -->|Có| action{"Action?"}
+    action -->|APPROVE| grant["Gọi Identity Service cấp role seller"]
+    grant --> grantOk{"Cấp role thành công?"}
+    grantOk -->|Không| identityError["Trả lỗi Identity Service"]
+    grantOk -->|Có| saveApproved["Lưu APPROVED"]
+    action -->|REJECT| note["Kiểm tra review note"]
+    note --> saveRejected["Lưu REJECTED"]
+    action -->|SUSPEND| saveSuspended["Lưu SUSPENDED"]
+    saveApproved --> publish["Publish seller-shop-status-changed"]
+    saveRejected --> publish
+    saveSuspended --> publish
+    publish --> suspended{"SUSPENDED?"}
+    suspended -->|Có| inactivate["Product Service inactivate product ACTIVE"]
+    suspended -->|Không| done([Hoàn tất])
+    inactivate --> done
+    invalid --> done
+    identityError --> done

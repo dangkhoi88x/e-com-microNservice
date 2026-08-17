@@ -1,0 +1,27 @@
+sequenceDiagram
+    actor Seller as Người bán
+    actor Admin as Quản trị viên
+    participant GW as API Gateway
+    participant SellerSvc as Seller Service
+    participant SellerDB as Seller database
+    participant Identity as Identity Service
+    participant Kafka as Kafka
+    participant Product as Product Service
+    participant ProductDB as Product database
+
+    Seller->>GW: POST /seller/api/v1/sellers/me/shop
+    GW->>SellerSvc: Forward REST/HTTPS
+    SellerSvc->>SellerDB: Lưu shop PENDING
+    Admin->>GW: PUT /seller/api/v1/sellers/admin/{shopId}/review
+    GW->>SellerSvc: Forward review action
+    alt APPROVE
+        SellerSvc->>Identity: Grant seller role (REST)
+        Identity-->>SellerSvc: Role granted
+    end
+    SellerSvc->>SellerDB: Lưu trạng thái review
+    SellerSvc->>Kafka: Publish seller-shop-status-changed
+    opt Status SUSPENDED
+        Kafka-->>Product: Deliver status event
+        Product->>ProductDB: Inactivate active products/variants
+        Product->>Kafka: Publish product-updated cho từng product
+    end

@@ -1,0 +1,14 @@
+flowchart TD
+    start([Yêu cầu huỷ order]) --> found{"Order thuộc user và được phép huỷ?"}
+    found -->|Không| error["Trả ORDER_NOT_FOUND hoặc ORDER_CANNOT_BE_CANCELLED"]
+    found -->|Có| pending{"Status PENDING_PAYMENT?"}
+    pending -->|Có| release["Release inventory, promotion/flash deal, cart"]
+    pending -->|Không| cancelOrder["Lưu Order CANCELLED"]
+    release --> cancelOrder
+    cancelOrder --> event["Publish order-cancelled"]
+    event --> shipment{"Có shipment ở trạng thái huỷ được?"}
+    shipment -->|Có| cancelShipment["Shipping lưu CANCELLED và publish status"]
+    shipment -->|Không| notify["Notification lưu thông báo huỷ order"]
+    cancelShipment --> notify
+    notify --> done([Hoàn tất])
+    error --> done
