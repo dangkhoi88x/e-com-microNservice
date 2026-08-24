@@ -1,0 +1,20 @@
+flowchart TD
+    start([Seller tạo product]) --> eligibility{"Shop APPROVED?"}
+    eligibility -->|Không| sellerError["Trả SELLER_NOT_ELIGIBLE"]
+    eligibility -->|Có| draft["Lưu product và variants DRAFT"]
+    draft --> inventory["Đồng bộ quantity sang Inventory"]
+    inventory --> created["Publish product-created"]
+    created --> submit["Seller submit product"]
+    submit --> validDraft{"DRAFT hoặc REJECTED?"}
+    validDraft -->|Không| transitionError["Trả INVALID_PRODUCT_TRANSITION"]
+    validDraft -->|Có| pending["Lưu PENDING_APPROVAL"]
+    pending --> review{"Admin action?"}
+    review -->|APPROVE| active["Lưu ACTIVE"]
+    review -->|REJECT| rejected["Lưu REJECTED kèm note"]
+    review -->|HIDE| inactive["Lưu INACTIVE kèm note"]
+    active --> updated["Publish product-updated và index search"]
+    rejected --> updated
+    inactive --> updated
+    updated --> done([Hoàn tất])
+    sellerError --> done
+    transitionError --> done

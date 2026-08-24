@@ -41,6 +41,7 @@ public class KafkaConsumerConfiguration {
             ConsumerFactory<String, Object> kafkaConsumerFactory) {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, Object>();
         factory.setConsumerFactory(kafkaConsumerFactory);
+        factory.setRecordInterceptor(new KafkaTraceIdRecordInterceptor());
         return factory;
     }
 }

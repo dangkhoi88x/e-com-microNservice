@@ -1,0 +1,25 @@
+sequenceDiagram
+    actor User as Người dùng
+    participant GW as API Gateway
+    participant Review as Review Service
+    participant Order as Order Service
+    participant Profile as Profile Service
+    participant ReviewDB as Review database
+    participant Kafka as Kafka
+    participant Search as Search Service
+    participant ES as Elasticsearch
+    participant Redis as Redis cache
+
+    User->>GW: POST /review/api/v1/reviews
+    GW->>Review: Forward REST/HTTPS + bearer token
+    Review->>Order: Check order item eligibility (REST)
+    Order-->>Review: eligible / ineligible
+    Review->>Profile: Get public reviewer name (REST)
+    Profile-->>Review: reviewer name
+    Review->>ReviewDB: Lưu ProductReview PUBLISHED
+    Review->>ReviewDB: Tính averageRating và reviewCount
+    Review->>Kafka: Publish review-summary-changed sau commit
+    Kafka-->>Search: Deliver ReviewSummaryChangedEvent
+    Search->>ES: Cập nhật summary product document
+    Search->>Redis: Evict cache aggregation/suggestion
+    Review-->>User: 201 Created

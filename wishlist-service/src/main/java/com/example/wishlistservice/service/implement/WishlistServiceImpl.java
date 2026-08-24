@@ -36,9 +36,23 @@ public class WishlistServiceImpl implements WishlistService {
                 .map(this::response)
                 .orElseThrow();
     }
-    @Override public void removeItem(String userId, String productId, String variantId) { repository.findByUserIdAndProductIdAndVariantId(userId, productId, normalizeVariantId(variantId)).ifPresent(repository::delete); }
-    @Override public void clear(String userId) { repository.deleteByUserId(userId); }
-    private String normalizeVariantId(String variantId) { return variantId == null ? "" : variantId; }
-    private String nullableVariantId(String variantId) { return variantId.isEmpty() ? null : variantId; }
-    private WishlistItemResponse response(WishlistItem item) { return new WishlistItemResponse(item.getId().toString(), item.getProductId(), nullableVariantId(item.getVariantId()), item.getProductName(), item.getPrice(), item.getImageUrl(), item.getCategoryName(), item.getCreatedAt()); }
+    @Override public void removeItem(String userId, String productId, String variantId)
+    { repository.findByUserIdAndProductIdAndVariantId(userId, productId, normalizeVariantId(variantId)).ifPresent(repository::delete);
+    }
+    @Override public void clear(String userId)
+    {
+        repository.deleteByUserId(userId);
+    }
+    private String normalizeVariantId(String variantId)
+    {
+        return variantId == null ? "" : variantId;
+    }
+    private String nullableVariantId(String variantId)
+    {
+        return variantId.isEmpty() ? null : variantId;
+    }
+    private WishlistItemResponse response(WishlistItem item)
+    {
+        return new WishlistItemResponse(item.getId().toString(), item.getProductId(), nullableVariantId(item.getVariantId()), item.getProductName(), item.getPrice(), item.getImageUrl(), item.getCategoryName(), item.getCreatedAt());
+    }
 }

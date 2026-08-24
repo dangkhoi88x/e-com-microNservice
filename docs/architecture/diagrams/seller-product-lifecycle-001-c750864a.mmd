@@ -1,0 +1,30 @@
+sequenceDiagram
+    actor Seller as Người bán
+    actor Admin as Quản trị viên
+    participant GW as API Gateway
+    participant Product as Product Service
+    participant SellerSvc as Seller Service
+    participant Inventory as Inventory Service
+    participant ProductDB as Product database
+    participant Kafka as Kafka
+    participant Search as Search Service
+    participant ES as Elasticsearch
+
+    Seller->>GW: POST /product/api/v1/seller/products
+    GW->>Product: Forward REST/HTTPS + bearer token
+    Product->>SellerSvc: GET eligibility (REST)
+    SellerSvc-->>Product: APPROVED shopId
+    Product->>ProductDB: Lưu product/variants DRAFT
+    Product->>Inventory: PUT available quantity (REST)
+    Product->>Kafka: Publish product-created
+    Kafka-->>Search: Deliver product-created
+    Search->>ES: Index product document
+    Seller->>GW: POST /product/api/v1/seller/products/{id}/submit
+    GW->>Product: Forward REST/HTTPS
+    Product->>ProductDB: Chuyển PENDING_APPROVAL
+    Admin->>GW: PUT /product/api/v1/admin/products/{id}/review
+    GW->>Product: Approve / reject / hide
+    Product->>ProductDB: Lưu trạng thái moderation
+    Product->>Kafka: Publish product-updated
+    Kafka-->>Search: Deliver product-updated
+    Search->>ES: Update product document

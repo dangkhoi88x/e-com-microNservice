@@ -429,7 +429,7 @@ Các service đăng ký với Eureka khi khởi động. Khi một service cần
 Ví dụ:
 
 ```text
-http://INVENTORY-SERVICE/api/v1/inventory/...
+http://INVENTORY-SERVICE/internal/inventory/...
 ```
 
 ## 17. Những Điểm Mạnh Của Project

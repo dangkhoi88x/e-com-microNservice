@@ -14,6 +14,7 @@ import java.util.List;
 public class ProductClient {
     private final RestClient.Builder restClientBuilder;
     @Value("${services.product.base-url}") private String productServiceBaseUrl;
+
     public ProductSnapshot getSnapshot(String productId, String variantId) {
         try {
             ApiResponse<ProductResponse> response = restClientBuilder.baseUrl(productServiceBaseUrl).build().get().uri("/api/v1/products/{id}", productId).retrieve().body(new ParameterizedTypeReference<>() {});

@@ -10,7 +10,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CartClient {
     private final WebClient.Builder webClientBuilder;
-    private static final String BASE = "http://CART-SERVICE/api/v1/cart/internal/carts/{userId}";
+    private static final String BASE = "http://CART-SERVICE/internal/cart/users/{userId}";
 
     public List<CartItem> checkoutItems(String userId) {
         ApiResponse<List<CartItem>> response = webClientBuilder.build().get().uri(BASE + "/checkout-items", userId)

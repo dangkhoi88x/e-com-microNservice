@@ -1,0 +1,16 @@
+flowchart TD
+    start([Login request]) --> credentials{"Email/password hợp lệ?"}
+    credentials -->|Không| unauthorized["Trả UNAUTHORIZED"]
+    credentials -->|Có| access["Tạo JWT access token"]
+    access --> refresh["Lưu refresh session Redis"]
+    refresh --> cookie["Trả access token và cookie HttpOnly"]
+    cookie --> expired{"Access token hết hạn?"}
+    expired -->|Không| active["Gọi protected API"]
+    expired -->|Có| origin{"Origin và refresh session hợp lệ?"}
+    origin -->|Có| renew["Tạo access token mới"]
+    origin -->|Không| refreshError["Trả lỗi refresh"]
+    renew --> active
+    active --> logout["Logout: revoke access token và xoá session"]
+    logout --> done([Hoàn tất])
+    unauthorized --> done
+    refreshError --> done

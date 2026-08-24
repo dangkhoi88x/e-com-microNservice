@@ -1,6 +1,7 @@
 package com.example.inventoryservice.controller;
 
 import com.example.inventoryservice.dto.request.InventoryOrderRequest;
+import com.example.inventoryservice.dto.request.ReserveInventoryRequest;
 import com.example.inventoryservice.dto.request.SetInventoryQuantityRequest;
 import com.example.inventoryservice.dto.response.InventoryResponse;
 import com.example.inventoryservice.service.InventoryService;
@@ -17,7 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Trusted service-to-service endpoints used by the order payment workflow.
- * Public inventory mutations remain protected under /api/v1/inventory.
+ *
+ * <p>Stock movements live here rather than under {@code /api/v1/inventory} because that prefix is
+ * routed by the API Gateway. Exposed there, any authenticated shopper could reserve stock against
+ * an arbitrary order id and hold it indefinitely. This prefix is not routed by the gateway.
  */
 @RestController
 @RequiredArgsConstructor
@@ -38,6 +42,12 @@ public class InternalInventoryController {
             @Valid @RequestBody SetInventoryQuantityRequest request
     ) {
         return inventoryService.setAvailableQuantity(productId, variantId, request.availableQuantity());
+    }
+
+    @PostMapping("/reserve")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reserve(@Valid @RequestBody ReserveInventoryRequest request) {
+        inventoryService.reserveInventory(request);
     }
 
     @PostMapping("/confirm")

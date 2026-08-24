@@ -1,0 +1,22 @@
+sequenceDiagram
+    actor User as Người dùng hoặc seller
+    participant GW as API Gateway
+    participant Media as Media Service
+    participant S3 as S3-compatible storage
+    participant MediaDB as Media database
+
+    User->>GW: POST /media/api/v1/media/images multipart/form-data
+    GW->>Media: Forward REST/HTTPS + JWT
+    Media->>Media: Kiểm tra purpose, size, header và content type
+    Media->>S3: PutObject S3 API
+    S3-->>Media: Upload thành công
+    Media->>MediaDB: Lưu MediaAsset metadata
+    alt Lưu metadata thất bại
+        Media->>S3: DeleteObject compensation
+    else Thành công
+        Media-->>User: 201 MediaResponse
+    end
+    User->>GW: GET /media/api/v1/media/{id}/content
+    GW->>Media: Forward REST/HTTPS
+    Media->>S3: Tạo presigned GetObject URL
+    Media-->>User: 302 Location tới object URL

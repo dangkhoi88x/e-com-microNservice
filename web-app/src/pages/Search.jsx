@@ -112,10 +112,13 @@ export default function Search() {
         ...filters,
       };
 
-      const [searchData, aggregationData] = await Promise.all([
+      const [searchResult, aggregationResult] = await Promise.allSettled([
         searchProducts(params),
         getProductAggregations(filters),
       ]);
+      if (searchResult.status === "rejected") throw searchResult.reason;
+
+      const searchData = searchResult.value;
 
       setProducts(searchData.content || []);
       setPageInfo({
@@ -124,7 +127,11 @@ export default function Search() {
         totalPages: searchData.totalPages || 0,
         totalElements: searchData.totalElements || 0,
       });
-      setAggregations(aggregationData);
+      setAggregations(aggregationResult.status === "fulfilled" ? aggregationResult.value : {
+        categories: [],
+        priceStats: { count: 0 },
+        priceRanges: [],
+      });
     } catch (error) {
       setErrorMessage(
         error.response?.data?.message || "Could not search products.",

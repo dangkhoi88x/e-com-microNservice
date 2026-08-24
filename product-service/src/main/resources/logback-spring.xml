@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <springProperty name="serviceName"
+                    source="spring.application.name"
+                    defaultValue="product-service"/>
+
+    <appender name="LOGSTASH"
+              class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>${LOGSTASH_DESTINATION:-localhost:5600}</destination>
+
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <mdc/>
+                <logLevel fieldName="level"/>
+                <loggerName fieldName="logger"/>
+                <threadName fieldName="thread"/>
+                <message fieldName="message"/>
+                <stackTrace fieldName="stackTrace"/>
+                <pattern>
+                    <pattern>
+                        {
+                          "appName": "book-store",
+                          "serviceName": "${serviceName}"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOGSTASH"/>
+    </root>
+</configuration>

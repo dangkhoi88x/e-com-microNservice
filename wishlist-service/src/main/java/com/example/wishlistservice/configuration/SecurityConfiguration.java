@@ -12,6 +12,12 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration @EnableWebSecurity
 public class SecurityConfiguration {
-    @Bean SecurityFilterChain filterChain(HttpSecurity http) throws Exception { return http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(requests -> requests.requestMatchers("/actuator/health/**", "/actuator/info").permitAll().anyRequest().authenticated()).oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).build(); }
+    @Bean SecurityFilterChain filterChain(HttpSecurity http) throws Exception
+    { return http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests
+            (requests -> requests.requestMatchers("/actuator/health/**", "/actuator/info").permitAll().anyRequest().authenticated())
+            .oauth2ResourceServer(oauth ->
+                    oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+            .sessionManagement(session ->
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).build(); }
     @Bean JwtAuthenticationConverter jwtAuthenticationConverter() { JwtGrantedAuthoritiesConverter authorities = new JwtGrantedAuthoritiesConverter(); authorities.setAuthoritiesClaimName("roles"); authorities.setAuthorityPrefix(""); JwtAuthenticationConverter converter = new JwtAuthenticationConverter(); converter.setJwtGrantedAuthoritiesConverter(authorities); return converter; }
 }

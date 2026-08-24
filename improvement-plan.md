@@ -1,523 +1,217 @@
-# Improvement Plan - Khoi Microservice E-commerce
+# Improvement Plan - E-commerce Microservices
 
-Tài liệu này là roadmap cải thiện project `Khoi-Micro`.
+Cập nhật ngày: `2026-08-06`
 
-Mục tiêu:
+Tài liệu này mô tả trạng thái hiện tại và thứ tự cải thiện tiếp theo của project. Roadmap cũ tập trung vào việc tạo thêm Cart, Shipping, Review và Promotion; các service đó hiện đã tồn tại, vì vậy ưu tiên mới là làm chắc luồng nghiệp vụ, khả năng chịu lỗi và quy trình delivery.
 
-- Biết service/flow nào cần cải thiện trước.
-- Biết nên mở rộng service nào tiếp theo.
-- Giữ project ở mức hợp lý cho pet project/phỏng vấn.
-- Không làm quá sâu kiểu production khi chưa cần.
+## 1. Mục tiêu
 
-## 1. Nguyên Tắc Ưu Tiên
+- Giữ flow mua hàng đúng khi service hoặc Kafka gặp lỗi.
+- Có test tự động cho các luồng quan trọng thay vì chỉ demo thủ công.
+- Quản lý schema database và secret an toàn hơn.
+- Có CI/CD, container và observability đủ để vận hành toàn hệ thống.
+- Chỉ thêm service mới khi các service hiện tại đã có độ tin cậy phù hợp.
 
-Khi cải thiện project, nên ưu tiên theo thứ tự:
+## 2. Trạng thái hiện tại
 
-```text
-1. Fix lỗi nghiệp vụ dễ bị hỏi.
-2. Làm flow chính chạy mượt end-to-end.
-3. Làm documentation và demo flow rõ ràng.
-4. Thêm test cho flow quan trọng.
-5. Sau đó mới mở rộng service mới.
-```
+### Các thành phần đã có
 
-Với project này, flow quan trọng nhất là:
+- API Gateway và Eureka Discovery.
+- Identity/Auth, Profile và Seller.
+- Product, Inventory, Search và Media.
+- Cart, Wishlist và Promotion/Flash Deal.
+- Order, Payment và Shipping.
+- Review/Rating và Notification.
+- Web application cho customer, admin, seller và shipper.
+- PostgreSQL, MongoDB, Redis, Kafka và Elasticsearch.
 
-```text
-Product -> Inventory -> Order -> Payment -> Inventory/Product/Search
-```
+### Các flow và nền tảng đã hoàn thành
 
-Nếu flow này chắc, project đã đủ mạnh để đem đi phỏng vấn.
+- Inventory là source of truth của tồn kho; Product/Search giữ read model phục vụ đọc.
+- Checkout từ Cart sang Order, reserve/confirm/release inventory.
+- COD và Stripe payment; Stripe có webhook verification và reconciliation.
+- Order xử lý `payment-success`, `payment-failed` và `payment-cancelled`.
+- Promotion hỗ trợ reserve, confirm và release.
+- Inventory có batch API và transactional outbox.
+- Một số consumer quan trọng đã có retry/DLT và API quản trị DLT.
+- HTTP/Kafka trace ID, structured logging, Logstash, Elasticsearch và Kibana đã được bổ sung cho flow chính.
+- Retry/circuit breaker đã được áp dụng cho một số lời gọi liên service.
 
-## 2. Tình Trạng Hiện Tại
+## 3. Khoảng trống chính
 
-Các phần đã có:
+### 3.1. Test còn mỏng
 
-- API Gateway.
-- Eureka Discovery.
-- Identity/Auth.
-- Profile.
-- Product/category.
-- Search với Elasticsearch.
-- Inventory reserve/confirm/release.
-- Order tạo đơn và reserve inventory.
-- Payment success/failed/cancelled.
-- Kafka event cho product/payment/inventory/order.
-- Product/Search sync stock từ Inventory event.
-- README, architecture notes, interview notes.
+Codebase hiện có khoảng 586 file Java production nhưng chỉ 22 file test và 33 test method. Phần lớn service mới có smoke test khởi động context; chưa có bộ integration/E2E bảo vệ toàn bộ checkout flow.
 
-Các quyết định kiến trúc hiện tại:
+### 3.2. Kafka reliability chưa đồng đều
 
-```text
-Inventory Service = source of truth cho stock.
-Product Service = catalog + quantity denormalized.
-Search Service = read model cho search/filter.
-Order Service = tạo order và gọi inventory reserve.
-Payment Service = publish payment event.
-```
+- Outbox mới được áp dụng rõ ở Inventory.
+- Retry/DLT chưa phủ toàn bộ consumer.
+- Chưa có event envelope và versioning thống nhất.
+- Chưa có inbox/deduplication chung để chống xử lý event trùng.
+- Chưa có reconciliation toàn tuyến cho Order, Payment, Inventory, Promotion và Shipping.
 
-## 3. Priority 1 - Cần Cải Thiện Ngay
+### 3.3. Database và cấu hình chưa sẵn sàng cho production
 
-Đây là nhóm nên làm trước vì liên quan trực tiếp đến flow chính và dễ bị hỏi khi phỏng vấn.
+- Nhiều service vẫn dùng `ddl-auto: update`.
+- Một số cấu hình local có username/password mặc định trong YAML.
+- Chưa có migration versioned bằng Flyway hoặc Liquibase.
+- Internal endpoint cần service-to-service authentication rõ ràng hơn.
 
-### 3.1. Chuẩn Hóa Response Khi Order Inventory Failed
+### 3.4. Delivery chưa tự động
 
-Hiện order reserve fail sẽ trả order với status:
+- Chưa có CI pipeline trong repository.
+- Chỉ một phần service có Dockerfile.
+- Docker Compose chủ yếu chạy infrastructure, chưa có profile chuẩn để chạy nhóm service.
+- Frontend có build/lint nhưng chưa có test script.
 
-```text
-INVENTORY_FAILED
-```
+### 3.5. Observability mới phủ flow chính
 
-Cần kiểm tra controller message để client không hiểu nhầm là order thành công hoàn toàn.
+- Trace ID và structured logging chưa đồng nhất trên tất cả service.
+- Chưa có metrics/alert cho consumer lag, DLT, outbox backlog và payment reconciliation.
+- Chưa có SLO hoặc dashboard vận hành cho các flow quan trọng.
 
-Nên làm:
-
-```text
-Nếu data.status = INVENTORY_FAILED
--> message = "Order created but inventory reservation failed"
-
-Nếu data.status = PENDING_PAYMENT
--> message = "Order created successfully"
-```
-
-Lý do:
-
-- Client dễ hiểu.
-- Demo rõ hơn.
-- Không bị hỏi vì sao API trả success nhưng status failed.
-
-Mức độ: Rất nên làm.
-
-### 3.2. Giới Hạn API Update Order Status
-
-Hiện API update status có thể cho đổi trạng thái order trực tiếp.
-
-Vấn đề:
+## 4. Nguyên tắc ưu tiên
 
 ```text
-Có thể bypass flow payment/inventory.
+Business correctness
+-> automated tests
+-> event reliability
+-> database/security
+-> CI/CD và deployment
+-> observability hoàn chỉnh
+-> feature/service mới
 ```
 
-Ví dụ không nên cho:
+Không thêm microservice chỉ để tăng số lượng service. Mỗi service mới phải có ownership dữ liệu rõ, contract rõ và lý do vận hành độc lập.
+
+## 5. Roadmap đề xuất
+
+### Phase 0 - Repository hygiene
+
+Mục tiêu: Git chỉ chứa source và cấu hình có giá trị dùng chung.
+
+- Bỏ theo dõi `.idea`; giữ cấu hình IntelliJ trên máy local.
+- Bỏ lock file của `board-service` khỏi repository cho đến khi service có `package.json` và source thực tế.
+- Giữ infrastructure, observability, business logic và documentation ở các commit riêng.
+- Duy trì `.gitignore` cho IDE, secret và dependency sinh tự động.
+
+Kết quả mong muốn:
 
 ```text
-PENDING -> CONFIRMED
-INVENTORY_FAILED -> CONFIRMED
-CANCELLED -> PENDING_PAYMENT
+git status sạch, ít conflict IDE và lịch sử commit dễ review/revert.
 ```
 
-Nên làm:
+### Phase 1 - Integration test cho flow mua hàng
 
-- Chỉ admin được dùng API này.
-- Hoặc tạm bỏ khỏi public flow demo.
-- Hoặc validate transition rõ ràng.
+Ưu tiên theo thứ tự:
 
-Mức độ: Rất nên làm.
+1. Checkout COD thành công.
+2. Stripe webhook thành công và webhook bị gửi trùng.
+3. Không đủ tồn kho khi checkout.
+4. Payment failed/cancelled và compensation tồn kho/promotion.
+5. Kafka gửi event trùng nhưng consumer chỉ cập nhật một lần.
+6. Timeout/downstream failure và retry/circuit breaker.
+7. Shipping transition hợp lệ và không hợp lệ.
 
-### 3.3. Chuẩn Hóa Payment Flow Sau Khi Payment Failed
+Giải pháp kỹ thuật:
 
-Hiện Payment failed/cancelled đã publish event để Inventory release.
+- JUnit 5 và Mockito cho unit test.
+- Testcontainers cho PostgreSQL, Kafka, Redis và Elasticsearch.
+- Integration test theo từng service boundary.
+- Một bộ E2E nhỏ chạy flow qua API Gateway.
 
-Cần kiểm tra thêm:
+Definition of Done:
 
-```text
-Order có nên đổi sang CANCELLED/PAYMENT_FAILED không?
-```
+- Happy path và failure path đều được test tự động.
+- Test chạy lặp lại được trên máy mới và trong CI.
+- Không phụ thuộc dữ liệu tạo tay trong database local.
 
-Hiện flow chính mới confirm order khi payment success. Với payment failed, inventory release là đúng, nhưng order status nếu vẫn `PENDING_PAYMENT` thì hơi thiếu rõ.
+### Phase 2 - Kafka reliability và consistency
 
-Nên thêm:
+- Áp dụng transactional outbox cho Order, Payment, Promotion và Shipping.
+- Chuẩn hóa event envelope gồm `eventId`, `eventType`, `version`, `occurredAt`, `traceId` và business key.
+- Thêm inbox/deduplication cho consumer thay đổi trạng thái hoặc số lượng.
+- Chuẩn hóa retry, exponential backoff và DLT cho toàn bộ consumer.
+- Có lệnh/API quản trị để xem, replay và audit DLT.
+- Thêm reconciliation job cho Order-Payment-Inventory-Promotion-Shipment.
+- Viết AsyncAPI hoặc tài liệu event contract và quy tắc backward compatibility.
 
-```text
-payment-failed -> Order Service consume -> order status PAYMENT_FAILED hoặc CANCELLED
-payment-cancelled -> Order Service consume -> order status CANCELLED
-```
+Definition of Done:
 
-Nếu chưa muốn thêm status mới:
+- Producer crash sau khi commit database không làm mất event quan trọng.
+- Event gửi lại không tạo cập nhật trùng.
+- Event lỗi có thể quan sát và replay an toàn.
 
-```text
-payment-failed -> CANCELLED
-payment-cancelled -> CANCELLED
-```
+### Phase 3 - Database migration và security
 
-Mức độ: Rất nên làm.
+- Thêm Flyway cho Order, Payment và Inventory trước; sau đó mở rộng sang các service còn lại.
+- Chuyển production sang `ddl-auto: validate`.
+- Tách profile `local`, `test` và `prod` rõ ràng.
+- Đưa database password, JWT, Stripe, email và storage secret ra environment/secret manager.
+- Bảo vệ internal API bằng service credential, mTLS hoặc network policy phù hợp.
+- Kiểm tra authorization theo ownership, không chỉ theo role.
 
-### 3.4. Thêm Test Hoặc Postman Flow Cho Order-Payment-Inventory
+Definition of Done:
 
-Nếu chưa viết test tự động, ít nhất nên có file hướng dẫn demo bằng Postman.
+- Database trống có thể dựng hoàn toàn từ migration.
+- Nâng version schema có rollback/forward strategy.
+- Repository không chứa production secret.
 
-Nên tạo:
+### Phase 4 - CI/CD và container
 
-```text
-api-docs.md
-```
+- Thêm CI: backend compile/test, frontend lint/build và integration test chọn lọc.
+- Chuẩn hóa Dockerfile multi-stage cho toàn bộ service.
+- Thêm Docker Compose profile: `infra`, `core`, `observability` và `full`.
+- Thêm healthcheck/readiness cho infrastructure và service.
+- Thêm dependency scan, secret scan và image scan.
 
-Nội dung:
+Definition of Done:
 
-- Login lấy token.
-- Tạo category.
-- Tạo product.
-- Tạo inventory.
-- Tạo order.
-- Tạo payment.
-- Mark success.
-- Check inventory.
+- Pull request lỗi build/test bị chặn tự động.
+- Có thể dựng môi trường demo từ repository bằng quy trình được tài liệu hóa.
 
-Mức độ: Rất nên làm.
+### Phase 5 - Observability hoàn chỉnh
 
-## 4. Priority 2 - Nên Cải Thiện Sau Khi Flow Chính Ổn
+- Phủ trace ID cho tất cả HTTP client/server, Kafka consumer/producer và scheduled job.
+- Thêm Micrometer/Prometheus metrics.
+- Dashboard cho latency, error rate, Kafka lag, DLT, outbox age và payment reconciliation.
+- Alert cho order treo, webhook lỗi, outbox quá hạn và consumer lag cao.
+- Kiểm tra log masking cho token, password, payment và dữ liệu cá nhân.
 
-Nhóm này giúp project sạch hơn và gần thực tế hơn, nhưng chưa bắt buộc ngay.
+### Phase 6 - Reporting read model
 
-### 4.1. Tách Common Event Module
+Sau khi Phase 1-5 ổn định, tính năng mới có giá trị cao nhất là reporting read model cho admin:
 
-Hiện event DTO đang bị copy giữa nhiều service.
-
-Ví dụ:
-
-```text
-PaymentSuccessEvent
-PaymentFailedEvent
-InventoryUpdatedEvent
-ProductUpdatedEvent
-```
-
-Vấn đề:
-
-- Dễ lệch field giữa producer và consumer.
-- Sửa event phải sửa nhiều service.
-- Khó maintain.
-
-Nên tạo module:
-
-```text
-common-event
-```
-
-Chứa:
-
-- Product events.
-- Payment events.
-- Inventory events.
-- Order events.
-- User/profile events.
-
-Mức độ: Nên làm.
-
-### 4.2. Chuẩn Hóa Retry Và Dead Letter Topic Cho Kafka
-
-Hiện một số Kafka consumer đã có hướng retry/DLT nhưng chưa đồng bộ toàn hệ thống.
-
-Nên chuẩn hóa:
-
-```text
-payment-success.DLT
-payment-failed.DLT
-payment-cancelled.DLT
-inventory-updated.DLT
-product-updated.DLT
-```
-
-Lý do:
-
-- Nếu consumer lỗi, event không bị mất.
-- Dễ debug.
-- Phỏng vấn rất dễ được điểm.
-
-Mức độ: Nên làm.
-
-### 4.3. Batch API Cho Inventory - Đã Làm
-
-Inventory Service đã có batch API để Product Service lấy stock của nhiều product trong một request.
-
-API:
-
-```text
-POST /api/v1/inventory/products/batch
-```
-
-Request:
-
-```json
-{
-  "productIds": ["p1", "p2", "p3"]
-}
-```
-
-Response:
-
-```json
-[
-  {
-    "productId": "p1",
-    "availableQuantity": 10
-  }
-]
-```
-
-Product Service có thể dùng API này cho product list để tránh gọi Inventory Service từng product một.
-
-### 4.4. Đổi Tên Product Quantity
-
-Hiện `product.quantity` là bản sao từ inventory.
-
-Tên tốt hơn:
-
-```text
-cachedAvailableQuantity
-```
-
-Hoặc:
-
-```text
-availableQuantity
-```
-
-Lý do:
-
-- Đọc code dễ hiểu hơn.
-- Không bị nhầm Product là source of truth.
-
-Mức độ: Nên làm, nhưng sửa nhiều chỗ nên làm sau.
-
-### 4.5. Thêm Flyway Hoặc Liquibase
-
-Hiện các service dùng:
-
-```text
-ddl-auto: update
-```
-
-Điều này tiện cho demo nhưng chưa tốt cho production.
-
-Nên thêm migration cho:
-
-- Product DB.
-- Inventory DB.
-- Order DB.
-- Payment DB.
-
-Mức độ: Nên làm sau.
-
-## 5. Priority 3 - Mở Rộng Service Tiếp Theo
-
-Sau khi flow e-commerce chính ổn, có thể mở rộng thêm service.
-
-### 5.1. Cart Service
-
-Đây là service nên làm tiếp theo nhất.
-
-Lý do:
-
-- E-commerce thường có cart trước order.
-- Dễ demo.
-- Không làm flow hiện tại quá phức tạp.
-
-Cart Service quản lý:
-
-- Thêm sản phẩm vào giỏ.
-- Xóa sản phẩm khỏi giỏ.
-- Cập nhật quantity trong giỏ.
-- Xem giỏ hàng.
-- Checkout cart thành order.
-
-Flow:
-
-```text
-User add product to cart
--> Cart Service lưu cart item
--> User checkout
--> Cart Service gọi Order Service create order
-```
-
-Lưu ý:
-
-- Cart chưa cần reserve inventory.
-- Chỉ khi checkout tạo order mới reserve inventory.
-
-Mức độ: Rất nên làm nếu muốn mở rộng.
-
-### 5.2. Shipping Service
-
-Shipping Service phù hợp sau Payment/Order.
-
-Quản lý:
-
-- Tạo shipment khi order confirmed.
-- Trạng thái giao hàng.
-- Tracking number.
-- Delivered/failed delivery.
-
-Flow:
-
-```text
-payment-success
--> order CONFIRMED
--> Shipping Service tạo shipment
-```
-
-Trạng thái gợi ý:
-
-```text
-PENDING
-PACKING
-SHIPPING
-DELIVERED
-FAILED
-RETURNED
-```
-
-Mức độ: Nên làm sau Cart.
-
-### 5.3. Review/Rating Service
-
-Review Service giúp project có thêm nghiệp vụ user-facing.
-
-Quản lý:
-
-- User đánh giá sản phẩm.
-- Rating 1-5 sao.
-- Comment.
-- Chỉ cho review nếu order đã confirmed/delivered.
-
-Flow:
-
-```text
-User mua hàng thành công
--> Sau khi delivered
--> User được review product
-```
-
-Mức độ: Nên làm sau Shipping.
-
-### 5.4. Promotion/Coupon Service
-
-Service này giúp project giống e-commerce thật hơn.
-
-Quản lý:
-
-- Coupon code.
-- Discount theo phần trăm.
-- Discount theo số tiền.
-- Điều kiện min order amount.
-- Ngày hết hạn.
-
-Flow:
-
-```text
-User tạo order
--> Order Service gọi Promotion Service validate coupon
--> Tính discount
--> Lưu totalAmount sau giảm giá
-```
-
-Mức độ: Làm sau khi Order/Payment ổn.
-
-### 5.5. Admin/Reporting Service
-
-Service này phục vụ dashboard.
-
-Quản lý:
-
-- Tổng doanh thu.
-- Tổng order.
-- Sản phẩm bán chạy.
+- Doanh thu và order theo thời gian.
+- Payment success/failure rate.
+- Sản phẩm và seller bán chạy.
 - Tồn kho thấp.
-- Payment success/fail rate.
+- Shipment theo trạng thái.
 
-Có thể consume event:
+Reporting consume event và sở hữu database riêng; không query trực tiếp database của service khác.
 
-```text
-order-created
-payment-success
-inventory-updated
-```
+## 6. Sprint tiếp theo đề xuất
 
-Mức độ: Nên làm nếu muốn show dashboard/reporting.
+Nếu chỉ chọn một sprint 1-2 tuần:
 
-## 6. Roadmap Gợi Ý
+1. Hoàn tất repository hygiene.
+2. Thêm CI build/test/lint cơ bản.
+3. Viết integration test cho checkout COD và Stripe.
+4. Test inventory failure và payment compensation.
+5. Áp dụng outbox cho Payment và Order.
+6. Thêm idempotency cho consumer quan trọng.
+7. Bắt đầu Flyway cho Order, Payment và Inventory.
 
-### Phase 1 - Dọn Flow Hiện Tại
+Không bắt đầu Reporting Service trong sprint này.
 
-Mục tiêu:
-
-```text
-Order - Payment - Inventory chạy rõ ràng, dễ demo.
-```
-
-Việc cần làm:
-
-1. Fix response message khi order `INVENTORY_FAILED`.
-2. Giới hạn API update order status.
-3. Cho Order Service xử lý `payment-failed/payment-cancelled`.
-4. Viết `api-docs.md` để demo Postman.
-
-Kết quả mong muốn:
+## 7. Cách trình bày roadmap khi phỏng vấn
 
 ```text
-Flow mua hàng thành công/thất bại đều rõ.
-Không có status treo khó hiểu.
-```
-
-### Phase 2 - Làm Sạch Kiến Trúc
-
-Mục tiêu:
-
-```text
-Code dễ maintain hơn.
-```
-
-Việc cần làm:
-
-1. Tách `common-event`.
-2. Chuẩn hóa Kafka retry/DLT.
-3. Đổi tên `product.quantity` thành `cachedAvailableQuantity`.
-4. Đổi tên `product.quantity` thành `cachedAvailableQuantity`.
-
-Kết quả mong muốn:
-
-```text
-Ít duplicate code.
-Event schema rõ.
-Stock read model dễ hiểu hơn.
-```
-
-### Phase 3 - Mở Rộng Service
-
-Mục tiêu:
-
-```text
-Project giống e-commerce thật hơn.
-```
-
-Thứ tự nên làm:
-
-1. Cart Service.
-2. Shipping Service.
-3. Review/Rating Service.
-4. Promotion/Coupon Service.
-5. Reporting Service.
-
-## 7. Ranking Việc Nên Làm Ngay
-
-Nếu chỉ chọn 7 việc gần nhất, nên làm:
-
-1. Fix response message khi order `INVENTORY_FAILED`.
-2. Cho Order Service consume `payment-failed/payment-cancelled`.
-3. Giới hạn hoặc validate `updateOrderStatus`.
-4. Viết `api-docs.md`.
-5. Tách `common-event` module.
-6. Chuẩn hóa Kafka retry/DLT.
-7. Bắt đầu Cart Service.
-
-## 8. Cách Trả Lời Khi Bị Hỏi "Project Này Nên Làm Gì Tiếp?"
-
-Câu trả lời mẫu:
-
-```text
-Nếu cải thiện tiếp, em sẽ ưu tiên làm chắc flow order-payment-inventory trước.
-
-Cụ thể là xử lý rõ payment failed/cancelled để order không bị treo ở PENDING_PAYMENT, giới hạn API update order status để không bypass nghiệp vụ, và viết api-docs để demo end-to-end.
-
-Sau đó em sẽ tách common-event module, chuẩn hóa retry/DLT cho Kafka, rồi mới mở rộng Cart Service vì đây là service tự nhiên tiếp theo trong e-commerce.
+Project hiện đã có đầy đủ các domain service chính và flow checkout bằng COD/Stripe.
+Ưu tiên tiếp theo của em không phải thêm service, mà là tăng độ tin cậy của flow
+Order-Payment-Inventory: bổ sung integration test, transactional outbox,
+idempotent consumer, retry/DLT và reconciliation. Sau đó em sẽ version database
+bằng Flyway, tự động hóa CI/CD và hoàn thiện metrics/alerting. Khi nền tảng ổn định,
+em mới xây reporting read model từ Kafka event cho dashboard admin.
 ```

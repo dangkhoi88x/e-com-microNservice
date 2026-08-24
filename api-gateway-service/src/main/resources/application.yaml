@@ -3,39 +3,8 @@
 spring:
   application:
     name: api-gateway-service
-  cloud:
-    gateway:
-      server:
-        webflux:
-          routes:
-            - id: cart-service
-              uri: lb://cart-service
-              predicates:
-                - Path=/api/v1/cart/**
-            - id: wishlist-service
-              uri: lb://wishlist-service
-              predicates:
-                - Path=/api/v1/wishlist/**
-            - id: order-service
-              uri: lb://order-service
-              predicates:
-                - Path=/order/**
-            - id: promotion-service
-              uri: lb://promotion-service
-              predicates:
-                - Path=/api/v1/promotions/**
-            - id: flash-deal-service
-              uri: lb://promotion-service
-              predicates:
-                - Path=/api/v1/flash-deals/**
-            - id: media-service
-              uri: lb://media-service
-              predicates:
-                - Path=/api/v1/media/**
-            - id: search-service
-              uri: lb://search-service
-              predicates:
-                - Path=/api/v1/search/**
+# Routes live in GatewayConfiguration.java only. Declaring them here as well duplicated four
+# paths and hid a missing stripPrefix filter on /order/**.
 server:
   port: 9191
 logging:

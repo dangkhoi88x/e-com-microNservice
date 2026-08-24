@@ -1,0 +1,28 @@
+sequenceDiagram
+    actor User as Người dùng
+    participant GW as API Gateway
+    participant Order as Order Service
+    participant Inventory as Inventory Service
+    participant Promo as Promotion Service
+    participant Cart as Cart Service
+    participant OrderDB as Order database
+    participant Kafka as Kafka
+    participant Shipping as Shipping Service
+    participant Notify as Notification Service
+
+    User->>GW: PUT /order/api/v1/orders/{id}/cancel
+    GW->>Order: Forward REST/HTTPS + bearer token
+    Order->>OrderDB: Tìm order theo userId
+    alt Order PENDING_PAYMENT
+        Order->>Inventory: Release reservation (REST)
+        Order->>Promo: Release promotion/flash deal (REST)
+        Order->>Cart: Release checked-out cart item (REST)
+    end
+    Order->>OrderDB: Lưu order CANCELLED
+    Order->>Kafka: Publish order-cancelled
+    Kafka-->>Shipping: Deliver OrderCancelledEvent
+    Shipping->>Shipping: Huỷ shipment nếu trạng thái được phép
+    Shipping->>Kafka: Publish shipment-status-updated
+    Kafka-->>Notify: Deliver order-cancelled
+    Notify->>Notify: Lưu cancellation notification
+    Order-->>User: 200 Cancelled

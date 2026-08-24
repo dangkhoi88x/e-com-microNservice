@@ -1,0 +1,24 @@
+sequenceDiagram
+    actor Operator as Admin hoặc shipper
+    participant GW as API Gateway
+    participant Shipping as Shipping Service
+    participant ShipDB as Shipping database
+    participant Kafka as Kafka
+    participant Order as Order Service
+    participant OrderDB as Order database
+    participant Notify as Notification Service
+
+    Operator->>GW: PUT /shipping/api/v1/shipments/{id}/ship
+    GW->>Shipping: Forward REST/HTTPS + bearer token
+    Shipping->>ShipDB: Kiểm tra status/carrier/tracking
+    Shipping->>ShipDB: Lưu IN_TRANSIT và ShipmentHistory
+    Shipping->>Kafka: Publish shipment-status-updated
+    Kafka-->>Order: Deliver ShipmentStatusUpdatedEvent
+    Order->>OrderDB: Update order state từ shipment event
+    Kafka-->>Notify: Deliver ShipmentStatusUpdatedEvent
+    Notify->>Notify: Lưu shipment notification
+    opt Delivery failed
+        Operator->>Shipping: PUT delivery-failed, returning, returned
+        Shipping->>ShipDB: Lưu transition + history
+        Shipping->>Kafka: Publish status event mỗi transition
+    end

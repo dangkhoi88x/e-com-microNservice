@@ -1,0 +1,25 @@
+sequenceDiagram
+    actor User as Người dùng
+    participant GW as API Gateway
+    participant Cart as Cart Service
+    participant Wish as Wishlist Service
+    participant Product as Product Service
+    participant CartDB as Cart database
+    participant WishDB as Wishlist database
+
+    alt Thêm cart
+        User->>GW: POST /cart/api/v1/cart/items
+        GW->>Cart: Forward REST/HTTPS + bearer token
+        Cart->>Product: GET product/variant snapshot (REST)
+        Product-->>Cart: ProductSnapshot
+        Cart->>CartDB: Tạo active cart nếu chưa có
+        Cart->>CartDB: Insert hoặc gộp CartItem
+        Cart-->>User: 200 CartResponse
+    else Thêm wishlist
+        User->>GW: POST /wishlist/api/v1/wishlist/items
+        GW->>Wish: Forward REST/HTTPS + bearer token
+        Wish->>Product: GET product/variant snapshot (REST)
+        Product-->>Wish: ProductSnapshot
+        Wish->>WishDB: INSERT ON CONFLICT DO NOTHING
+        Wish-->>User: 201 WishlistItemResponse
+    end

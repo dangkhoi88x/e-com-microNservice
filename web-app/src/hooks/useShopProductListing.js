@@ -43,19 +43,26 @@ export default function useShopProductListing({ categoryId, size = 24 } = {}) {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([searchProducts(filters), getProductAggregations(filters)])
-      .then(([result, facets]) => {
-        setProducts(result.content || []);
-        setPageInfo({
-          currentPage: result.currentPage || filters.page,
-          totalPages: result.totalPages || 0,
-          totalElements: result.totalElements || 0,
-        });
-        setAggregation(facets || { categories: [], priceStats: {} });
-      })
-      .catch(() => {
-        setProducts([]);
-        setPageInfo({ currentPage: 1, totalPages: 0, totalElements: 0 });
+    Promise.allSettled([searchProducts(filters), getProductAggregations(filters)])
+      .then(([productResult, aggregationResult]) => {
+        if (productResult.status === "fulfilled") {
+          const result = productResult.value;
+          setProducts(result.content || []);
+          setPageInfo({
+            currentPage: result.currentPage || filters.page,
+            totalPages: result.totalPages || 0,
+            totalElements: result.totalElements || 0,
+          });
+        } else {
+          setProducts([]);
+          setPageInfo({ currentPage: 1, totalPages: 0, totalElements: 0 });
+        }
+
+        if (aggregationResult.status === "fulfilled") {
+          setAggregation(aggregationResult.value || { categories: [], priceStats: {} });
+        } else {
+          setAggregation({ categories: [], priceStats: {} });
+        }
       })
       .finally(() => setLoading(false));
   }, [filters]);

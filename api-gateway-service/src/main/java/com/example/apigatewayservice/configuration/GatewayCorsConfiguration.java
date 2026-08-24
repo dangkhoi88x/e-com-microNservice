@@ -23,6 +23,7 @@ public class GatewayCorsConfiguration {
         corsConfiguration.setAllowedOrigins(List.of(allowedOrigins.split(",")));
         corsConfiguration.setAllowedHeaders(List.of("*"));
         corsConfiguration.setAllowedMethods(List.of("*"));
+        corsConfiguration.setExposedHeaders(List.of(TraceIdGatewayFilter.TRACE_ID_HEADER));
         corsConfiguration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

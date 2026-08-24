@@ -1,0 +1,21 @@
+sequenceDiagram
+    actor User as Người dùng
+    participant GW as API Gateway
+    participant Promo as Promotion Service
+    participant PromoDB as Promotion database
+    participant Scheduler as Promotion scheduler
+    participant Kafka as Kafka
+    participant Notify as Notification Service
+    participant NotifyDB as Notification database
+
+    User->>GW: POST /promotion/api/v1/flash-deals/{id}/notifications
+    GW->>Promo: Forward REST/HTTPS
+    Promo->>PromoDB: Kiểm tra deal FLASH và SCHEDULED
+    Promo->>PromoDB: Lưu subscription idempotent
+    User->>GW: POST /promotion/api/v1/flash-deals/notifications/general
+    GW->>Promo: Lưu general subscription
+    Scheduler->>Promo: refreshStatuses theo fixed delay
+    Promo->>PromoDB: Đồng bộ status và materialize subscription chung
+    Promo->>Kafka: Publish flash-sale-upcoming (trước 15 phút)
+    Kafka-->>Notify: Deliver notification event
+    Notify->>NotifyDB: Lưu FLASH_SALE_UPCOMING notification

@@ -27,4 +27,6 @@ public interface FlashDealService {
     void release(String orderId);
     void subscribeForNotification(String flashDealId, String userId);
     List<String> getNotificationSubscriptions(String userId);
+    void subscribeForGeneralNotification(String userId);
+    boolean hasGeneralNotificationSubscription(String userId);
 }

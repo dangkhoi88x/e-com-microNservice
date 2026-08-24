@@ -2,3 +2,12 @@
 .env.*
 !.env.example
 *.pem
+
+# IntelliJ IDEA project state
+.idea/
+
+# JavaScript dependencies generated locally
+node_modules/
+
+# Incomplete local experiment; there is no package.json or source yet
+/board-service/package-lock.json

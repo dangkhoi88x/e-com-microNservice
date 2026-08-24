@@ -873,15 +873,11 @@ Nên nói thẳng khi phỏng vấn:
 1. Một số module local còn dùng chung PostgreSQL instance/database.
 2. Outbox chưa áp dụng đồng đều cho Order, Payment, Product và Seller.
 3. Một số internal endpoint còn cần chuẩn hóa service-to-service authentication.
-4. Cấu hình local và Docker chưa hoàn toàn thống nhất. Trong `docker-compose.yaml`
-   một số service vẫn override `JWT_ISSUER=identity-service`, trong khi token
-   local hiện dùng `http://localhost:8090`; nếu chạy container cần đồng bộ lại.
-5. Gateway route được khai báo cả Java và YAML, dễ trùng lặp hoặc lệch nhau.
-6. Cần distributed tracing với correlation ID qua REST và Kafka.
-7. Cần metrics/alert cho webhook, consumer lag, DLT và payment reconciliation.
-8. Cần Testcontainers và end-to-end test cho checkout/payment/shipping.
-9. Cần secret manager cho Stripe, email, database và AWS credentials.
-10. Cần timeout, retry, circuit breaker có kiểm soát cho REST client.
+4. Cần distributed tracing với correlation ID qua REST và Kafka.
+5. Cần metrics/alert cho webhook, consumer lag, DLT và payment reconciliation.
+6. Cần Testcontainers và end-to-end test cho checkout/payment/shipping.
+7. Cần secret manager cho Stripe, email, database và AWS credentials.
+8. Cần timeout, retry, circuit breaker có kiểm soát cho REST client.
 
 Một câu trả lời tốt:
 

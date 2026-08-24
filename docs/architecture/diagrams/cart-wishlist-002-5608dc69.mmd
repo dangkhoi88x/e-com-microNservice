@@ -1,0 +1,13 @@
+flowchart TD
+    start([Lưu product cho user]) --> target{"Cart hay wishlist?"}
+    target -->|Cart| cartSnapshot["Lấy product/variant snapshot"]
+    cartSnapshot --> activeCart["Tìm hoặc tạo active cart"]
+    activeCart --> duplicateCart{"CartItem trùng?"}
+    duplicateCart -->|Có| merge["Cộng quantity, refresh snapshot"]
+    duplicateCart -->|Không| add["Tạo CartItem selected"]
+    target -->|Wishlist| wishSnapshot["Lấy product/variant snapshot"]
+    wishSnapshot --> insert["Insert wishlist với ON CONFLICT DO NOTHING"]
+    merge --> result["Trả updated response"]
+    add --> result
+    insert --> result
+    result --> done([Hoàn tất])

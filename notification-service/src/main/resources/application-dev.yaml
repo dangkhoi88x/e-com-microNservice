@@ -1,8 +1,6 @@
 spring:
   config:
-    import:
-      - optional:file:.env.dev[.properties]
-      - optional:file:../.env.dev[.properties]
+    import: optional:file:notification-service/.env.dev[.properties]
   mongodb:
       uri: mongodb://root:123456@localhost:27017/notification-service?authSource=admin
   kafka:

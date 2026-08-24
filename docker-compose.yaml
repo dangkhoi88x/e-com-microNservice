@@ -133,7 +133,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SERVICES_ORDER_BASE_URL: http://host.docker.internal:8086
       SERVICES_PROFILE_BASE_URL: http://host.docker.internal:8081
-      JWT_ISSUER: identity-service
+      JWT_ISSUER: http://localhost:8090
       JWT_JWK_SET_URI: http://host.docker.internal:8090/identity/api/.well-known/jwks.json
     depends_on:
       review-postgres:
@@ -153,7 +153,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123456
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      JWT_ISSUER: identity-service
+      JWT_ISSUER: http://localhost:8090
       JWT_JWK_SET_URI: http://host.docker.internal:8090/identity/api/.well-known/jwks.json
     depends_on:
       shipping-postgres:
@@ -176,7 +176,7 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       IDENTITY_SERVICE_BASE_URL: http://host.docker.internal:8090/identity/api
-      JWT_ISSUER: identity-service
+      JWT_ISSUER: http://localhost:8090
       JWT_JWK_SET_URI: http://host.docker.internal:8090/identity/api/.well-known/jwks.json
     depends_on:
       seller-postgres:
@@ -190,14 +190,18 @@ services:
     build:
       context: ./promotion-service
     container_name: promotion-service
+    # Must stay a 1:1 mapping. Spring Cloud registers the container's real Tomcat port with
+    # Eureka (it overwrites eureka.instance.non-secure-port on startup), so a host port that
+    # differs from the container port makes the service undiscoverable by host-run consumers.
     ports:
-      - "8094:8095"
+      - "8095:8095"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://promotion-postgres:5432/promotion_db
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 123456
+      REDIS_HOST: redis
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
-      JWT_ISSUER: identity-service
+      JWT_ISSUER: http://localhost:8090
       JWT_JWK_SET_URI: http://host.docker.internal:8090/identity/api/.well-known/jwks.json
     depends_on:
       promotion-postgres:
@@ -249,7 +253,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123456
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://host.docker.internal:8761/eureka/
       SERVICES_PRODUCT_BASE_URL: http://host.docker.internal:8084
-      JWT_ISSUER: identity-service
+      JWT_ISSUER: http://localhost:8090
       JWT_JWK_SET_URI: http://host.docker.internal:8090/identity/api/.well-known/jwks.json
     depends_on:
       wishlist-postgres:
@@ -340,6 +344,19 @@ services:
       interval: 10s
       timeout: 10s
       retries: 10
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:9.3.0
+    container_name: logstash
+    ports:
+      - "5600:5600"
+    volumes:
+      - ./elk/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - microservice_network
 
   kibana:
     image: kibana:9.3.0

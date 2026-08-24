@@ -40,9 +40,11 @@ public class OrderController {
     ) {
         String token = authorization.replace("Bearer ", "");
         OrderResponse data = orderService.createOrder(jwt.getSubject(), request, token);
-        String message = OrderStatus.INVENTORY_FAILED.name().equals(data.status())
-                ? "Order created but inventory reservation failed"
-                : "Order created successfully";
+        String message = switch (data.status()) {
+            case "INVENTORY_FAILED" -> "Order created but inventory reservation failed";
+            case "PROMOTION_FAILED" -> "Order created but promotion reservation failed";
+            default -> "Order created successfully";
+        };
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.<OrderResponse>builder()

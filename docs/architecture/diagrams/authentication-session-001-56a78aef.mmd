@@ -1,0 +1,29 @@
+sequenceDiagram
+    actor User as Người dùng
+    participant UI as web-app
+    participant GW as API Gateway
+    participant Identity as Identity Service
+    participant UserDB as Identity database
+    participant Redis as Redis
+
+    User->>UI: Nhập email và password
+    UI->>GW: POST /identity/auth/login
+    GW->>Identity: Forward REST/HTTPS
+    Identity->>UserDB: Đọc user và password hash
+    Identity->>Identity: AuthenticationManager xác thực
+    Identity->>Identity: Tạo JWT access token
+    Identity->>Redis: Lưu refresh session 14 ngày
+    Identity-->>UI: 200 accessToken + Set-Cookie refresh_token HttpOnly
+    opt Access token hết hạn
+        UI->>GW: POST /identity/auth/refresh-token + cookie
+        GW->>Identity: Forward REST/HTTPS + Origin
+        Identity->>Identity: Kiểm tra allowed origin
+        Identity->>Redis: Tìm refresh session
+        Identity->>UserDB: Đọc user/roles/authVersion
+        Identity-->>UI: 200 accessToken mới + cookie
+    end
+    User->>UI: Logout
+    UI->>GW: POST /identity/auth/logout
+    GW->>Identity: Forward REST/HTTPS
+    Identity->>Redis: Revoke access token ID và xoá refresh session
+    Identity-->>UI: 200 + clear refresh cookie

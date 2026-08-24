@@ -210,6 +210,14 @@ public class OrderServiceImpl implements OrderService {
             //Chuyển sang chờ thanh toán
             savedOrder.setStatus(OrderStatus.PENDING_PAYMENT);
             Order reservedOrder = orderRepository.save(savedOrder);
+            log.info("Order created: orderId={}, orderCode={}, userId={}, sellerId={}, itemCount={}, totalAmount={}, status={}",
+                    reservedOrder.getId(),
+                    reservedOrder.getOrderCode(),
+                    reservedOrder.getUserId(),
+                    reservedOrder.getSellerId(),
+                    reservedOrder.getItems().size(),
+                    reservedOrder.getTotalAmount(),
+                    reservedOrder.getStatus());
             //event
             publishOrderStatusUpdatedEvent(reservedOrder, oldStatus);
             publishOrderCreatedEvent(reservedOrder);
@@ -222,7 +230,10 @@ public class OrderServiceImpl implements OrderService {
                 safeReleasePromotion(savedOrder);
             }
             if (flashDealsReserved) safeReleaseFlashDeals(savedOrder);
-            savedOrder.setStatus(inventoryReserved && hasPromotion(savedOrder.getPromotionCode())
+            // Inventory is reserved first, so once that succeeded the failure came from a later
+            // promotion/flash-deal step. Reporting INVENTORY_FAILED there tells the customer the
+            // item is out of stock, which is wrong and hides the real cause.
+            savedOrder.setStatus(inventoryReserved
                     ? OrderStatus.PROMOTION_FAILED
                     : OrderStatus.INVENTORY_FAILED);
             Order failedOrder = orderRepository.save(savedOrder);
