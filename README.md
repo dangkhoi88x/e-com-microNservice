@@ -8,6 +8,36 @@ Tài liệu này bám theo mã nguồn và cấu hình hiện có trong repo. B�
 
 Xem thêm [code-flow.md](code-flow.md) để có sơ đồ luồng của các chức năng chính.
 
+## Demo giao diện khách hàng
+
+Luồng mua sắm cơ bản với dữ liệu local hiện có: trang chủ → danh mục Điện thoại → xem và chọn phiên bản sản phẩm → yêu cầu đăng nhập trước khi thêm vào giỏ.
+
+![Demo luồng mua sắm khách hàng của NovaShop](docs/demo/customer-storefront.gif)
+
+### Tìm kiếm và lọc sản phẩm
+
+Tìm theo từ khoá, chọn danh mục, chỉ hiển thị hàng còn bán và sắp xếp kết quả theo giá.
+
+![Demo tìm kiếm và lọc sản phẩm trên NovaShop](docs/demo/customer-search-filter.gif)
+
+### Ưu đãi và Hot Deal
+
+Khám phá trang ưu đãi, danh sách Hot Deal hiện có và deal theo danh mục.
+
+![Demo ưu đãi và Hot Deal trên NovaShop](docs/demo/customer-deals.gif)
+
+### Seller Center
+
+Theo dõi tổng quan cửa hàng, catalog và tình trạng tồn kho; GIF chỉ minh hoạ thao tác xem và lọc dữ liệu.
+
+![Demo Seller Center của NovaShop](docs/demo/seller-center.gif)
+
+### Admin Workspace
+
+Theo dõi Dashboard, chỉ số Analytics và catalog sản phẩm; GIF chỉ minh hoạ thao tác xem và lọc dữ liệu.
+
+![Demo Admin Workspace của NovaShop](docs/demo/admin-workspace.gif)
+
 ## Mục lục
 
 - [Kiến trúc](#kiến-trúc)
